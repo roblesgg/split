@@ -1423,6 +1423,15 @@ select.field__input { appearance: none; cursor: pointer; padding-right: var(--sp
   font-size: 13.5px;
 }
 
+.update-card__link {
+  display: inline-block;
+  margin-top: var(--sp-3);
+  font-size: 12px;
+  font-weight: var(--w-medium);
+  color: var(--accent);
+  text-decoration: underline;
+}
+
 .update-card__later {
   padding: 0 var(--sp-3);
   height: 42px;

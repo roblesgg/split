@@ -283,6 +283,11 @@
                 icon("download", 16) + 'Actualizar</button>' +
               '<button type="button" class="update-card__later" id="updateLater">Ahora no</button>' +
             '</div>' +
+            /* Enlace de verdad, no un botón: si el WebView se atragantara
+               con la descarga del botón, tocar un <a> siempre acaba en el
+               navegador del sistema. */
+            '<a class="update-card__link" href="' + esc(ui.update.page || ui.update.url) +
+               '" target="_blank" rel="noopener">¿No se descarga? Ábrela en el navegador</a>' +
           '</div>' +
         '</section>'
       : "";

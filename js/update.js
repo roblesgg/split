@@ -14,7 +14,7 @@
   /* Versión de ESTA copia de la app. Al publicar una release nueva hay
      que subirla aquí y etiquetar la release igual (vX.Y.Z), porque la
      comparación es entre este número y el tag de la última release. */
-  var VERSION = "1.1.1";
+  var VERSION = "1.1.2";
 
   var REPO = "roblesgg/split";
   var API = "https://api.github.com/repos/" + REPO + "/releases/latest";
@@ -129,7 +129,9 @@
         status: "update",
         version: String(tag).replace(/^v/i, ""),
         name: (release && release.name) || "",
-        url: (isAndroid() && apk) ? apk : RELEASES_URL
+        url: (isAndroid() && apk) ? apk : RELEASES_URL,
+        /* la página de la release, para el enlace de rescate de la tarjeta */
+        page: (release && release.html_url) || RELEASES_URL
       };
     }, function () {
       /* sin cobertura, en avión o GitHub caído: la app sigue igual */
@@ -137,13 +139,31 @@
     });
   }
 
-  /* Abrir fuera de la app. En el WebView de Capacitor una URL de otro
-     host se delega al navegador del sistema, que es quien descarga el
-     APK y se lo pasa al instalador de Android. */
+  /* Abrir fuera de la app, que es quien sabe descargar: el WebView por su
+     cuenta no tiene gestor de descargas y con un APK no haría nada.
+
+     Dentro de Capacitor hay que hacerlo con una navegación de primer
+     nivel. `window.open` NO vale: acaba en onCreateWindow, que resuelve la
+     dirección con getHitTestResult(), y eso solo devuelve algo cuando el
+     usuario ha tocado un enlace de verdad. Llamado por código devuelve una
+     ventana vacía, no se abre nada, y encima el respaldo no salta porque
+     el objeto no es nulo.
+
+     Con location.href entra por shouldOverrideUrlLoading: Capacitor ve que
+     el host no es el suyo, lanza un intent del sistema y devuelve true, así
+     que el navegador se lleva la descarga y la app se queda donde estaba. */
   function open(url) {
+    if (enCapacitor() || isAndroid()) {
+      try { location.href = url; return; } catch (e) { /* al plan B */ }
+    }
     var w = null;
     try { w = window.open(url, "_blank"); } catch (e) { /* bloqueado */ }
     if (!w) { try { location.href = url; } catch (e) {} }
+  }
+
+  function enCapacitor() {
+    return !!(window.Capacitor && typeof window.Capacitor.getPlatform === "function"
+              && window.Capacitor.getPlatform() !== "web");
   }
 
   window.Updater = {
@@ -151,6 +171,7 @@
     RELEASES_URL: RELEASES_URL,
     check: check,
     open: open,
+    enCapacitor: enCapacitor,
     dismiss: dismiss,
     isDismissed: isDismissed,
     isNewer: isNewer,
