@@ -181,7 +181,10 @@
   --sidebar-w: 244px;
   --tabbar-h: 74px;
   --topbar-h: 72px;
-  --safe-b: env(safe-area-inset-bottom, 0px);
+  /* Hueco de la barra de navegación. Lo manda MainActivity en
+     --safe-b-native, porque en el WebView de Android el env() no es de
+     fiar; fuera de ahí (iOS, navegador) manda el env() de siempre. */
+  --safe-b: var(--safe-b-native, env(safe-area-inset-bottom, 0px));
 }
 
 /* ============================================================
