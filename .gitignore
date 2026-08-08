@@ -1,0 +1,16 @@
+# Generado por el empaquetado Android
+packaging/node_modules/
+packaging/www/
+packaging/android/build/
+packaging/android/app/build/
+packaging/android/.gradle/
+packaging/android/local.properties
+packaging/android/capacitor-cordova-android-plugins/
+packaging/package-lock.json
+
+# El APK compilado
+*.apk
+
+# Sistema
+Thumbs.db
+desktop.ini

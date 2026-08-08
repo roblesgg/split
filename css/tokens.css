@@ -1,0 +1,303 @@
+/* ============================================================
+   split — tokens de diseño
+   Lenguaje: neumorfismo en escala de grises. Las piezas parecen
+   talladas en el mismo material: no hay bordes, hay dos sombras
+   enfrentadas (una oscura y una clara) que dan el relieve.
+   El color aparece en muy pocos sitios y siempre porque significa
+   algo: el anillo de progreso, la marca de pestaña activa y los
+   colores de categoría dentro de los gráficos.
+
+   Paleta de DATOS validada con validate_palette.js contra las
+   superficies reales de este tema: #ECEDF1 claro, #22242A oscuro.
+   ============================================================ */
+
+:root {
+  color-scheme: light;
+
+  /* --- superficies: casi el mismo tono, el relieve lo hace la sombra --- */
+  --page: #e7e9ee;
+  --surface-1: #ecedf1;          /* pieza elevada / superficie de gráfico */
+  --surface-2: #e4e6ec;          /* hueco, un paso por debajo */
+  --surface-3: #dcdee6;          /* pista de medidor */
+  --surface-raised: #eceef2;     /* sheet, tooltip */
+  --surface-nav: #e7e9ee;
+  --scrim: rgba(28, 30, 36, 0.42);
+
+  /* --- las dos luces del neumorfismo --- */
+  --nm-dark: rgba(158, 164, 180, 0.62);
+  --nm-light: rgba(255, 255, 255, 0.96);
+
+  --nm-out:     7px 7px 15px var(--nm-dark), -7px -7px 15px var(--nm-light);
+  --nm-out-sm:  4px 4px 9px var(--nm-dark),  -4px -4px 9px var(--nm-light);
+  --nm-out-lg: 14px 14px 30px var(--nm-dark), -12px -12px 26px var(--nm-light);
+  --nm-in:     inset 4px 4px 9px var(--nm-dark), inset -3px -3px 8px var(--nm-light);
+  --nm-in-deep: inset 7px 7px 14px var(--nm-dark), inset -5px -5px 12px var(--nm-light);
+  --nm-flat:   1px 1px 3px var(--nm-dark), -1px -1px 3px var(--nm-light);
+  /* Sombra de tarjeta: mucho mas suave que el relieve de un boton.
+     El relieve fuerte se reserva a lo que se pulsa. */
+  --card-shadow: 0 1px 2px rgba(20, 22, 29, 0.05), 0 10px 24px -12px rgba(20, 22, 29, 0.14);
+
+  /* --- tinta --- */
+  --text-primary: #16181d;
+  --text-secondary: #5a5f6e;
+  --text-muted: #8a8f9e;
+  --text-on-accent: #ffffff;
+
+  /* --- filos: casi invisibles; el relieve ya separa --- */
+  --hairline: rgba(22, 24, 29, 0.07);
+  --hairline-strong: rgba(22, 24, 29, 0.13);
+
+  /* --- botón principal: degradado de grafito, blanco y negro puro --- */
+  --btn-grad: linear-gradient(145deg, #3b3f49 0%, #191b20 100%);
+  --btn-ink: #ffffff;
+
+  /* --- el único color de marca, usado con cuentagotas --- */
+  --accent: #5b62f0;
+  --accent-hover: #4a51e8;
+  --accent-grad: linear-gradient(145deg, #7c81ff 0%, #4a51e8 100%);
+  --accent-wash: rgba(91, 98, 240, 0.1);
+  --accent-ink: #ffffff;
+  --glow-accent: 0 6px 22px rgba(91, 98, 240, 0.4);
+
+  /* --- semántica de dinero (nunca solo color: siempre con signo) --- */
+  --money-in: #05702f;
+  --money-out: var(--text-primary);
+
+  /* --- estado (reservado: siempre con icono + etiqueta) --- */
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #d03b3b;
+  --status-good-wash: rgba(12, 163, 12, 0.12);
+  --status-warning-wash: rgba(250, 178, 25, 0.16);
+  --status-critical-wash: rgba(208, 59, 59, 0.12);
+
+  /* --- cromo de gráfico --- */
+  --grid: #dcdee6;
+  --axis: #c6c9d4;
+  --chart-ink: #16181d;          /* la serie protagonista */
+  --deemphasis: #7f8494;         /* contexto; validado a >=3:1 */
+
+  /* --- categóricos (orden fijo, nunca ciclado) --- */
+  --series-1: #2a78d6;  /* azul     */
+  --series-2: #eb6834;  /* naranja  */
+  --series-3: #1baf7a;  /* aqua     */
+  --series-4: #eda100;  /* amarillo */
+  --series-5: #e87ba4;  /* magenta  */
+  --series-6: #008300;  /* verde    */
+  --series-7: #4a3aa7;  /* violeta  */
+  --series-8: #e34948;  /* rojo     */
+
+  /* --- secuencial: una sola tinta, aquí gris; 100 = cerca de cero --- */
+  --seq-100: #d8dae2;
+  --seq-200: #c2c5d0;
+  --seq-300: #a9adbb;
+  --seq-400: #8f94a4;
+  --seq-500: #6f7484;
+  --seq-600: #4d515f;
+  --seq-700: #2b2e37;
+
+  /* --- divergente en clave monocroma: tinta arriba, rojo abajo --- */
+  --div-pos: #16181d;
+  --div-neg: #d03b3b;
+  --div-mid: #dcdee6;
+
+  /* --- elevación para lo que flota (sheets, tooltips) --- */
+  --shadow-sm: var(--nm-out-sm);
+  --shadow-md: 0 10px 30px rgba(28, 30, 36, 0.14);
+  --shadow-lg: 0 24px 64px rgba(28, 30, 36, 0.26);
+
+  /* --- radios: muy generosos, es parte del lenguaje --- */
+  --r-xs: 12px;
+  --r-sm: 16px;
+  --r-md: 20px;
+  --r-lg: 26px;
+  --r-xl: 34px;
+  --r-full: 999px;
+
+  /* --- espaciado --- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 20px;
+  --sp-6: 24px;
+  --sp-7: 32px;
+  --sp-8: 40px;
+  --sp-9: 56px;
+
+  /* --- tipografía --- */
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+          "Segoe UI Variable Display", "Segoe UI", system-ui, Roboto, Inter, sans-serif;
+
+  --w-normal: 500;
+  --w-medium: 600;
+  --w-semi: 700;
+  --w-bold: 800;
+  --w-heavy: 800;
+
+  --eyebrow-size: 11px;
+  --eyebrow-track: 0.06em;
+
+  /* --- movimiento --- */
+  --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-xfast: 110ms;
+  --dur-fast: 170ms;
+  --dur-base: 260ms;
+  --dur-slow: 420ms;
+
+  /* --- métricas de layout --- */
+  --shell-max: 520px;
+  --content-max: 1280px;
+  --sidebar-w: 244px;
+  --tabbar-h: 74px;
+  --topbar-h: 72px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+
+/* ============================================================
+   Modo oscuro. En neumorfismo oscuro la luz superior es un blanco
+   muy tenue y la sombra un negro profundo; invertir los mismos
+   valores del claro no funciona, así que van elegidos aparte.
+   ============================================================ */
+
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+
+    --page: #1c1e22;
+    --surface-1: #22242a;
+    --surface-2: #1e2025;
+    --surface-3: #2b2e36;
+    --surface-raised: #24262c;
+    --surface-nav: #1c1e22;
+    --scrim: rgba(0, 0, 0, 0.66);
+
+    --nm-dark: rgba(0, 0, 0, 0.58);
+    --nm-light: rgba(255, 255, 255, 0.055);
+
+    --text-primary: #f2f3f6;
+    --text-secondary: #a5aab8;
+    --text-muted: #7d8494;
+
+    --hairline: rgba(255, 255, 255, 0.07);
+    --hairline-strong: rgba(255, 255, 255, 0.14);
+
+    /* en oscuro el botón principal es el claro: sigue siendo blanco y negro */
+    --btn-grad: linear-gradient(145deg, #f5f6f9 0%, #d7dae2 100%);
+    --btn-ink: #16181d;
+
+    --accent: #8b90ff;
+    --accent-hover: #a2a6ff;
+    --accent-grad: linear-gradient(145deg, #9ca0ff 0%, #6a70f5 100%);
+    --accent-wash: rgba(139, 144, 255, 0.16);
+    --accent-ink: #14162b;
+    --glow-accent: 0 6px 24px rgba(139, 144, 255, 0.32);
+
+    --money-in: #35c759;
+
+    --status-good-wash: rgba(53, 199, 89, 0.16);
+    --status-warning-wash: rgba(250, 178, 25, 0.16);
+    --status-critical-wash: rgba(230, 103, 103, 0.16);
+
+    --grid: #2b2e36;
+    --axis: #383c45;
+    --chart-ink: #f2f3f6;
+    --deemphasis: #8b91a0;         /* validado a >=3:1 sobre #22242A */
+
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
+    --series-6: #008300;
+    --series-7: #9085e9;
+    --series-8: #e66767;
+
+    --seq-100: #2e313a;
+    --seq-200: #3a3e49;
+    --seq-300: #4a4f5c;
+    --seq-400: #5e6472;
+    --seq-500: #767d8c;
+    --seq-600: #949aa8;
+    --seq-700: #b8bec9;
+
+    --div-pos: #f2f3f6;
+    --div-neg: #e66767;
+    --div-mid: #2b2e36;
+
+    --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 24px -12px rgba(0, 0, 0, 0.55);
+    --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.5);
+    --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.66);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --page: #1c1e22;
+  --surface-1: #22242a;
+  --surface-2: #1e2025;
+  --surface-3: #2b2e36;
+  --surface-raised: #24262c;
+  --surface-nav: #1c1e22;
+  --scrim: rgba(0, 0, 0, 0.66);
+
+  --nm-dark: rgba(0, 0, 0, 0.58);
+  --nm-light: rgba(255, 255, 255, 0.055);
+
+  --text-primary: #f2f3f6;
+  --text-secondary: #a5aab8;
+  --text-muted: #7d8494;
+
+  --hairline: rgba(255, 255, 255, 0.07);
+  --hairline-strong: rgba(255, 255, 255, 0.14);
+
+  --btn-grad: linear-gradient(145deg, #f5f6f9 0%, #d7dae2 100%);
+  --btn-ink: #16181d;
+
+  --accent: #8b90ff;
+  --accent-hover: #a2a6ff;
+  --accent-grad: linear-gradient(145deg, #9ca0ff 0%, #6a70f5 100%);
+  --accent-wash: rgba(139, 144, 255, 0.16);
+  --accent-ink: #14162b;
+  --glow-accent: 0 6px 24px rgba(139, 144, 255, 0.32);
+
+  --money-in: #35c759;
+
+  --status-good-wash: rgba(53, 199, 89, 0.16);
+  --status-warning-wash: rgba(250, 178, 25, 0.16);
+  --status-critical-wash: rgba(230, 103, 103, 0.16);
+
+  --grid: #2b2e36;
+  --axis: #383c45;
+  --chart-ink: #f2f3f6;
+  --deemphasis: #8b91a0;
+
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #199e70;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --series-6: #008300;
+  --series-7: #9085e9;
+  --series-8: #e66767;
+
+  --seq-100: #2e313a;
+  --seq-200: #3a3e49;
+  --seq-300: #4a4f5c;
+  --seq-400: #5e6472;
+  --seq-500: #767d8c;
+  --seq-600: #949aa8;
+  --seq-700: #b8bec9;
+
+  --div-pos: #f2f3f6;
+  --div-neg: #e66767;
+  --div-mid: #2b2e36;
+
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 24px -12px rgba(0, 0, 0, 0.55);
+  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.66);
+}

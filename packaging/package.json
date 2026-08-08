@@ -1,0 +1,17 @@
+{
+  "name": "split-packaging",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Envoltorio Android de split. Vive aparte para que la app siga siendo HTML/CSS/JS puro sin build.",
+  "scripts": {
+    "copiar": "node copiar-app.js",
+    "sync": "node copiar-app.js && cap sync android",
+    "apk": "node copiar-app.js && cap sync android && cd android && gradlew.bat assembleDebug"
+  },
+  "devDependencies": {
+    "@capacitor/android": "^7.0.0",
+    "@capacitor/assets": "^3.0.5",
+    "@capacitor/cli": "^7.0.0",
+    "@capacitor/core": "^7.0.0"
+  }
+}

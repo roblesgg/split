@@ -1,0 +1,458 @@
+/* ============================================================
+   split — capa de gráficos
+   Marcas finas · rejilla en hairline sólido · hueco de 2px
+   en color de superficie separando rellenos contiguos
+   ============================================================ */
+
+.chart {
+  position: relative;
+  width: 100%;
+}
+
+/* el contenedor incluye la banda del eje x: nada de scroll anidado */
+.chart__svg {
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  display: block;
+}
+
+/* --- cromo recesivo --- */
+
+.chart .grid-line {
+  stroke: var(--grid);
+  stroke-width: 1;           /* hairline sólido, nunca discontinuo */
+  shape-rendering: crispEdges;
+}
+
+.chart .axis-line {
+  stroke: var(--axis);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.chart .tick-label {
+  fill: var(--text-muted);
+  font-size: 10.5px;
+  font-weight: var(--w-medium);
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font);
+}
+
+.chart .axis-label {
+  fill: var(--text-muted);
+  font-size: 10.5px;
+  font-weight: var(--w-medium);
+  font-family: var(--font);
+}
+
+/* la etiqueta directa lleva tinta de texto, nunca el color de la serie */
+.chart .direct-label {
+  fill: var(--text-primary);
+  font-size: 11.5px;
+  font-weight: var(--w-semi);
+  letter-spacing: -0.015em;
+  font-family: var(--font);
+  paint-order: stroke;
+  stroke: var(--surface-1);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.chart .direct-label--muted { fill: var(--text-secondary); font-weight: var(--w-semi); }
+
+/* --- marcas --- */
+
+.chart .series-line {
+  fill: none;
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+/* lavado, nunca bloque saturado. Va en fill-opacity y no en opacity
+   para que la animación de entrada (que anima opacity) no lo pise. */
+.chart .series-area { fill-opacity: 0.1; }
+
+/* con degradado la opacidad ya va en los stops (0.24 → 0) */
+.chart .series-area--grad { fill-opacity: 1; }
+
+/* anillo de 2px en color de superficie sobre marcas solapadas */
+.chart .end-dot {
+  stroke: var(--surface-1);
+  stroke-width: 2;
+}
+
+.chart .col-mark {
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.chart[data-hovering="true"] .col-mark { opacity: 0.42; }
+.chart[data-hovering="true"] .col-mark[data-hot="true"] { opacity: 1; }
+
+/* --- crosshair --- */
+
+.chart .crosshair {
+  stroke: var(--axis);
+  stroke-width: 1;
+  opacity: 0;
+  transition: opacity var(--dur-xfast) linear;
+}
+
+.chart[data-hovering="true"] .crosshair { opacity: 1; }
+
+.chart .focus-dot {
+  stroke: var(--surface-1);
+  stroke-width: 2;
+  opacity: 0;
+  transition: opacity var(--dur-xfast) linear;
+}
+
+.chart[data-hovering="true"] .focus-dot { opacity: 1; }
+
+/* zona de impacto generosa, por encima del mínimo de 24px */
+.chart .hit { fill: transparent; cursor: crosshair; }
+
+/* --- animación de entrada --- */
+
+.chart .draw-in {
+  stroke-dasharray: var(--len);
+  stroke-dashoffset: var(--len);
+  animation: draw var(--dur-slow) var(--ease-ios) forwards;
+}
+
+@keyframes draw { to { stroke-dashoffset: 0; } }
+
+.chart .grow-up {
+  transform-origin: center bottom;
+  transform: scaleY(0);
+  animation: grow-y var(--dur-slow) var(--ease-ios) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes grow-y { to { transform: scaleY(1); } }
+
+.chart .fade-in {
+  opacity: 0;
+  animation: fade var(--dur-base) var(--ease-out) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes fade { to { opacity: 1; } }
+
+/* ---------- etiqueta del pico ---------- */
+
+.chart .peak__box {
+  fill: var(--accent);
+}
+
+.chart .peak__tail {
+  fill: var(--accent);
+}
+
+/* texto dentro de un relleno: blanco, el caso permitido */
+.chart .peak__text {
+  fill: #fff;
+  font-size: 11.5px;
+  font-weight: var(--w-bold);
+  letter-spacing: -0.02em;
+  font-family: var(--font);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- tooltip ---------- */
+
+.tooltip {
+  position: absolute;
+  z-index: 10;
+  min-width: 132px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-md);
+  pointer-events: none;
+  opacity: 0;
+  transform: translate3d(0, 4px, 0);
+  transition: opacity var(--dur-xfast) var(--ease-out),
+              transform var(--dur-xfast) var(--ease-out);
+}
+
+.tooltip[data-open="true"] { opacity: 1; transform: none; }
+
+.tooltip__title {
+  font-size: 11.5px;
+  font-weight: var(--w-semi);
+  color: var(--text-secondary);
+  letter-spacing: -0.005em;
+  margin-bottom: 6px;
+}
+
+.tooltip__row {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 12.5px;
+  letter-spacing: -0.01em;
+}
+
+.tooltip__row + .tooltip__row { margin-top: 4px; }
+
+.tooltip__key {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.tooltip__name { flex: 1; color: var(--text-secondary); white-space: nowrap; }
+
+.tooltip__val {
+  font-weight: var(--w-semi);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+/* ---------- leyenda (siempre presente con 2+ series) ---------- */
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-4);
+  margin-top: var(--sp-3);
+}
+
+.legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: var(--w-medium);
+  color: var(--text-secondary);
+  letter-spacing: -0.005em;
+}
+
+.legend__key {
+  flex: none;
+  width: 12px;
+  height: 3px;
+  border-radius: var(--r-full);
+}
+
+.legend__key--swatch { width: 10px; height: 10px; border-radius: 3px; }
+
+/* ---------- barra apilada horizontal ---------- */
+
+.stackbar {
+  display: flex;
+  width: 100%;
+  height: 14px;
+  gap: 2px;                  /* hueco de superficie entre segmentos */
+  margin-bottom: var(--sp-4);
+  padding: 3px;
+  border-radius: var(--r-full);
+  background: var(--surface-3);
+}
+
+.stackbar__seg {
+  height: 100%;
+  min-width: 3px;
+  transition: transform var(--dur-fast) var(--ease-out),
+              opacity var(--dur-fast) var(--ease-out);
+  transform-origin: center;
+  animation: seg-in var(--dur-slow) var(--ease-ios) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+.stackbar__seg { border-radius: var(--r-full); }
+
+.stackbar:hover .stackbar__seg { opacity: 0.45; }
+.stackbar .stackbar__seg:hover { opacity: 1; transform: scaleY(1.35); }
+
+@keyframes seg-in {
+  from { transform: scaleX(0); opacity: 0; }
+  to   { transform: scaleX(1); opacity: 1; }
+}
+
+/* ---------- ranking de categorías ---------- */
+
+.rank { display: flex; flex-direction: column; gap: var(--sp-4); }
+
+.rank__item { display: block; width: 100%; text-align: left; }
+
+.rank__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-bottom: 6px;
+}
+
+.rank__dot {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+}
+
+.rank__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: var(--w-medium);
+  letter-spacing: -0.012em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rank__val {
+  font-size: 13.5px;
+  font-weight: var(--w-semi);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.rank__pct {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 34px;
+  text-align: right;
+}
+
+.rank__track {
+  height: 8px;
+  border-radius: var(--r-full);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.rank__fill {
+  height: 100%;
+  border-radius: var(--r-full);
+  transform-origin: left center;
+  transform: scaleX(0);
+  animation: meter-grow var(--dur-slow) var(--ease-ios) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+
+/* ---------- heatmap ---------- */
+
+.heat {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;                  /* separación por hueco, no por borde */
+}
+
+.heat__dow {
+  font-size: 10px;
+  font-weight: var(--w-semi);
+  color: var(--text-muted);
+  text-align: center;
+  padding-bottom: 2px;
+}
+
+.heat__cell {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 7px;
+  background: var(--surface-3);
+  transition: transform var(--dur-fast) var(--ease-spring);
+  animation: fade var(--dur-base) var(--ease-out) both;
+  animation-delay: var(--delay, 0ms);
+}
+
+.heat__cell[data-has="true"]:hover { transform: scale(1.18); z-index: 2; }
+.heat__cell--pad { background: transparent; }
+
+.heat-scale {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--sp-3);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.heat-scale__steps { display: flex; gap: 3px; }
+
+.heat-scale__step {
+  width: 15px;
+  height: 11px;
+  border-radius: 4px;
+}
+
+/* ---------- vista tabla (gemela accesible de cada gráfico) ---------- */
+
+.table-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: var(--sp-3);
+  font-size: 12px;
+  font-weight: var(--w-semi);
+  color: var(--text-secondary);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.table-toggle:hover { color: var(--text-primary); }
+
+.table-toggle__chev {
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.table-toggle[aria-expanded="true"] .table-toggle__chev { transform: rotate(180deg); }
+
+.data-table-wrap {
+  display: none;
+  margin-top: var(--sp-3);
+  max-height: 260px;
+  overflow: auto;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+}
+
+.data-table-wrap[data-open="true"] {
+  display: block;
+  animation: fade var(--dur-base) var(--ease-out) both;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.data-table th,
+.data-table td {
+  padding: 7px 10px;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.data-table th:first-child,
+.data-table td:first-child { text-align: left; }
+
+.data-table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-2);
+  backdrop-filter: none;
+  color: var(--text-secondary);
+  font-weight: var(--w-semi);
+  box-shadow: inset 0 -1px 0 var(--hairline);
+}
+
+.data-table tbody tr + tr td { box-shadow: inset 0 1px 0 var(--hairline); }
+.data-table tbody td { color: var(--text-primary); }
+
+/* ---------- nota bajo un gráfico ---------- */
+
+.chart-note {
+  margin-top: var(--sp-3);
+  font-size: 11.5px;
+  color: var(--text-muted);
+  letter-spacing: -0.005em;
+  line-height: 1.45;
+}

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Mismos tonos que los tokens de la app en modo oscuro -->
+    <color name="colorPrimary">#F2F3F6</color>
+    <color name="colorPrimaryDark">#1C1E22</color>
+    <color name="colorAccent">#8B90FF</color>
+    <color name="splitPage">#1C1E22</color>
+    <color name="splitInk">#F2F3F6</color>
+</resources>

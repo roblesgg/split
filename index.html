@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=5">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="split — control de gastos, ingresos y reparto del sueldo.">
+  <meta name="theme-color" content="#f6f6f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0a0a0b" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>split</title>
+
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/base.css">
+  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/charts.css">
+  <link rel="stylesheet" href="css/screens.css">
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- ============ barra lateral (escritorio) ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <span class="brand__mark">s</span>
+      <span class="brand__name">split</span>
+    </div>
+
+    <nav class="sidenav" id="sidenav" aria-label="Secciones">
+      <button type="button" class="navitem" data-view="inicio" aria-selected="true">
+        <span class="navitem__icon" data-icon="home" data-icon-size="18"></span>
+        <span>Resumen</span>
+      </button>
+      <button type="button" class="navitem" data-view="movs" aria-selected="false">
+        <span class="navitem__icon" data-icon="list" data-icon-size="18"></span>
+        <span>Movimientos</span>
+      </button>
+      <button type="button" class="navitem" data-view="analisis" aria-selected="false">
+        <span class="navitem__icon" data-icon="chart" data-icon-size="18"></span>
+        <span>Análisis</span>
+      </button>
+      <button type="button" class="navitem" data-view="ahorro" aria-selected="false">
+        <span class="navitem__icon" data-icon="piggy" data-icon-size="18"></span>
+        <span>Planes</span>
+      </button>
+    </nav>
+
+    <button type="button" class="btn btn--primary sidebar__add" data-add>
+      <span data-icon="plus" data-icon-size="17"></span>
+      <span>Nuevo movimiento</span>
+    </button>
+
+    <div class="sidebar__spacer"></div>
+
+    <div class="sidebar__foot">
+      <button type="button" class="navitem" data-view="ajustes" aria-selected="false">
+        <span class="navitem__icon" data-icon="gear" data-icon-size="18"></span>
+        <span>Ajustes</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ============ contenido ============ -->
+  <div class="frame">
+    <header class="topbar" id="topbar">
+      <button type="button" class="avatar" data-view="ajustes" aria-label="Tu perfil y ajustes"
+              data-icon="user" data-icon-size="20"></button>
+      <div class="topbar__titles">
+        <p class="topbar__eyebrow" id="topbarEyebrow">Resumen</p>
+        <h1 class="topbar__title" id="topbarTitle">Resumen</h1>
+      </div>
+      <div class="topbar__actions">
+        <button type="button" class="icon-btn" id="themeBtn" aria-label="Cambiar tema"></button>
+        <button type="button" class="icon-btn" id="settingsBtn" aria-label="Ajustes"
+                data-icon="gear" data-icon-size="18"></button>
+      </div>
+    </header>
+
+    <main class="viewport">
+      <div class="scroll-area" id="scrollArea">
+        <div class="scroll-inner">
+          <section class="view" id="view-inicio"   data-active="true"  aria-label="Resumen"></section>
+          <section class="view" id="view-movs"     data-active="false" aria-label="Movimientos"></section>
+          <section class="view" id="view-analisis" data-active="false" aria-label="Análisis"></section>
+          <section class="view" id="view-ahorro"   data-active="false" aria-label="Ahorro"></section>
+          <section class="view" id="view-ajustes"  data-active="false" aria-label="Ajustes"></section>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ tab bar (móvil) ============ -->
+  <nav class="tabbar" id="tabbar" role="tablist" aria-label="Secciones">
+    <button type="button" class="tab" role="tab" data-view="inicio" aria-selected="true">
+      <span class="tab__icon" data-icon="home" data-icon-size="21"></span>
+      <span class="tab__label">Resumen</span>
+    </button>
+
+    <button type="button" class="tab" role="tab" data-view="movs" aria-selected="false">
+      <span class="tab__icon" data-icon="list" data-icon-size="21"></span>
+      <span class="tab__label">Movim.</span>
+    </button>
+
+    <button type="button" class="tab tab--add" data-add aria-label="Nuevo movimiento">
+      <span class="fab" data-icon="plus" data-icon-size="20"></span>
+    </button>
+
+    <button type="button" class="tab" role="tab" data-view="analisis" aria-selected="false">
+      <span class="tab__icon" data-icon="chart" data-icon-size="21"></span>
+      <span class="tab__label">Análisis</span>
+    </button>
+
+    <button type="button" class="tab" role="tab" data-view="ahorro" aria-selected="false">
+      <span class="tab__icon" data-icon="piggy" data-icon-size="21"></span>
+      <span class="tab__label">Planes</span>
+    </button>
+  </nav>
+
+  <!-- ============ capa modal ============ -->
+  <div class="scrim" id="scrim" data-open="false"></div>
+
+  <div class="sheet" id="sheetAdd" data-open="false" role="dialog" aria-modal="true"
+       aria-labelledby="sheetAddTitle" aria-hidden="true">
+    <div class="sheet__grabber" aria-hidden="true"></div>
+    <div class="sheet__head">
+      <h2 class="sheet__title" id="sheetAddTitle">Nuevo movimiento</h2>
+      <button type="button" class="icon-btn" data-sheet-close aria-label="Cerrar"
+              data-icon="close" data-icon-size="16"></button>
+    </div>
+    <div class="sheet__body" id="sheetAddBody"></div>
+  </div>
+
+  <div class="sheet" id="sheetDetail" data-open="false" role="dialog" aria-modal="true"
+       aria-labelledby="sheetDetailTitle" aria-hidden="true">
+    <div class="sheet__grabber" aria-hidden="true"></div>
+    <div class="sheet__head">
+      <h2 class="sheet__title" id="sheetDetailTitle">Movimiento</h2>
+      <button type="button" class="icon-btn" data-sheet-close aria-label="Cerrar"
+              data-icon="close" data-icon-size="16"></button>
+    </div>
+    <div class="sheet__body" id="sheetDetailBody"></div>
+  </div>
+
+  <!-- formulario genérico: cuentas, metas y programados -->
+  <div class="sheet" id="sheetForm" data-open="false" role="dialog" aria-modal="true"
+       aria-labelledby="sheetFormTitle" aria-hidden="true">
+    <div class="sheet__grabber" aria-hidden="true"></div>
+    <div class="sheet__head">
+      <h2 class="sheet__title" id="sheetFormTitle">Editar</h2>
+      <button type="button" class="icon-btn" data-sheet-close aria-label="Cerrar"
+              data-icon="close" data-icon-size="16"></button>
+    </div>
+    <div class="sheet__body" id="sheetFormBody"></div>
+  </div>
+
+  <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+</div>
+
+<script src="js/store.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

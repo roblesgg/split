@@ -1,0 +1,12 @@
+{
+  "appId": "com.roblesgg.split",
+  "appName": "split",
+  "webDir": "www",
+  "android": {
+    "allowMixedContent": false,
+    "backgroundColor": "#e7e9ee"
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}
