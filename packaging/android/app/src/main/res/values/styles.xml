@@ -16,6 +16,13 @@
         <item name="android:background">@color/splitPage</item>
         <item name="android:statusBarColor">@color/splitPage</item>
         <item name="android:navigationBarColor">@color/splitPage</item>
+                <!-- Desde Android 15 (SDK 35) el sistema fuerza el modo
+             edge-to-edge e IGNORA statusBarColor y navigationBarColor:
+             las barras salen transparentes y, sin nada que las pinte, se
+             ven negras. Esto recupera el comportamiento de siempre. Deja
+             de valer si algún día se apunta a SDK 36, y entonces habrá que
+             pasar los insets del sistema al CSS (env(safe-area-inset-*)). -->
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowLightNavigationBar">true</item>
     </style>
@@ -24,6 +31,13 @@
         <item name="android:background">@drawable/splash</item>
         <item name="android:statusBarColor">@color/splitPage</item>
         <item name="android:navigationBarColor">@color/splitPage</item>
+                <!-- Desde Android 15 (SDK 35) el sistema fuerza el modo
+             edge-to-edge e IGNORA statusBarColor y navigationBarColor:
+             las barras salen transparentes y, sin nada que las pinte, se
+             ven negras. Esto recupera el comportamiento de siempre. Deja
+             de valer si algún día se apunta a SDK 36, y entonces habrá que
+             pasar los insets del sistema al CSS (env(safe-area-inset-*)). -->
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowLightNavigationBar">true</item>
     </style>

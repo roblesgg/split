@@ -282,27 +282,24 @@ svg { display: block; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
   height: 100%;
   color: var(--text-muted);
   transition: color var(--dur-fast) var(--ease-out);
 }
 
-.tab__label {
-  font-size: 10px;
-  font-weight: var(--w-semi);
-  letter-spacing: -0.005em;
-}
+/* Sin etiquetas: cinco pestañas con texto se apretaban en pantallas
+   estrechas. El icono manda, y el nombre se lo queda el aria-label del
+   botón, así que un lector de pantalla lo sigue anunciando igual. */
+.tab[data-view] { padding-bottom: 11px; }
 
 .tab[aria-selected="true"] { color: var(--text-primary); }
 
-/* Punto de acento sobre la pestaña activa: uno de los pocos toques de
-   color. Va arriba para no comerse la etiqueta, que se queda siempre
-   visible en todas las pestañas. */
+/* Punto de acento de la pestaña activa: uno de los pocos toques de color
+   de la app. Ahora va debajo del icono, en el hueco que dejó el texto. */
 .tab[data-view]::after {
   content: "";
   position: absolute;
-  top: 9px;
+  bottom: 15px;
   width: 5px;
   height: 5px;
   border-radius: var(--r-full);
@@ -315,7 +312,6 @@ svg { display: block; }
 }
 
 .tab[aria-selected="true"]::after { opacity: 1; transform: none; }
-.tab[aria-selected="true"] .tab__label { font-weight: var(--w-bold); }
 
 /* botón central: sobresale del carril, con el único brillo de color */
 .tab--add {
