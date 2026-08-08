@@ -313,7 +313,7 @@
   function defaultState() {
     var today = ymd(new Date());
     return {
-      version: 6,
+      version: 7,
       createdAt: today,
       categories: cloneCategories(),
       tags: [],
@@ -330,10 +330,10 @@
          que ya existen; a partir del mes siguiente se apuntan solos. */
       recurring: seedRecurring(monthKey(today)),
       accounts: [
-        { id: "banco",  name: "Cuenta corriente", type: "Banco",    slot: 1, icon: "wallet", opening: 640 },
+        { id: "banco",  name: "Cuenta corriente", type: "Banco",  slot: 1, color: 1,  icon: "wallet", opening: 640 },
         /* cuadra con lo acumulado en las metas de ahorro */
-        { id: "ahorro", name: "Hucha",            type: "Ahorro",   slot: 3, icon: "piggy",  opening: 3370 },
-        { id: "efvo",   name: "Efectivo",         type: "Efectivo", slot: 4, icon: "cash",   opening: 60 }
+        { id: "ahorro", name: "Hucha",     type: "Ahorro",   slot: 3, color: 3,  icon: "piggy",  opening: 3370 },
+        { id: "efvo",   name: "Efectivo",  type: "Efectivo", slot: 4, color: 15, icon: "cash",   opening: 60 }
       ],
       goals: [
         { id: "g1", name: "Colchón de emergencia", target: 6000, saved: 2340, monthly: 200 },
@@ -351,7 +351,7 @@
   function freshState() {
     var today = ymd(new Date());
     return {
-      version: 6,
+      version: 7,
       createdAt: today,
       categories: cloneCategories(),
       tags: [],
@@ -359,7 +359,7 @@
       allocation: Object.assign({}, DEFAULT_ALLOCATION),
       recurring: [],
       accounts: [
-        { id: "banco", name: "Banco", type: "Banco", slot: 1, icon: "wallet", opening: 0 }
+        { id: "banco", name: "Banco", type: "Banco", slot: 1, color: 1, icon: "wallet", opening: 0 }
       ],
       goals: [],
       transactions: []
@@ -480,6 +480,17 @@
          sin hora y sin nada colgando. */
       if (!Array.isArray(s.tags)) s.tags = [];
       s.version = 6;
+    }
+
+    if (s.version < 7) {
+      /* v7 pinta las tarjetas de cuenta con un color propio en vez del
+         degradado del tema, que en oscuro salía blanco. Se hereda del slot
+         viejo para que nadie vea cambiar de color su cuenta. */
+      var SLOT_A_COLOR = { 1: 1, 2: 13, 3: 3, 4: 5, 5: 11, 6: 15, 7: 9, 8: 7 };
+      (s.accounts || []).forEach(function (a, i) {
+        if (a.color == null) a.color = SLOT_A_COLOR[a.slot] || (((i * 5) % 16) + 1);
+      });
+      s.version = 7;
     }
 
     invalidateCats();
@@ -648,6 +659,10 @@
       type: (data.type || "Banco").trim(),
       icon: data.icon || "wallet",
       slot: ((state.accounts.length) % 8) + 1,
+      /* si no se elige, va rotando por la paleta para que dos cuentas
+         seguidas no salgan del mismo color */
+      color: normalizeColor(data.color != null
+        ? data.color : ((state.accounts.length * 5) % CAT_COLORS) + 1),
       opening: Math.round((+data.opening || 0) * 100) / 100
     };
     state.accounts.push(acc);
@@ -661,6 +676,7 @@
     if (patch.name != null) a.name = String(patch.name).trim() || a.name;
     if (patch.type != null) a.type = String(patch.type).trim() || a.type;
     if (patch.icon != null) a.icon = patch.icon;
+    if (patch.color != null) a.color = normalizeColor(patch.color);
     if (patch.opening != null) a.opening = Math.round((+patch.opening || 0) * 100) / 100;
     save();
     return a;

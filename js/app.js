@@ -145,8 +145,10 @@
       '<div class="cards">' +
         '<div class="cards__track" id="cardsTrack">' +
           accounts.map(function (a, i) {
-            return '<article class="paycard' + (i === 0 ? " paycard--primary" : "") +
-                   '" data-card="' + i + '">' +
+            /* cada tarjeta con el color de su cuenta; ya no hay una
+               "principal" distinta, todas se ven como tarjetas */
+            return '<article class="paycard" data-card="' + i + '" ' +
+                   'style="--acc-color:' + S.catColorVar(a) + '">' +
                 '<div class="paycard__top">' +
                   '<span class="paycard__dots">' +
                     '<i></i><i></i><i></i><i></i>' + esc(a.name) +
@@ -161,7 +163,7 @@
                   '<span class="paycard__label">' +
                     (i === 0
                       ? esc(S.signed(cur.net)) + " en " + esc(monthName(curKey))
-                      : esc(money(S.accountBalance(a.id))) + " disponibles") +
+                      : esc(a.type)) +
                   '</span>' +
                   '<span class="paycard__mark" aria-hidden="true"><span></span><span></span></span>' +
                 '</div>' +
@@ -1074,8 +1076,11 @@
              : { name: "", emoji: "🏷️", color: 1,
                  kind: (opts && opts.kind === "in") ? "in" : "out" };
     } else if (type === "account") {
-      d = it ? { name: it.name, type: it.type, opening: it.opening, icon: it.icon || "wallet" }
-             : { name: "", type: "Banco", opening: 0, icon: "wallet" };
+      d = it
+        ? { name: it.name, type: it.type, opening: it.opening,
+            icon: it.icon || "wallet", color: it.color || 1 }
+        : { name: "", type: "Banco", opening: 0, icon: "wallet",
+            color: ((S.state.accounts.length * 5) % S.CAT_COLORS) + 1 };
     } else if (type === "goal") {
       d = it ? { name: it.name, target: it.target, saved: it.saved, monthly: it.monthly }
              : { name: "", target: "", saved: 0, monthly: "" };
@@ -1220,8 +1225,29 @@
                 '</button>';
             }).join("") +
           '</div>' +
-          '' +
-            '' +
+        '</div>' +
+
+        '<div class="field">' +
+          '<span class="field__label">Color de la tarjeta</span>' +
+          '<div class="card-preview" id="fCardPreview" ' +
+               'style="--acc-color:var(--cat-' + d.color + ')">' +
+            '<span class="card-preview__name" id="fCardName">' +
+              esc(d.name || "Tu cuenta") + '</span>' +
+            '<span class="card-preview__mark" aria-hidden="true">' +
+              '<span></span><span></span></span>' +
+          '</div>' +
+          '<div class="swatch-grid" style="margin-top:var(--sp-3)">' +
+            (function () {
+              var out = [];
+              for (var n = 1; n <= S.CAT_COLORS; n++) {
+                out.push('<button type="button" class="swatch" data-pcolor="' + n + '" ' +
+                           'style="background:var(--cat-' + n + ')" ' +
+                           'aria-pressed="' + (n === d.color) + '" ' +
+                           'aria-label="Color ' + n + '"></button>');
+              }
+              return out.join("");
+            })() +
+          '</div>' +
         '</div>';
     }
 
@@ -1345,6 +1371,15 @@
     face.style.setProperty("--cat-color", "var(--cat-" + form.d.color + ")");
     var nameEl = $("#fPreviewName");
     if (nameEl) nameEl.textContent = String(form.d.name || "").trim() || "Sin nombre";
+  }
+
+  /* vista previa de la tarjeta en el formulario de cuenta */
+  function refreshCardPreview() {
+    var box = $("#fCardPreview");
+    if (!box) return;
+    box.style.setProperty("--acc-color", "var(--cat-" + form.d.color + ")");
+    var nombre = $("#fCardName");
+    if (nombre) nombre.textContent = String(form.d.name || "").trim() || "Tu cuenta";
   }
 
   function saveForm() {
@@ -2377,6 +2412,7 @@
     formBody.addEventListener("input", function (e) {
       if (!readField(e.target)) return;
       if (form.type === "category") refreshCatPreview();
+      if (form.type === "account") refreshCardPreview();
     });
 
     formBody.addEventListener("change", function (e) {
@@ -2419,6 +2455,7 @@
           b.setAttribute("aria-pressed", String(b === node));
         });
         refreshCatPreview();
+        refreshCardPreview();
         U.haptic("light");
         return;
       }

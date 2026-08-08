@@ -14,7 +14,7 @@
   /* Versión de ESTA copia de la app. Al publicar una release nueva hay
      que subirla aquí y etiquetar la release igual (vX.Y.Z), porque la
      comparación es entre este número y el tag de la última release. */
-  var VERSION = "1.1.2";
+  var VERSION = "1.2.0";
 
   var REPO = "roblesgg/split";
   var API = "https://api.github.com/repos/" + REPO + "/releases/latest";

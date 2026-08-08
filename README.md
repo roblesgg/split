@@ -155,6 +155,12 @@ Una cuenta **no se puede borrar si tiene movimientos**: dejaría importes
 huérfanos y descuadraría el saldo total, así que la app avisa de cuántos hay en
 lugar de borrar a ciegas. Tampoco deja quedarse sin ninguna cuenta.
 
+Cada cuenta lleva **su color**, de la misma paleta de 16 que las categorías, y
+se ve como una tarjeta en el carrusel del Resumen. El color va mezclado con
+tinta oscura antes de pintarlo (60 % y 38 % en los dos extremos del degradado)
+para que el texto blanco pase de 4,5:1 sobre los dieciséis tonos, incluidos los
+claros como el amarillo.
+
 ## En el móvil
 
 El APK está en la [última release](https://github.com/roblesgg/split/releases/latest).
