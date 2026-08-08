@@ -46,10 +46,15 @@ jobs:
           if [ -n "$ENTRADA" ]; then
             V="$ENTRADA"
           else
-            V="${RAMA#publicar/v}"
+            # Se admite lo que sea detrás de la versión (publicar/v1.1.0-r2).
+            # Hay entornos donde no se pueden borrar ramas, así que para
+            # relanzar una publicación hay que poder estrenar nombre.
+            V=$(printf '%s' "$RAMA" \
+                | grep -oE '^publicar/v[0-9]+\.[0-9]+\.[0-9]+' \
+                | sed 's|^publicar/v||')
           fi
           if ! printf '%s' "$V" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "::error::Versión no reconocida: '$V'. Se espera X.Y.Z."
+            echo "::error::No se saca la versión de '$RAMA'. Se espera publicar/vX.Y.Z."
             exit 1
           fi
           echo "version=$V" >> "$GITHUB_OUTPUT"
