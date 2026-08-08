@@ -52,7 +52,17 @@
   function money(v) { return S.money(v); }
   function selectedMonth() { return S.addMonths(S.currentMonthKey(), -ui.monthOffset); }
   function movsMonth() { return S.addMonths(S.currentMonthKey(), -ui.movsMonthOffset); }
-  function catOf(id) { return S.CAT_BY_ID[id] || S.CAT_BY_ID.otros; }
+  function catOf(id) { return S.catById(id); }
+
+  /* Emoji de la categoría sobre un fondo teñido con su color. Sustituye al
+     icono SVG: el emoji lo elige el usuario y el color separa de un vistazo.
+     El nombre siempre viaja al lado, así que el color nunca es el único
+     canal que lleva el dato. */
+  function catFace(cat, size, cls) {
+    return '<span class="' + (cls ? cls + " " : "") + 'cat-face" ' +
+           'style="--cat-color:' + S.catColorVar(cat) + ';font-size:' + (size || 18) + 'px" ' +
+           'aria-hidden="true">' + esc(cat.emoji || "\uD83D\uDCE6") + '</span>';
+  }
   function isDesktop() { return window.matchMedia("(min-width: 900px)").matches; }
 
   function seriesEnding(endKey, n) {
@@ -102,7 +112,8 @@
       return {
         id: id,
         name: catOf(id).name,
-        slot: catOf(id).slot,
+        emoji: catOf(id).emoji,
+        color: catOf(id).color,
         pct: S.state.allocation[id],
         limit: limit,
         spent: spent[id] || 0,
@@ -212,8 +223,7 @@
           '<div class="tiles">' +
             topCats.map(function (c) {
               return '<button type="button" class="tile" data-goto="analisis">' +
-                  '<span class="tile__icon" data-icon="' + c.icon +
-                        '" data-icon-size="19"></span>' +
+                  catFace(c, 19, "tile__icon") +
                   '<span>' +
                     '<span class="tile__name">' + esc(c.name) + '</span>' +
                     '<span class="tile__value">' + esc(S.moneyShort(c.value)) + '</span>' +
@@ -240,9 +250,9 @@
             var sign = r.kind === "in" ? "+" : r.kind === "transfer" ? "" : "−";
             return '<button type="button" class="account" data-form="recurring" ' +
                     'data-form-id="' + esc(r.id) + '" style="width:100%;text-align:left">' +
-                '<span class="account__badge" data-icon="' +
-                  (r.kind === "transfer" ? "swap" : catOf(r.categoryId).icon) +
-                  '" data-icon-size="17"></span>' +
+                (r.kind === "transfer"
+                  ? '<span class="account__badge" data-icon="swap" data-icon-size="17"></span>'
+                  : catFace(catOf(r.categoryId), 17, "account__badge")) +
                 '<span class="account__body">' +
                   '<span class="account__name">' + esc(r.note) + '</span>' +
                   '<span class="account__type">' +
@@ -373,12 +383,12 @@
     /* el relleno lleva la severidad; el color de la partida cuando va bien */
     var fill = over ? "var(--status-critical)"
              : near ? "var(--status-warning)"
-             : C.seriesColor(b.slot);
+             : S.catColorVar(b);
     return '' +
       '<div class="meter">' +
         '<div class="meter__head">' +
           '<span class="meter__dot" style="background:' + fill + '"></span>' +
-          '<span class="meter__label">' + esc(b.name) + '</span>' +
+          '<span class="meter__label">' + esc(b.emoji || "") + ' ' + esc(b.name) + '</span>' +
           '<span class="meter__value">' + esc(S.moneyShort(b.spent)) + ' / ' +
             esc(S.moneyShort(b.limit)) + '</span>' +
         '</div>' +
@@ -421,12 +431,11 @@
             esc(money(t.amount)) + '</span>' +
         '</button>';
     }
-    /* avatar de letra hundido en el material; la categoría se lee en
-       la línea de abajo, no hace falta color aquí */
-    var letter = (t.note || cat.name).trim().charAt(0).toUpperCase();
+    /* el emoji de la categoría hundido en el material, teñido con su
+       color; el nombre de la categoría sigue leyéndose en la línea de abajo */
     return '' +
       '<button type="button" class="row" data-tx="' + esc(t.id) + '">' +
-        '<span class="avatar-letter">' + esc(letter) + '</span>' +
+        catFace(cat, 18, "avatar-letter") +
         '<span class="row__body">' +
           '<span class="row__title">' + esc(t.note) + '</span>' +
           '<span class="row__meta">' + esc(cat.name) + ' · ' + esc(S.relDayLabel(t.date)) + '</span>' +
@@ -650,7 +659,7 @@
               return '<div class="rank__item">' +
                 '<div class="rank__head">' +
                   '<span class="rank__dot" style="background:' +
-                    C.seriesColor(catOf(m.categoryId).slot) + '"></span>' +
+                    S.catColorVar(catOf(m.categoryId)) + '"></span>' +
                   '<span class="rank__name">' + esc(m.name) + '</span>' +
                   '<span class="rank__val">' + esc(money(m.value)) + '</span>' +
                   '<span class="rank__pct">' + m.count + '×</span>' +
@@ -658,7 +667,7 @@
                 '<div class="rank__track">' +
                   '<div class="rank__fill" style="width:' +
                     ((m.value / merchants[0].value) * 100).toFixed(1) + '%;background:' +
-                    C.seriesColor(catOf(m.categoryId).slot) + ';--delay:' + (i * 45 + 60) + 'ms"></div>' +
+                    S.catColorVar(catOf(m.categoryId)) + ';--delay:' + (i * 45 + 60) + 'ms"></div>' +
                 '</div>' +
               '</div>';
             }).join("") + '</div>'
@@ -966,9 +975,9 @@
               var due = S.nextDue(r);
               var sign = r.kind === "in" ? "+" : r.kind === "transfer" ? "" : "−";
               return '<div class="account"' + (r.active ? "" : ' style="opacity:.5"') + '>' +
-                  '<span class="account__badge" data-icon="' +
-                    (r.kind === "transfer" ? "swap" : catOf(r.categoryId).icon) +
-                    '" data-icon-size="17"></span>' +
+                  (r.kind === "transfer"
+                    ? '<span class="account__badge" data-icon="swap" data-icon-size="17"></span>'
+                    : catFace(catOf(r.categoryId), 17, "account__badge")) +
                   '<button type="button" class="account__body" data-form="recurring" ' +
                           'data-form-id="' + esc(r.id) + '" style="text-align:left">' +
                     '<span class="account__name">' + esc(r.note) + '</span>' +
@@ -1050,12 +1059,16 @@
      cambiar el tipo de un programado, que cambia qué campos existen). */
   var form = null;   /* { type, id, d } */
 
-  function openForm(type, id) {
+  function openForm(type, id, opts) {
     var it = id ? findFor(type, id) : null;
     var accs = S.state.accounts;
     var d;
 
-    if (type === "account") {
+    if (type === "category") {
+      d = it ? { name: it.name, emoji: it.emoji, color: it.color, kind: it.kind }
+             : { name: "", emoji: "🏷️", color: 1,
+                 kind: (opts && opts.kind === "in") ? "in" : "out" };
+    } else if (type === "account") {
       d = it ? { name: it.name, type: it.type, opening: it.opening, icon: it.icon || "wallet" }
              : { name: "", type: "Banco", opening: 0, icon: "wallet" };
     } else if (type === "goal") {
@@ -1075,7 +1088,8 @@
     $("#sheetFormTitle").textContent = {
       account: id ? "Editar cuenta" : "Nueva cuenta",
       goal: id ? "Editar meta" : "Nueva meta",
-      recurring: id ? "Editar programado" : "Nuevo programado"
+      recurring: id ? "Editar programado" : "Nuevo programado",
+      category: id ? "Editar categoría" : "Nueva categoría"
     }[type] || "Editar";
 
     renderForm();
@@ -1083,6 +1097,7 @@
   }
 
   function findFor(type, id) {
+    if (type === "category") return S.state.categories.find(function (x) { return x.id === id; });
     if (type === "account") return S.state.accounts.find(function (x) { return x.id === id; });
     if (type === "goal") return S.state.goals.find(function (x) { return x.id === id; });
     return (S.state.recurring || []).find(function (x) { return x.id === id; });
@@ -1100,10 +1115,77 @@
       '</div>';
   }
 
+  /* Un puñado de emojis a mano para escritorio, donde no hay teclado de
+     emoji. En el móvil el campo de texto abre el del sistema y hay todos. */
+  var EMOJI_SUGERIDOS = [
+    "🍽️", "🛒", "☕", "🍺", "⛽", "🚗", "🚌", "✈️",
+    "🏠", "💡", "📶", "🛍️", "👕", "🎬", "🎮", "🎁",
+    "💊", "🏥", "🏋️", "📚", "🐶", "🧾", "🔧", "💼",
+    "💰", "🏦", "📈", "🎓", "✂️", "🧼", "🍼", "🏷️"
+  ];
+
   function renderForm() {
     var body = $("#sheetFormBody");
     var t = form.type, d = form.d;
     var html = "";
+
+    if (t === "category") {
+      var colores = [];
+      for (var ci = 1; ci <= S.CAT_COLORS; ci++) colores.push(ci);
+
+      html =
+        (form.id
+          ? ""
+          : '<div class="segmented" id="fSeg" role="tablist">' +
+              '<span class="segmented__thumb" id="fThumb" aria-hidden="true"></span>' +
+              '<button type="button" class="segmented__btn" role="tab" data-fkind="out" ' +
+                      'aria-selected="' + (d.kind === "out") + '">Gasto</button>' +
+              '<button type="button" class="segmented__btn" role="tab" data-fkind="in" ' +
+                      'aria-selected="' + (d.kind === "in") + '">Ingreso</button>' +
+            '</div>') +
+
+        '<div class="field">' +
+          '<span class="field__label">Así se verá</span>' +
+          '<div class="cat-preview">' +
+            '<span class="cat-preview__face cat-face" id="fPreview" ' +
+                  'style="--cat-color:var(--cat-' + d.color + ')" aria-hidden="true">' +
+              esc(d.emoji) + '</span>' +
+            '<span class="cat-preview__name" id="fPreviewName">' +
+              esc(d.name || "Sin nombre") + '</span>' +
+          '</div>' +
+        '</div>' +
+
+        '<div class="field">' +
+          '<label class="field__label" for="fName">Nombre</label>' +
+          '<input type="text" class="field__input" id="fName" data-f="Name" maxlength="24" ' +
+                 'placeholder="Gasolina" value="' + esc(d.name) + '">' +
+        '</div>' +
+
+        '<div class="field">' +
+          '<label class="field__label" for="fEmoji">Emoji</label>' +
+          '<input type="text" class="field__input" id="fEmoji" data-f="Emoji" ' +
+                 'maxlength="8" autocomplete="off" value="' + esc(d.emoji) + '">' +
+          '<div class="emoji-grid">' +
+            EMOJI_SUGERIDOS.map(function (e) {
+              return '<button type="button" class="emoji-pick" data-pemoji="' + esc(e) + '" ' +
+                       'aria-pressed="' + (e === d.emoji) + '">' + esc(e) + '</button>';
+            }).join("") +
+          '</div>' +
+          '<p class="field__hint">Escribe el que quieras o elige uno de arriba.</p>' +
+        '</div>' +
+
+        '<div class="field">' +
+          '<span class="field__label">Color</span>' +
+          '<div class="swatch-grid">' +
+            colores.map(function (n) {
+              return '<button type="button" class="swatch" data-pcolor="' + n + '" ' +
+                       'style="background:var(--cat-' + n + ')" ' +
+                       'aria-pressed="' + (n === d.color) + '" ' +
+                       'aria-label="Color ' + n + '"></button>';
+            }).join("") +
+          '</div>' +
+        '</div>';
+    }
 
     if (t === "account") {
       html =
@@ -1249,8 +1331,38 @@
     });
   }
 
+  /* La vista previa se actualiza sola al teclear o al tocar un color, sin
+     repintar el formulario: hacerlo dejaría el campo de texto sin foco. */
+  function refreshCatPreview() {
+    var face = $("#fPreview");
+    if (!face) return;
+    face.textContent = form.d.emoji || "📦";
+    face.style.setProperty("--cat-color", "var(--cat-" + form.d.color + ")");
+    var nameEl = $("#fPreviewName");
+    if (nameEl) nameEl.textContent = String(form.d.name || "").trim() || "Sin nombre";
+  }
+
   function saveForm() {
     var t = form.type, id = form.id, d = form.d;
+
+    if (t === "category") {
+      if (!String(d.name).trim()) {
+        U.toast("Ponle un nombre a la categoría", { icon: "warning" }); return;
+      }
+      var cat = id ? S.updateCategory(id, d) : S.addCategory(d);
+      U.toast(id ? "Categoría actualizada" : "Categoría creada", { icon: "check" });
+
+      /* si se creó desde el selector del movimiento, se vuelve allí con
+         la nueva ya elegida y el importe que se llevaba tecleado */
+      if (!id && ui.catReturnToAdd) {
+        ui.catReturnToAdd = false;
+        ui.draft.categoryId = cat.id;
+        sheets.form.close();
+        renderAddSheet();
+        sheets.add.show();
+        return;
+      }
+    }
 
     if (t === "account") {
       if (!String(d.name).trim()) {
@@ -1295,6 +1407,12 @@
 
   function deleteForm() {
     var t = form.type, id = form.id;
+
+    if (t === "category") {
+      var resCat = S.deleteCategory(id);
+      if (!resCat.ok) { U.toast(resCat.reason, { icon: "warning", duration: 5500 }); return; }
+      U.toast("Categoría eliminada", { icon: "check" });
+    }
 
     if (t === "account") {
       var res = S.deleteAccount(id);
@@ -1394,15 +1512,15 @@
             var pct = S.state.allocation[c.id] || 0;
             return '<div class="alloc-row">' +
                 '<div class="alloc-row__head">' +
-                  '<span class="alloc-row__dot" style="background:' + C.seriesColor(c.slot) + '"></span>' +
-                  '<span class="alloc-row__name">' + esc(c.name) + '</span>' +
+                  '<span class="alloc-row__dot" style="background:' + S.catColorVar(c) + '"></span>' +
+                  '<span class="alloc-row__name">' + esc(c.emoji || "") + ' ' + esc(c.name) + '</span>' +
                   '<span class="alloc-row__eur" data-alloc-eur="' + c.id + '">' +
                     esc(S.moneyShort(S.budgetFor(c.id))) + '</span>' +
                   '<span class="alloc-row__pct" data-alloc-pct="' + c.id + '">' + pct + ' %</span>' +
                 '</div>' +
                 '<input type="range" class="range" data-alloc="' + c.id + '" ' +
                        'min="0" max="60" step="1" value="' + pct + '" ' +
-                       'style="--range-color:' + C.seriesColor(c.slot) +
+                       'style="--range-color:' + S.catColorVar(c) +
                          ';--fill:' + ((pct / 60) * 100).toFixed(1) + '" ' +
                        'aria-label="Porcentaje para ' + esc(c.name) + '">' +
               '</div>';
@@ -1431,6 +1549,40 @@
         settingRow("upload", "Importar", "", "import") +
         settingRow("repeat", "Datos de ejemplo", "", "reset") +
         settingRow("trash", "Vaciar todo", "", "clear") +
+      '</section>' +
+
+      '<section class="card card--flush">' +
+        '<div class="card__head card__pad--tight" style="margin-bottom:0">' +
+          '<div>' +
+            '<h2 class="card__title">Categorías</h2>' +
+            '<p class="card__sub">' + S.CATEGORIES.length + ' en total</p>' +
+          '</div>' +
+          '<button type="button" class="card__link" data-form="category">+ Nueva</button>' +
+        '</div>' +
+        ["out", "in"].map(function (kind) {
+          var list = S.categoriesOf(kind);
+          if (!list.length) return "";
+          return '<p class="cat-list__head">' +
+                   (kind === "out" ? "Gastos" : "Ingresos") + '</p>' +
+            '<div class="cat-list">' +
+              list.map(function (c) {
+                var use = S.categoryUsage(c.id);
+                return '<button type="button" class="cat-list__item" ' +
+                        'data-form="category" data-form-id="' + esc(c.id) + '">' +
+                    catFace(c, 17, "cat-list__face") +
+                    '<span class="cat-list__body">' +
+                      '<span class="cat-list__name">' + esc(c.name) + '</span>' +
+                      '<span class="cat-list__meta">' +
+                        (use.transactions
+                          ? use.transactions + " movimiento" + (use.transactions === 1 ? "" : "s")
+                          : "Sin movimientos") +
+                      '</span>' +
+                    '</span>' +
+                    '<span class="setting__chev" data-icon="chevron" data-icon-size="14"></span>' +
+                  '</button>';
+              }).join("") +
+            '</div>';
+        }).join("") +
       '</section>' +
 
       '<section class="card card--flush">' +
@@ -1499,14 +1651,14 @@
 
     var segs = S.CATEGORIES.filter(function (c) { return c.kind === "out"; })
       .map(function (c) {
-        return { pct: S.state.allocation[c.id] || 0, slot: c.slot, name: c.name };
+        return { pct: S.state.allocation[c.id] || 0, color: c.color, name: c.name };
       })
       .filter(function (r) { return r.pct > 0; })
       .sort(function (a, b) { return b.pct - a.pct; });
 
     bar.innerHTML = segs.map(function (r) {
       return '<span class="alloc-bar__seg" style="flex:' + r.pct + ';background:' +
-             C.seriesColor(r.slot) + '" title="' + esc(r.name) + ' · ' + r.pct + ' %"></span>';
+             S.catColorVar(r) + '" title="' + esc(r.name) + ' · ' + r.pct + ' %"></span>';
     }).join("") + (savings > 0
       ? '<span class="alloc-bar__seg alloc-bar__seg--rest" style="flex:' + savings +
         '" title="Ahorro · ' + savings + ' %"></span>'
@@ -1724,13 +1876,15 @@
               cats.map(function (c) {
                 return '<button type="button" class="cat-pick" data-cat="' + c.id + '" ' +
                          'aria-pressed="' + (c.id === d.categoryId) + '">' +
-                    '<span class="cat-pick__icon"' +
-                          (c.id === d.categoryId
-                            ? ' style="color:' + C.seriesColor(c.slot) + '"' : '') +
-                          ' data-icon="' + c.icon + '" data-icon-size="18"></span>' +
+                    catFace(c, 20, "cat-pick__icon") +
                     '<span class="cat-pick__name">' + esc(c.name) + '</span>' +
                   '</button>';
               }).join("") +
+              '<button type="button" class="cat-pick cat-pick--add" ' +
+                      'data-cat-new="' + d.kind + '">' +
+                '<span class="cat-pick__icon">' + icon("plus", 18) + '</span>' +
+                '<span class="cat-pick__name">Nueva</span>' +
+              '</button>' +
             '</div>' +
           '</div>') +
 
@@ -1827,9 +1981,9 @@
     $("#sheetDetailBody").innerHTML =
       '<div style="text-align:center;padding:var(--sp-3) 0 var(--sp-5)">' +
         '<span style="display:inline-grid;place-items:center;width:48px;height:48px;' +
-              'border-radius:var(--r-full);color:' + C.seriesColor(cat.slot) +
-              ';background:var(--surface-2);box-shadow:var(--nm-in)" ' +
-              'data-icon="' + cat.icon + '" data-icon-size="22"></span>' +
+              'border-radius:var(--r-full);font-size:24px;line-height:1;' +
+              'background:var(--surface-2);box-shadow:var(--nm-in)" ' +
+              'aria-hidden="true">' + esc(cat.emoji || "\uD83D\uDCE6") + '</span>' +
         '<p style="margin-top:var(--sp-3);font-size:30px;font-weight:640;letter-spacing:-.035em;' +
            (isIn ? "color:var(--money-in)" : "") + '">' +
           (isIn ? "+" : "−") + esc(money(t.amount)) + '</p>' +
@@ -2053,6 +2207,7 @@
 
     var FIELD_MAP = {
       Name: function (v) { form.d[form.type === "recurring" ? "note" : "name"] = v; },
+      Emoji: function (v) { form.d.emoji = v; },
       Type: function (v) { form.d.type = v; },
       Opening: function (v) { form.d.opening = v; },
       Target: function (v) { form.d.target = v; },
@@ -2071,7 +2226,10 @@
       return false;
     }
 
-    formBody.addEventListener("input", function (e) { readField(e.target); });
+    formBody.addEventListener("input", function (e) {
+      if (!readField(e.target)) return;
+      if (form.type === "category") refreshCatPreview();
+    });
 
     formBody.addEventListener("change", function (e) {
       if (!readField(e.target)) return;
@@ -2087,10 +2245,32 @@
       var node;
       if ((node = e.target.closest("[data-fkind]"))) {
         form.d.kind = node.getAttribute("data-fkind");
-        /* la categoría por defecto cambia con el tipo */
-        if (form.d.kind === "in") form.d.categoryId = "nomina";
-        else if (form.d.kind === "out") form.d.categoryId = "hogar";
+        if (form.type !== "category") {
+          /* la categoría por defecto cambia con el tipo */
+          if (form.d.kind === "in") form.d.categoryId = "nomina";
+          else if (form.d.kind === "out") form.d.categoryId = "hogar";
+        }
         renderForm();
+        U.haptic("light");
+        return;
+      }
+      if ((node = e.target.closest("[data-pemoji]"))) {
+        form.d.emoji = node.getAttribute("data-pemoji");
+        var inp = $("#fEmoji", formBody);
+        if (inp) inp.value = form.d.emoji;
+        $$("[data-pemoji]", formBody).forEach(function (b) {
+          b.setAttribute("aria-pressed", String(b === node));
+        });
+        refreshCatPreview();
+        U.haptic("light");
+        return;
+      }
+      if ((node = e.target.closest("[data-pcolor]"))) {
+        form.d.color = +node.getAttribute("data-pcolor");
+        $$("[data-pcolor]", formBody).forEach(function (b) {
+          b.setAttribute("aria-pressed", String(b === node));
+        });
+        refreshCatPreview();
         U.haptic("light");
         return;
       }
@@ -2125,6 +2305,14 @@
         else if (ui.draft.kind === "out") ui.draft.categoryId = "comida";
         else ui.draft.categoryId = "otros";
         renderAddSheet(); U.haptic("light"); return;
+      }
+      if ((node = e.target.closest("[data-cat-new]"))) {
+        /* el borrador (importe incluido) sobrevive en ui.draft, así que al
+           volver del formulario se sigue donde se estaba */
+        ui.catReturnToAdd = true;
+        sheets.add.close();
+        openForm("category", null, { kind: node.getAttribute("data-cat-new") });
+        return;
       }
       if ((node = e.target.closest("[data-cat]"))) {
         ui.draft.categoryId = node.getAttribute("data-cat");

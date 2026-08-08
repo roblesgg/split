@@ -88,6 +88,33 @@
   --series-7: #4a3aa7;  /* violeta  */
   --series-8: #e34948;  /* rojo     */
 
+  /* --- paleta de categorías: 8 familias de tono x 2 luminosidades ---
+     Los pares de una misma familia (azul/azul hondo, rojo/granate…) se
+     separan por claro-oscuro, que el daltonismo no toca; las familias
+     entre sí, por tono. Las posiciones 1,3,5,7,9,11,13,15 coinciden con
+     los --series-* ya validados.
+
+     Con 16 colores no hay separación perfecta bajo daltonismo: el suelo
+     es ΔE 4,2 en claro y 2,2 en oscuro (azul/violeta, heredado de la
+     paleta de series). No es un problema aquí porque el color de una
+     categoría nunca viaja solo: siempre lleva su emoji y su nombre. */
+  --cat-1:  #2a78d6;   /* azul        */
+  --cat-2:  #17427f;   /* azul hondo  */
+  --cat-3:  #1baf7a;   /* aqua        */
+  --cat-4:  #0b5f4e;   /* teal        */
+  --cat-5:  #eda100;   /* amarillo    */
+  --cat-6:  #7d5a12;   /* oro         */
+  --cat-7:  #e34948;   /* rojo        */
+  --cat-8:  #8f1f2a;   /* granate     */
+  --cat-9:  #4a3aa7;   /* violeta     */
+  --cat-10: #8f7fe8;   /* lila        */
+  --cat-11: #e87ba4;   /* magenta     */
+  --cat-12: #8c2a6b;   /* ciruela     */
+  --cat-13: #eb6834;   /* naranja     */
+  --cat-14: #a3663c;   /* marrón      */
+  --cat-15: #008300;   /* verde       */
+  --cat-16: #55636f;   /* pizarra     */
+
   /* --- secuencial: una sola tinta, aquí gris; 100 = cerca de cero --- */
   --seq-100: #d8dae2;
   --seq-200: #c2c5d0;
@@ -216,6 +243,24 @@
     --series-7: #9085e9;
     --series-8: #e66767;
 
+    /* paleta de categorías, variante oscura (ver el bloque claro) */
+    --cat-1:  #3987e5;
+    --cat-2:  #2f6bb5;
+    --cat-3:  #199e70;
+    --cat-4:  #2b8074;
+    --cat-5:  #c98500;
+    --cat-6:  #9c7a2e;
+    --cat-7:  #e66767;
+    --cat-8:  #b04651;
+    --cat-9:  #9085e9;
+    --cat-10: #b9b1f5;
+    --cat-11: #d55181;
+    --cat-12: #a34a86;
+    --cat-13: #d95926;
+    --cat-14: #a5714f;
+    --cat-15: #008300;
+    --cat-16: #8291a6;
+
     --seq-100: #2e313a;
     --seq-200: #3a3e49;
     --seq-300: #4a4f5c;
@@ -284,6 +329,24 @@
   --series-6: #008300;
   --series-7: #9085e9;
   --series-8: #e66767;
+
+  /* paleta de categorías, variante oscura (ver el bloque claro) */
+  --cat-1:  #3987e5;
+  --cat-2:  #2f6bb5;
+  --cat-3:  #199e70;
+  --cat-4:  #2b8074;
+  --cat-5:  #c98500;
+  --cat-6:  #9c7a2e;
+  --cat-7:  #e66767;
+  --cat-8:  #b04651;
+  --cat-9:  #9085e9;
+  --cat-10: #b9b1f5;
+  --cat-11: #d55181;
+  --cat-12: #a34a86;
+  --cat-13: #d95926;
+  --cat-14: #a5714f;
+  --cat-15: #008300;
+  --cat-16: #8291a6;
 
   --seq-100: #2e313a;
   --seq-200: #3a3e49;

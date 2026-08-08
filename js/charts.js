@@ -22,6 +22,14 @@
 
   function seriesColor(slot) { return "var(--series-" + slot + ")"; }
 
+  /* Las categorías traen su color como índice 1..16 de la paleta --cat-*,
+     que el usuario elige. Los slots de serie siguen valiendo para lo que
+     no es una categoría. */
+  function catColor(it) {
+    var n = it && it.color;
+    return (n >= 1 && n <= 16) ? "var(--cat-" + n + ")" : seriesColor((it && it.slot) || 8);
+  }
+
   /* Una serie puede traer color propio. Sirve para los gráficos de
      énfasis: la serie protagonista en tinta y el resto en gris, que
      es una forma distinta de la paleta categórica. */
@@ -783,7 +791,7 @@
       var seg = document.createElement("div");
       seg.className = "stackbar__seg";
       seg.style.flex = it.value;
-      seg.style.background = seriesColor(it.slot);
+      seg.style.background = catColor(it);
       seg.style.setProperty("--delay", (i * 60) + "ms");
       seg.title = it.name + " · " + fmt(it.value);
       bar.appendChild(seg);
@@ -800,14 +808,14 @@
       row.className = "rank__item";
       row.innerHTML =
         '<div class="rank__head">' +
-          '<span class="rank__dot" style="background:' + seriesColor(it.slot) + '"></span>' +
-          '<span class="rank__name">' + it.name + '</span>' +
+          '<span class="rank__dot" style="background:' + catColor(it) + '"></span>' +
+          '<span class="rank__name">' + (it.emoji ? it.emoji + " " : "") + it.name + '</span>' +
           '<span class="rank__val">' + fmt(it.value) + '</span>' +
           '<span class="rank__pct">' + Math.round(share) + '%</span>' +
         '</div>' +
         '<div class="rank__track">' +
           '<div class="rank__fill" style="width:' + share.toFixed(1) + '%;' +
-            'background:' + seriesColor(it.slot) + ';--delay:' + (i * 55 + 80) + 'ms"></div>' +
+            'background:' + catColor(it) + ';--delay:' + (i * 55 + 80) + 'ms"></div>' +
         '</div>';
       rank.appendChild(row);
     });
@@ -839,6 +847,7 @@
     heatmap: heatmap,
     stackedBreakdown: stackedBreakdown,
     seriesColor: seriesColor,
+    catColor: catColor,
     colorOf: colorOf,
     onResize: onResize,
     niceTicks: niceTicks

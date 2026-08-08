@@ -1019,6 +1019,24 @@ select.field__input { appearance: none; cursor: pointer; padding-right: var(--sp
 
 .input-affix .field__input { padding-right: 40px; font-variant-numeric: tabular-nums; }
 
+/* ---------- emoji de categoría ----------
+   Ocupa el hueco que antes llevaba el icono SVG. El fondo se tiñe con el
+   color de la categoría; si el navegador no entiende color-mix se queda
+   en el gris de siempre, que sigue siendo legible. */
+
+.cat-face {
+  display: grid;
+  place-items: center;
+  line-height: 1;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+  background: var(--surface-2);
+  background: color-mix(in srgb, var(--cat-color) 20%, var(--surface-2));
+  color: var(--text-primary);
+}
+
+/* dentro de una fila el emoji va en su círculo hundido, como el avatar */
+.avatar-letter.cat-face { font-weight: 400; }
+
 /* ---------- rejilla de categorías del sheet ---------- */
 
 .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-3); }
@@ -1065,6 +1083,119 @@ select.field__input { appearance: none; cursor: pointer; padding-right: var(--sp
   color: var(--text-primary);
   font-weight: var(--w-semi);
 }
+
+/* el tile de crear: mismo hueco, pero de contorno, para que se lea como
+   una acción y no como una categoría más */
+.cat-pick--add .cat-pick__icon {
+  background: transparent;
+  border: 1.5px dashed var(--hairline-strong);
+  color: var(--text-muted);
+}
+
+/* ---------- formulario de categoría ---------- */
+
+.cat-preview {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  box-shadow: var(--nm-in);
+}
+
+.cat-preview__face {
+  width: 46px;
+  height: 46px;
+  border-radius: var(--r-full);
+  font-size: 22px;
+}
+
+.cat-preview__name {
+  font-size: 15px;
+  font-weight: var(--w-semi);
+  letter-spacing: -0.02em;
+}
+
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+}
+
+.emoji-pick {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  font-size: 19px;
+  line-height: 1;
+  border-radius: var(--r-xs);
+  background: var(--surface-2);
+  transition: box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.emoji-pick[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--accent); }
+
+.swatch-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: var(--sp-2);
+}
+
+.swatch {
+  aspect-ratio: 1;
+  border-radius: var(--r-full);
+  transition: box-shadow var(--dur-fast) var(--ease-out),
+              transform var(--dur-fast) var(--ease-out);
+}
+
+/* el anillo va separado del color, para que se vea sobre cualquier tono */
+.swatch[aria-pressed="true"] {
+  box-shadow: 0 0 0 2px var(--surface-raised), 0 0 0 4px var(--text-primary);
+  transform: scale(1.06);
+}
+
+/* ---------- lista de categorías en Ajustes ---------- */
+
+.cat-list__head {
+  padding: var(--sp-4) var(--sp-5) var(--sp-2);
+  font-size: var(--eyebrow-size);
+  font-weight: var(--w-semi);
+  letter-spacing: var(--eyebrow-track);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.cat-list__item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  padding: 11px var(--sp-5);
+  text-align: left;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.cat-list__item:active { background: var(--surface-2); }
+
+.cat-list__face {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-full);
+}
+
+.cat-list__body { flex: 1; min-width: 0; }
+
+.cat-list__name {
+  display: block;
+  font-size: 14px;
+  font-weight: var(--w-medium);
+  letter-spacing: -0.015em;
+}
+
+.cat-list__meta { display: block; font-size: 11.5px; color: var(--text-muted); }
 
 /* ---------- vacío ---------- */
 

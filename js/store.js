@@ -106,28 +106,66 @@
      Catálogos
      ============================================================ */
 
-  /* Los slots siguen el orden fijo de la paleta validada.
-     El color va con la entidad, nunca con su posición en un ranking. */
-  var CATEGORIES = [
-    { id: "comida",  name: "Comida",        icon: "cart",     slot: 1, kind: "out" },
-    { id: "transp",  name: "Transporte",    icon: "car",      slot: 2, kind: "out" },
-    { id: "ocio",    name: "Ocio",          icon: "sparkle",  slot: 3, kind: "out" },
-    { id: "hogar",   name: "Hogar",         icon: "home",     slot: 4, kind: "out" },
-    { id: "compras", name: "Compras",       icon: "bag",      slot: 5, kind: "out" },
-    { id: "salud",   name: "Salud",         icon: "heart",    slot: 6, kind: "out" },
-    { id: "subs",    name: "Suscripciones", icon: "repeat",   slot: 7, kind: "out" },
-    { id: "otros",   name: "Otros",         icon: "dots",     slot: 8, kind: "out" },
+  /* Las categorías son datos del usuario, no una lista cerrada: se crean,
+     se renombran, se les cambia el emoji y el color, y se borran. Esto de
+     abajo es solo con lo que arranca la app.
+
+     `color` es un índice 1..16 en la paleta --cat-* de tokens.css. */
+  var CAT_COLORS = 16;
+
+  var DEFAULT_CATEGORIES = [
+    { id: "comida",   name: "Comida",        emoji: "🍽️", color: 3,  kind: "out" },
+    { id: "compras",  name: "Compras",       emoji: "🛍️", color: 11, kind: "out" },
+    { id: "gasolina", name: "Gasolina",      emoji: "⛽", color: 13, kind: "out" },
+    { id: "transp",   name: "Transporte",    emoji: "🚌", color: 1,  kind: "out" },
+    { id: "hogar",    name: "Hogar",         emoji: "🏠", color: 5,  kind: "out" },
+    { id: "ocio",     name: "Ocio",          emoji: "🎬", color: 9,  kind: "out" },
+    { id: "salud",    name: "Salud",         emoji: "💊", color: 7,  kind: "out" },
+    { id: "subs",     name: "Suscripciones", emoji: "🔁", color: 4,  kind: "out" },
+    { id: "regalos",  name: "Regalos",       emoji: "🎁", color: 12, kind: "out" },
+    { id: "otros",    name: "Otros",         emoji: "📦", color: 16, kind: "out" },
     /* El ingreso genérico va primero: no todo lo que entra es un sueldo. */
-    { id: "ingreso", name: "Ingreso",       icon: "wallet",   slot: 1, kind: "in" },
-    { id: "nomina",  name: "Sueldo",        icon: "calendar", slot: 7, kind: "in" },
-    { id: "extra",   name: "Extra",         icon: "clock",    slot: 3, kind: "in" },
-    { id: "regalo",  name: "Regalo",        icon: "gift",     slot: 5, kind: "in" }
+    { id: "ingreso",  name: "Ingreso",       emoji: "💰", color: 3,  kind: "in" },
+    { id: "nomina",   name: "Sueldo",        emoji: "💼", color: 15, kind: "in" },
+    { id: "extra",    name: "Extra",         emoji: "⏰", color: 6,  kind: "in" },
+    { id: "regalo",   name: "Regalo",        emoji: "🎁", color: 10, kind: "in" }
   ];
 
-  var CAT_BY_ID = {};
-  CATEGORIES.forEach(function (c) { CAT_BY_ID[c.id] = c; });
+  /* Cuando una categoría se borra pero algo todavía la nombra. No debería
+     pasar (borrar está bloqueado si está en uso), pero un import a mano
+     puede traer un id que no existe y la app no se puede caer por eso. */
+  var CAT_FALLBACK = { id: "otros", name: "Sin categoría", emoji: "❓", color: 16, kind: "out" };
 
-  function catColorVar(cat) { return "var(--series-" + cat.slot + ")"; }
+  /* Índice por id, rehecho solo cuando cambian las categorías: se consulta
+     en bucles de render y reconstruirlo en cada lectura se nota. */
+  var catIndex = null;
+
+  function invalidateCats() { catIndex = null; }
+
+  function catsById() {
+    if (!catIndex) {
+      catIndex = {};
+      (state && state.categories ? state.categories : DEFAULT_CATEGORIES)
+        .forEach(function (c) { catIndex[c.id] = c; });
+    }
+    return catIndex;
+  }
+
+  function catById(id) { return catsById()[id] || CAT_FALLBACK; }
+
+  function categories() {
+    return (state && state.categories) ? state.categories : DEFAULT_CATEGORIES;
+  }
+
+  function categoriesOf(kind) {
+    return categories().filter(function (c) { return c.kind === kind; });
+  }
+
+  function catColorVar(cat) {
+    var n = cat && cat.color;
+    if (!(n >= 1 && n <= CAT_COLORS)) n = CAT_COLORS;
+    return "var(--cat-" + n + ")";
+  }
 
   /* ============================================================
      Datos de ejemplo — deterministas (PRNG con semilla)
@@ -234,8 +272,8 @@
   /* Reparto por defecto: % del ingreso mensual planificado que va a cada
      partida. Lo que no se reparte es ahorro. Suma 75 → 25 % de ahorro. */
   var DEFAULT_ALLOCATION = {
-    hogar: 23, comida: 18, ocio: 10, transp: 8,
-    compras: 7, salud: 4, subs: 2, otros: 3
+    hogar: 22, comida: 16, ocio: 9, gasolina: 6, transp: 4,
+    compras: 7, salud: 4, subs: 3, regalos: 2, otros: 2
   };
 
   function seedRecurring(thisMonth) {
@@ -266,11 +304,18 @@
     ];
   }
 
+  function cloneCategories() {
+    return DEFAULT_CATEGORIES.map(function (c) {
+      return { id: c.id, name: c.name, emoji: c.emoji, color: c.color, kind: c.kind };
+    });
+  }
+
   function defaultState() {
     var today = ymd(new Date());
     return {
-      version: 4,
+      version: 5,
       createdAt: today,
+      categories: cloneCategories(),
 
       /* Cuánto cuentas al mes para repartir.
          auto  = media real de tus últimos meses cerrados
@@ -305,8 +350,9 @@
   function freshState() {
     var today = ymd(new Date());
     return {
-      version: 4,
+      version: 5,
       createdAt: today,
+      categories: cloneCategories(),
       income: { mode: "auto", manual: 0, months: 3 },
       allocation: Object.assign({}, DEFAULT_ALLOCATION),
       recurring: [],
@@ -375,6 +421,58 @@
       if (!s.income || !s.income.mode) s.income = { mode: "auto", manual: 1800, months: 3 };
       s.version = 4;
     }
+
+    if (s.version < 5) {
+      /* v5 saca las categorías del código y las mete en el estado, con
+         emoji y color propios. Los ids no cambian: los movimientos, los
+         programados y el reparto los referencian. */
+      if (!Array.isArray(s.categories)) {
+        /* Los slots viejos apuntaban a --series-1..8; estas son sus
+           posiciones en la paleta nueva, para que nadie vea cambiar de
+           color una categoría que ya tenía. */
+        var SLOT_TO_COLOR = { 1: 1, 2: 13, 3: 3, 4: 5, 5: 11, 6: 15, 7: 9, 8: 7 };
+        var LEGACY_EMOJI = {
+          comida: "🍽️", transp: "🚌", ocio: "🎬", hogar: "🏠", compras: "🛍️",
+          salud: "💊", subs: "🔁", otros: "📦",
+          ingreso: "💰", nomina: "💼", extra: "⏰", regalo: "🎁"
+        };
+        var LEGACY = [
+          ["comida", "Comida", "out", 1], ["transp", "Transporte", "out", 2],
+          ["ocio", "Ocio", "out", 3], ["hogar", "Hogar", "out", 4],
+          ["compras", "Compras", "out", 5], ["salud", "Salud", "out", 6],
+          ["subs", "Suscripciones", "out", 7], ["otros", "Otros", "out", 8],
+          ["ingreso", "Ingreso", "in", 1], ["nomina", "Sueldo", "in", 7],
+          ["extra", "Extra", "in", 3], ["regalo", "Regalo", "in", 5]
+        ];
+        s.categories = LEGACY.map(function (l) {
+          return {
+            id: l[0], name: l[1], kind: l[2],
+            emoji: LEGACY_EMOJI[l[0]] || "📦",
+            color: SLOT_TO_COLOR[l[3]] || 16
+          };
+        });
+      }
+
+      /* Las básicas que aún no tenga se añaden; las suyas no se tocan. */
+      var tieneId = {};
+      s.categories.forEach(function (c) { tieneId[c.id] = true; });
+      DEFAULT_CATEGORIES.forEach(function (d) {
+        if (!tieneId[d.id]) {
+          s.categories.push({ id: d.id, name: d.name, emoji: d.emoji, color: d.color, kind: d.kind });
+        }
+      });
+
+      /* Toda categoría de gasto necesita su entrada en el reparto. Las
+         recién añadidas entran al 0 % para no mover los presupuestos. */
+      if (!s.allocation) s.allocation = {};
+      s.categories.forEach(function (c) {
+        if (c.kind === "out" && s.allocation[c.id] == null) s.allocation[c.id] = 0;
+      });
+
+      s.version = 5;
+    }
+
+    invalidateCats();
     return s;
   }
 
@@ -410,12 +508,14 @@
 
   function reset() {
     state = defaultState();
+    invalidateCats();
     save();
     return state;
   }
 
   function clearAll() {
     state = freshState();
+    invalidateCats();
     save();
     return state;
   }
@@ -437,7 +537,7 @@
       toAccountId: t.kind === "transfer" ? (t.toAccountId || null) : null,
       amount: Math.round(Math.abs(t.amount) * 100) / 100,
       note: (t.note || "").trim() ||
-            (t.kind === "transfer" ? "Traspaso" : CAT_BY_ID[t.categoryId].name)
+            (t.kind === "transfer" ? "Traspaso" : catById(t.categoryId).name)
     };
     state.transactions.push(tx);
     sortTx();
@@ -492,6 +592,7 @@
     state.accounts.forEach(function (a) { taken[a.id] = 1; });
     state.goals.forEach(function (g) { taken[g.id] = 1; });
     (state.recurring || []).forEach(function (r) { taken[r.id] = 1; });
+    (state.categories || []).forEach(function (c) { taken[c.id] = 1; });
     while (taken[id]) { id = base + "-" + (n++); }
     return id;
   }
@@ -549,6 +650,107 @@
       };
     }
     state.accounts = state.accounts.filter(function (a) { return a.id !== id; });
+    save();
+    return { ok: true };
+  }
+
+  /* ============================================================
+     Categorías
+     ============================================================ */
+
+  /* Un emoji puede ocupar varios code points (piel, ZWJ, variación), así
+     que no vale con cortar a un carácter: se coge el primer grupo que
+     Intl considere una unidad, y si no hay soporte, los 4 primeros. */
+  function firstGrapheme(s) {
+    var str = String(s == null ? "" : s).trim();
+    if (!str) return "";
+    try {
+      if (typeof Intl !== "undefined" && Intl.Segmenter) {
+        var seg = new Intl.Segmenter("es", { granularity: "grapheme" });
+        var it = seg.segment(str)[Symbol.iterator]().next();
+        return it.done ? "" : it.value.segment;
+      }
+    } catch (e) { /* motor viejo: se cae al recorte de abajo */ }
+    return Array.from(str).slice(0, 4).join("");
+  }
+
+  function normalizeColor(v) {
+    var n = parseInt(v, 10);
+    return (n >= 1 && n <= CAT_COLORS) ? n : 16;
+  }
+
+  function addCategory(data) {
+    var kind = data.kind === "in" ? "in" : "out";
+    var c = {
+      id: slugId("cat", data.name || "categoria"),
+      name: (data.name || "Categoría").trim(),
+      emoji: firstGrapheme(data.emoji) || "📦",
+      color: normalizeColor(data.color),
+      kind: kind
+    };
+    state.categories.push(c);
+    /* una de gasto nace en el reparto al 0 %: no cambia los presupuestos
+       de nadie hasta que se le asigne algo a mano */
+    if (kind === "out" && state.allocation[c.id] == null) state.allocation[c.id] = 0;
+    invalidateCats();
+    save();
+    return c;
+  }
+
+  function updateCategory(id, patch) {
+    var c = state.categories.find(function (x) { return x.id === id; });
+    if (!c) return null;
+    if (patch.name != null) c.name = String(patch.name).trim() || c.name;
+    if (patch.emoji != null) c.emoji = firstGrapheme(patch.emoji) || c.emoji;
+    if (patch.color != null) c.color = normalizeColor(patch.color);
+    invalidateCats();
+    save();
+    return c;
+  }
+
+  function categoryUsage(id) {
+    var tx = state.transactions.filter(function (t) {
+      return t.kind !== "transfer" && t.categoryId === id;
+    }).length;
+    var rec = (state.recurring || []).filter(function (r) {
+      return r.kind !== "transfer" && r.categoryId === id;
+    }).length;
+    return { transactions: tx, recurring: rec };
+  }
+
+  /* Igual que con las cuentas: no se borra una categoría con movimientos,
+     porque dejaría importes sin clasificar y descuadraría los totales por
+     categoría. Se avisa de cuántos hay y decide el usuario. */
+  function deleteCategory(id) {
+    var c = state.categories.find(function (x) { return x.id === id; });
+    if (!c) return { ok: false, reason: "Esa categoría ya no existe." };
+
+    var quedan = state.categories.filter(function (x) {
+      return x.kind === c.kind && x.id !== id;
+    }).length;
+    if (!quedan) {
+      return {
+        ok: false,
+        reason: "Tiene que quedar al menos una categoría de " +
+                (c.kind === "in" ? "ingreso" : "gasto") + "."
+      };
+    }
+
+    var use = categoryUsage(id);
+    if (use.transactions || use.recurring) {
+      return {
+        ok: false,
+        reason: "Esta categoría tiene " + use.transactions + " movimiento" +
+                (use.transactions === 1 ? "" : "s") +
+                (use.recurring ? " y " + use.recurring + " programado" +
+                  (use.recurring === 1 ? "" : "s") : "") +
+                ". Cámbialos de categoría o bórralos antes."
+      };
+    }
+
+    state.categories = state.categories.filter(function (x) { return x.id !== id; });
+    delete state.allocation[id];
+    invalidateCats();
     save();
     return { ok: true };
   }
@@ -859,11 +1061,12 @@
       sums[t.categoryId] = (sums[t.categoryId] || 0) + t.amount;
     });
     return Object.keys(sums).map(function (id) {
+      var c = catById(id);
       return {
         id: id,
-        name: CAT_BY_ID[id].name,
-        slot: CAT_BY_ID[id].slot,
-        icon: CAT_BY_ID[id].icon,
+        name: c.name,
+        emoji: c.emoji,
+        color: c.color,
         value: Math.round(sums[id] * 100) / 100
       };
     }).sort(function (a, b) { return b.value - a.value; });
@@ -1011,7 +1214,8 @@
     if (!parsed || !Array.isArray(parsed.transactions)) {
       throw new Error("El archivo no tiene el formato de split.");
     }
-    state = parsed;
+    state = migrate(parsed);
+    invalidateCats();
     sortTx();
     save();
     return state;
@@ -1027,10 +1231,15 @@
     load: load, save: save, reset: reset, clearAll: clearAll,
     hasSavedState: hasSavedState,
 
-    /* catálogos */
-    CATEGORIES: CATEGORIES,
-    CAT_BY_ID: CAT_BY_ID,
+    /* categorías: ya no son una lista fija, viven en el estado */
+    get CATEGORIES() { return categories(); },
+    catById: catById,
+    categoriesOf: categoriesOf,
     catColorVar: catColorVar,
+    CAT_COLORS: CAT_COLORS,
+    DEFAULT_CATEGORIES: DEFAULT_CATEGORIES,
+    addCategory: addCategory, updateCategory: updateCategory,
+    deleteCategory: deleteCategory, categoryUsage: categoryUsage,
     MONTHS: MONTHS,
     MONTHS_SHORT: MONTHS_SHORT,
     DOW_SHORT: DOW_SHORT,
