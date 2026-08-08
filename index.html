@@ -155,6 +155,23 @@
     <div class="sheet__body" id="sheetFormBody"></div>
   </div>
 
+  <!-- ============ tutorial de bienvenida (solo la primera vez) ============ -->
+  <div class="onboard" id="onboard" data-open="false" role="dialog" aria-modal="true"
+       aria-labelledby="onboardTitle" aria-hidden="true">
+    <div class="onboard__card">
+      <button type="button" class="onboard__skip" id="onboardSkip">Saltar</button>
+      <div class="onboard__icon" id="onboardIcon"></div>
+      <h2 class="onboard__title" id="onboardTitle"></h2>
+      <p class="onboard__text" id="onboardText"></p>
+      <div class="onboard__extra" id="onboardExtra"></div>
+      <div class="onboard__dots" id="onboardDots" aria-hidden="true"></div>
+      <div class="onboard__actions">
+        <button type="button" class="btn btn--ghost" id="onboardBack">Atrás</button>
+        <button type="button" class="btn btn--primary" id="onboardNext">Siguiente</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast-stack" id="toastStack" aria-live="polite"></div>
 </div>
 

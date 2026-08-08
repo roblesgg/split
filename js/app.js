@@ -24,6 +24,28 @@
 
   var sheets = {};
 
+  /* ---------- tutorial de bienvenida ---------- */
+
+  var ob = null;   /* { step, accountId, name } */
+
+  var ONBOARD_STEPS = [
+    { icon: "wallet", title: "Bienvenido a split",
+      text: "Controla tus gastos, tus ingresos y tu ahorro desde el móvil. " +
+            "Todo se queda en este dispositivo: no hay cuentas ni nube." },
+    { icon: "home", title: "Resumen, de un vistazo",
+      text: "Tus cuentas, lo que llevas gastado este mes, lo que viene programado " +
+            "y el reparto de tu sueldo, todo en la primera pantalla." },
+    { icon: "list", title: "Movimientos y traspasos",
+      text: "Registra cada gasto o ingreso con el botón +. Mover dinero entre tus " +
+            "propias cuentas es un traspaso: no cuenta como gasto." },
+    { icon: "sliders", title: "El reparto por porcentajes",
+      text: "En Ajustes decides cuánto entra al mes y qué parte va a cada categoría. " +
+            "Lo que no repartas es tu ahorro." },
+    { icon: "chart", title: "Análisis y planes",
+      text: "Gráficos de ahorro y de gasto por categoría, y en Planes tus cuentas, " +
+            "pagos programados y metas de ahorro." }
+  ];
+
   /* ---------- helpers ---------- */
 
   function money(v) { return S.money(v); }
@@ -2109,6 +2131,24 @@
       if (mq.addEventListener) mq.addEventListener("change", onChange);
       else if (mq.addListener) mq.addListener(onChange);
     }
+
+    /* --- tutorial de bienvenida --- */
+    var onboard = $("#onboard");
+    $("#onboardNext").addEventListener("click", onboardNext);
+    $("#onboardBack").addEventListener("click", onboardBack);
+    $("#onboardSkip").addEventListener("click", skipOnboarding);
+
+    onboard.addEventListener("input", function (e) {
+      if (e.target.id === "onboardAccName") ob.name = e.target.value;
+    });
+
+    onboard.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") { skipOnboarding(); return; }
+      if (e.key === "Enter" && e.target.id === "onboardAccName") {
+        e.preventDefault();
+        onboardNext();
+      }
+    });
   }
 
   function cycleTheme() {
@@ -2130,10 +2170,91 @@
   }
 
   /* ============================================================
+     Tutorial de bienvenida
+     ============================================================ */
+
+  function startOnboarding() {
+    var acc = S.state.accounts[0];
+    ob = { step: 0, accountId: acc ? acc.id : null, name: acc ? acc.name : "" };
+    renderOnboardStep();
+    $("#onboard").setAttribute("data-open", "true");
+    $("#onboard").setAttribute("aria-hidden", "false");
+    U.haptic("light");
+  }
+
+  function renderOnboardStep() {
+    var last = ob.step === ONBOARD_STEPS.length;
+    var s = last
+      ? { icon: "edit", title: "Ya tienes una cuenta creada",
+          text: "Arranca sin dinero cargado. Puedes cambiarle el nombre ahora si " +
+                "quieres, y luego, cuando quieras, metes tus ingresos y el reparto en Ajustes." }
+      : ONBOARD_STEPS[ob.step];
+
+    $("#onboardIcon").innerHTML = icon(s.icon, 28);
+    $("#onboardTitle").textContent = s.title;
+    $("#onboardText").textContent = s.text;
+
+    $("#onboardExtra").innerHTML = last
+      ? '<div class="field" style="margin-top:0">' +
+          '<label class="field__label" for="onboardAccName">Nombre de tu cuenta</label>' +
+          '<input type="text" class="field__input" id="onboardAccName" maxlength="28" ' +
+                 'placeholder="Banco" value="' + esc(ob.name) + '">' +
+        '</div>'
+      : "";
+
+    $("#onboardDots").innerHTML = ONBOARD_STEPS.concat([null]).map(function (_, i) {
+      return '<span class="onboard__dot" data-active="' + (i === ob.step) + '"></span>';
+    }).join("");
+
+    $("#onboardBack").setAttribute("data-hidden", String(ob.step === 0));
+    $("#onboardNext").textContent = last ? "Empezar" : "Siguiente";
+
+    var input = $("#onboardAccName");
+    if (input) setTimeout(function () { input.focus(); }, 60);
+  }
+
+  function onboardNext() {
+    if (ob.step === ONBOARD_STEPS.length) { finishOnboarding(); return; }
+    ob.step++;
+    renderOnboardStep();
+    U.haptic("light");
+  }
+
+  function onboardBack() {
+    if (ob.step === 0) return;
+    ob.step--;
+    renderOnboardStep();
+    U.haptic("light");
+  }
+
+  function closeOnboarding() {
+    $("#onboard").setAttribute("data-open", "false");
+    $("#onboard").setAttribute("aria-hidden", "true");
+  }
+
+  /* El botón final guarda el nombre si lo han cambiado y lleva a Ajustes,
+     que es donde toca meter los ingresos y el reparto. */
+  function finishOnboarding() {
+    var input = $("#onboardAccName");
+    var name = input ? input.value.trim() : "";
+    if (name && ob.accountId) S.updateAccount(ob.accountId, { name: name });
+    closeOnboarding();
+    goTo("ajustes");
+    U.toast("Cuando quieras, mete tus ingresos y el reparto aquí", {
+      icon: "sliders", duration: 5000
+    });
+  }
+
+  function skipOnboarding() {
+    closeOnboarding();
+  }
+
+  /* ============================================================
      Arranque
      ============================================================ */
 
   function init() {
+    var firstRun = !S.hasSavedState();
     S.load();
     S.applyTheme(S.getTheme());
 
@@ -2166,6 +2287,8 @@
                 " programado" + (posted === 1 ? "" : "s"), { icon: "calendar", duration: 4500 });
       }, 600);
     }
+
+    if (firstRun) setTimeout(startOnboarding, 500);
   }
 
   if (document.readyState === "loading") {

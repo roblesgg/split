@@ -298,6 +298,26 @@
     };
   }
 
+  /* Estado con el que arranca una instalación nueva: una sola cuenta,
+     sin dinero y sin nada que repartir todavía. El tutorial de
+     bienvenida deja que el usuario le cambie el nombre a esa cuenta
+     antes de meter sus ingresos de verdad en Ajustes. */
+  function freshState() {
+    var today = ymd(new Date());
+    return {
+      version: 4,
+      createdAt: today,
+      income: { mode: "auto", manual: 0, months: 3 },
+      allocation: Object.assign({}, DEFAULT_ALLOCATION),
+      recurring: [],
+      accounts: [
+        { id: "banco", name: "Banco", type: "Banco", slot: 1, icon: "wallet", opening: 0 }
+      ],
+      goals: [],
+      transactions: []
+    };
+  }
+
   /* ============================================================
      Persistencia
      ============================================================ */
@@ -358,6 +378,14 @@
     return s;
   }
 
+  /* Antes de cargar, dice si ya había algo guardado. Sirve para saber si
+     es la primera vez que se abre la app, y por tanto si toca enseñar el
+     tutorial de bienvenida. Se consulta siempre antes de `load()`, que
+     guarda un estado nuevo en cuanto se llama. */
+  function hasSavedState() {
+    try { return !!localStorage.getItem(KEY); } catch (e) { return false; }
+  }
+
   function load() {
     try {
       var raw = localStorage.getItem(KEY);
@@ -369,8 +397,8 @@
           return state;
         }
       }
-    } catch (e) { /* almacenamiento no disponible o corrupto: se usa el ejemplo */ }
-    state = defaultState();
+    } catch (e) { /* almacenamiento no disponible o corrupto: se usa el estado en blanco */ }
+    state = freshState();
     save();
     return state;
   }
@@ -387,9 +415,7 @@
   }
 
   function clearAll() {
-    state = defaultState();
-    state.transactions = [];
-    state.goals = [];
+    state = freshState();
     save();
     return state;
   }
@@ -999,6 +1025,7 @@
     /* estado */
     get state() { return state; },
     load: load, save: save, reset: reset, clearAll: clearAll,
+    hasSavedState: hasSavedState,
 
     /* catálogos */
     CATEGORIES: CATEGORIES,

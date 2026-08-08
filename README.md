@@ -18,6 +18,18 @@ Si algún navegador bloqueara el almacenamiento (modo privado, políticas
 corporativas), la app lo detecta y sigue funcionando en memoria durante la
 sesión. Si te pasa y quieres persistencia, sírvela por HTTP:
 
+## La primera vez que se abre
+
+No hay datos de ejemplo cargados por defecto. La primera vez, un tutorial
+corto explica Resumen, Movimientos, el reparto por porcentajes, Análisis y
+Planes, y termina con la única cuenta con la que arranca la app: se llama
+«Banco», sin dinero ni movimientos. Ese último paso deja cambiarle el nombre
+si se quiere (por ejemplo, al banco real que uses) y lleva directo a
+**Ajustes** para meter tus ingresos y decidir el reparto.
+
+El tutorial se enseña una sola vez, la primera vez que hay algo guardado en
+`localStorage`; a partir de ahí no vuelve a aparecer.
+
 ```
 npx serve .          # o
 python -m http.server
@@ -182,9 +194,11 @@ suficiente, cae al reparto lineal.
 
 ## Datos
 
-Arranca con ~340 movimientos de ejemplo de 13 meses, generados de forma
-determinista. Para empezar de cero: **Ajustes → Vaciar todo**. Para recuperar la
-demo: **Ajustes → Datos de ejemplo**.
+Arranca en blanco: una cuenta, sin movimientos (ver «La primera vez que se
+abre»). Para probar la app ya cargada, hay ~340 movimientos de ejemplo de 13
+meses, generados de forma determinista, disponibles en **Ajustes → Datos de
+ejemplo**. Para volver al punto de partida (una cuenta, sin nada): **Ajustes →
+Vaciar todo**.
 
 El estado guardado se migra solo al abrir una versión nueva (`migrate()` en
 `store.js`), así que actualizar la app no te borra nada.
