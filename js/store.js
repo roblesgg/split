@@ -313,9 +313,10 @@
   function defaultState() {
     var today = ymd(new Date());
     return {
-      version: 5,
+      version: 6,
       createdAt: today,
       categories: cloneCategories(),
+      tags: [],
 
       /* Cuánto cuentas al mes para repartir.
          auto  = media real de tus últimos meses cerrados
@@ -350,9 +351,10 @@
   function freshState() {
     var today = ymd(new Date());
     return {
-      version: 5,
+      version: 6,
       createdAt: today,
       categories: cloneCategories(),
+      tags: [],
       income: { mode: "auto", manual: 0, months: 3 },
       allocation: Object.assign({}, DEFAULT_ALLOCATION),
       recurring: [],
@@ -472,6 +474,14 @@
       s.version = 5;
     }
 
+    if (s.version < 6) {
+      /* v6 añade hora, notas largas, etiquetas y adjuntos al movimiento.
+         Nada que reescribir: lo que no los tenga se comporta como antes,
+         sin hora y sin nada colgando. */
+      if (!Array.isArray(s.tags)) s.tags = [];
+      s.version = 6;
+    }
+
     invalidateCats();
     return s;
   }
@@ -526,18 +536,26 @@
     return "t" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
   }
 
+  /* Un movimiento tiene dos textos: `note` es el título corto que se ve en
+     la lista, y `memo` las notas largas, que solo salen en el detalle.
+     `time` es opcional: los movimientos viejos no la tienen y se ordenan
+     por el momento en que se apuntaron, como hasta ahora. */
   function addTx(t) {
     var tx = {
       id: nextId(),
       createdAt: Date.now(),
       date: t.date,
+      time: normalizeTime(t.time),
       kind: t.kind,
       categoryId: t.categoryId,
       accountId: t.accountId || "banco",
       toAccountId: t.kind === "transfer" ? (t.toAccountId || null) : null,
       amount: Math.round(Math.abs(t.amount) * 100) / 100,
       note: (t.note || "").trim() ||
-            (t.kind === "transfer" ? "Traspaso" : catById(t.categoryId).name)
+            (t.kind === "transfer" ? "Traspaso" : catById(t.categoryId).name),
+      memo: (t.memo || "").trim(),
+      tags: normalizeTags(t.tags),
+      attachments: Array.isArray(t.attachments) ? t.attachments.slice() : []
     };
     state.transactions.push(tx);
     sortTx();
@@ -545,11 +563,33 @@
     return tx;
   }
 
+  /* "HH:MM" en 24 h, o cadena vacía si no se ha puesto hora */
+  function normalizeTime(v) {
+    var m = String(v == null ? "" : v).match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return "";
+    var h = Math.min(23, Math.max(0, +m[1])), mi = Math.min(59, Math.max(0, +m[2]));
+    return (h < 10 ? "0" : "") + h + ":" + (mi < 10 ? "0" : "") + mi;
+  }
+
+  function normalizeTags(v) {
+    if (!Array.isArray(v)) return [];
+    var seen = {}, out = [];
+    v.forEach(function (id) {
+      if (!id || seen[id]) return;
+      seen[id] = 1;
+      out.push(id);
+    });
+    return out;
+  }
+
   function updateTx(id, patch) {
     var t = state.transactions.find(function (x) { return x.id === id; });
     if (!t) return null;
     Object.keys(patch).forEach(function (k) { t[k] = patch[k]; });
     if (patch.amount != null) t.amount = Math.round(Math.abs(patch.amount) * 100) / 100;
+    if (patch.time != null) t.time = normalizeTime(patch.time);
+    if (patch.memo != null) t.memo = String(patch.memo).trim();
+    if (patch.tags != null) t.tags = normalizeTags(patch.tags);
     sortTx();
     save();
     return t;
@@ -575,6 +615,9 @@
   function sortTx() {
     state.transactions.sort(function (a, b) {
       if (a.date !== b.date) return a.date < b.date ? 1 : -1;
+      /* con hora puesta manda la hora; sin ella, lo añadido después */
+      var ta = a.time || "", tb = b.time || "";
+      if (ta && tb && ta !== tb) return ta < tb ? 1 : -1;
       return (b.createdAt || 0) - (a.createdAt || 0);
     });
   }
@@ -593,6 +636,7 @@
     state.goals.forEach(function (g) { taken[g.id] = 1; });
     (state.recurring || []).forEach(function (r) { taken[r.id] = 1; });
     (state.categories || []).forEach(function (c) { taken[c.id] = 1; });
+    (state.tags || []).forEach(function (t) { taken[t.id] = 1; });
     while (taken[id]) { id = base + "-" + (n++); }
     return id;
   }
@@ -756,6 +800,48 @@
   }
 
   /* ============================================================
+     Etiquetas — subcategorías libres que cuelgan del movimiento
+     ============================================================ */
+
+  /* Son transversales a la categoría: "Vacaciones" puede caer en Comida y
+     en Transporte a la vez. Por eso van aparte y un movimiento puede
+     llevar varias. */
+  function addTag(name) {
+    var limpio = String(name == null ? "" : name).trim().slice(0, 24);
+    if (!limpio) return null;
+    var ya = state.tags.find(function (t) {
+      return t.name.toLowerCase() === limpio.toLowerCase();
+    });
+    if (ya) return ya;
+    var tag = { id: slugId("tag", limpio), name: limpio };
+    state.tags.push(tag);
+    save();
+    return tag;
+  }
+
+  function tagById(id) {
+    return state.tags.find(function (t) { return t.id === id; }) || null;
+  }
+
+  function tagUsage(id) {
+    return state.transactions.filter(function (t) {
+      return Array.isArray(t.tags) && t.tags.indexOf(id) >= 0;
+    }).length;
+  }
+
+  /* Borrar una etiqueta sí puede hacerse siempre: no descuadra ningún
+     importe, solo se cae de los movimientos que la llevaban. */
+  function deleteTag(id) {
+    state.tags = state.tags.filter(function (t) { return t.id !== id; });
+    state.transactions.forEach(function (t) {
+      if (Array.isArray(t.tags) && t.tags.indexOf(id) >= 0) {
+        t.tags = t.tags.filter(function (x) { return x !== id; });
+      }
+    });
+    save();
+  }
+
+  /* ============================================================
      Metas de ahorro
      ============================================================ */
 
@@ -874,6 +960,9 @@
           toAccountId: r.kind === "transfer" ? r.toAccountId : null,
           amount: r.amount,
           note: r.note,
+          memo: "",
+          tags: [],
+          attachments: [],
           fromRecurring: r.id
         });
         r.lastPosted = m;
@@ -1251,6 +1340,9 @@
     /* cuentas */
     addAccount: addAccount, updateAccount: updateAccount,
     deleteAccount: deleteAccount, accountUsage: accountUsage,
+
+    /* etiquetas */
+    addTag: addTag, tagById: tagById, deleteTag: deleteTag, tagUsage: tagUsage,
 
     /* metas */
     addGoal: addGoal, updateGoal: updateGoal, deleteGoal: deleteGoal,

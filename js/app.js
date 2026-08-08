@@ -1795,15 +1795,88 @@
     ui.draft = t
       ? { kind: t.kind, amount: String(Math.round(t.amount * 100)), categoryId: t.categoryId,
           accountId: t.accountId, toAccountId: t.toAccountId || null,
-          note: t.note, date: t.date }
+          note: t.note, memo: t.memo || "", date: t.date, time: t.time || "",
+          tags: Array.isArray(t.tags) ? t.tags.slice() : [],
+          attachments: Array.isArray(t.attachments) ? t.attachments.slice() : [] }
       : { kind: kind || "out", amount: "", categoryId: kind === "in" ? "nomina" : "comida",
           accountId: accs[0].id,
           toAccountId: accs.length > 1 ? accs[1].id : accs[0].id,
-          note: "", date: S.ymd(new Date()) };
+          note: "", memo: "", date: S.ymd(new Date()), time: nowHHMM(),
+          tags: [], attachments: [] };
+
+    /* los adjuntos viven en IndexedDB: se piden aparte y se pintan cuando
+       llegan, sin bloquear la apertura del sheet */
+    ui.draftAttachments = [];
+    if (window.Attach && ui.draft.attachments.length) {
+      window.Attach.getMany(ui.draft.attachments).then(function (list) {
+        if (!sheets.add.open) return;
+        ui.draftAttachments = list;
+        refreshAttachments();
+      });
+    }
 
     $("#sheetAddTitle").textContent = txId ? "Editar movimiento" : "Nuevo movimiento";
     renderAddSheet();
     sheets.add.show();
+  }
+
+  /* Chips de etiqueta: las que ya existen se marcan, y el + abre un campo
+     para escribir una nueva. Son transversales a la categoría, así que un
+     movimiento puede llevar varias o ninguna. */
+  function tagsFieldHtml(d) {
+    var todas = S.state.tags || [];
+    return '<div class="field">' +
+        '<span class="field__label">Etiquetas</span>' +
+        '<div class="chips" id="addTags">' +
+          todas.map(function (tg) {
+            var on = d.tags.indexOf(tg.id) >= 0;
+            return '<button type="button" class="chip" data-tag="' + esc(tg.id) + '" ' +
+                     'aria-pressed="' + on + '">' + esc(tg.name) + '</button>';
+          }).join("") +
+          '<button type="button" class="chip chip--add" id="addTagNew">' +
+            icon("plus", 13) + 'Nueva' +
+          '</button>' +
+        '</div>' +
+        (todas.length ? "" :
+          '<p class="field__hint">Por ejemplo «Vacaciones» o «Coche»: valen para ' +
+          'agrupar gastos de categorías distintas.</p>') +
+      '</div>';
+  }
+
+  /* Los adjuntos no caben en localStorage, así que van en IndexedDB. Si el
+     navegador no la deja usar (modo privado, políticas), no se ofrece el
+     campo en vez de fallar al guardar. */
+  function attachFieldHtml() {
+    if (!window.Attach || !window.Attach.supported()) return "";
+    return '<div class="field">' +
+        '<span class="field__label">Adjuntos</span>' +
+        '<div class="attach" id="addAttach"></div>' +
+        '<input type="file" id="attachFile" accept="image/*" class="visually-hidden">' +
+      '</div>';
+  }
+
+  function refreshAttachments() {
+    var box = $("#addAttach");
+    if (!box) return;
+    var list = ui.draftAttachments || [];
+    box.innerHTML =
+      list.map(function (a) {
+        return '<div class="attach__item">' +
+            '<img class="attach__img" src="' + esc(a.dataUrl) + '" alt="' + esc(a.name) + '">' +
+            '<button type="button" class="attach__del" data-attach-del="' + esc(a.id) + '" ' +
+                    'aria-label="Quitar adjunto">' + icon("close", 12) + '</button>' +
+          '</div>';
+      }).join("") +
+      '<button type="button" class="attach__add" id="attachAdd" aria-label="Añadir adjunto">' +
+        icon("plus", 18) +
+      '</button>';
+    mountIcons(box);
+  }
+
+  function nowHHMM() {
+    var d = new Date();
+    var h = d.getHours(), m = d.getMinutes();
+    return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m;
   }
 
   function accountSelect(id, selected) {
@@ -1889,16 +1962,22 @@
           '</div>') +
 
       '<div class="field">' +
-        '<label class="field__label" for="addNote">Concepto</label>' +
+        '<label class="field__label" for="addNote">Título</label>' +
         '<input type="text" class="field__input" id="addNote" maxlength="40" ' +
                'placeholder="' + esc(catOf(d.categoryId).name) + '" value="' + esc(d.note) + '">' +
       '</div>' +
 
       (d.kind === "transfer"
-        ? '<div class="field">' +
-            '<label class="field__label" for="addDate">Fecha</label>' +
-            '<input type="date" class="field__input" id="addDate" value="' + esc(d.date) + '" ' +
-                   'max="' + esc(S.ymd(new Date())) + '">' +
+        ? '<div class="field__row">' +
+            '<div>' +
+              '<label class="field__label" for="addDate">Fecha</label>' +
+              '<input type="date" class="field__input" id="addDate" value="' + esc(d.date) + '" ' +
+                     'max="' + esc(S.ymd(new Date())) + '">' +
+            '</div>' +
+            '<div>' +
+              '<label class="field__label" for="addTime">Hora</label>' +
+              '<input type="time" class="field__input" id="addTime" value="' + esc(d.time) + '">' +
+            '</div>' +
           '</div>'
         : '<div class="field__row" style="margin-top:var(--sp-4)">' +
             '<div>' +
@@ -1910,7 +1989,22 @@
               '<input type="date" class="field__input" id="addDate" value="' + esc(d.date) + '" ' +
                      'max="' + esc(S.ymd(new Date())) + '">' +
             '</div>' +
+          '</div>' +
+          '<div class="field">' +
+            '<label class="field__label" for="addTime">Hora</label>' +
+            '<input type="time" class="field__input" id="addTime" value="' + esc(d.time) + '">' +
           '</div>') +
+
+      tagsFieldHtml(d) +
+
+      '<div class="field">' +
+        '<label class="field__label" for="addMemo">Notas</label>' +
+        '<textarea class="field__input field__input--area" id="addMemo" rows="3" ' +
+                  'maxlength="500" placeholder="Lo que quieras recordar de este ' +
+                  'movimiento">' + esc(d.memo) + '</textarea>' +
+      '</div>' +
+
+      attachFieldHtml() +
 
       '<div class="field" style="margin-top:var(--sp-5)">' +
         '<button type="button" class="btn btn--primary" id="addSave"' +
@@ -1928,6 +2022,7 @@
         : "");
 
     mountIcons(body);
+    refreshAttachments();
     requestAnimationFrame(function () {
       var seg = $("#addSeg", body);
       if (seg) U.slideIndicator(seg, $("#addThumb", body), $('[data-dkind="' + d.kind + '"]', seg));
@@ -1952,7 +2047,9 @@
     var payload = {
       kind: d.kind, amount: v, categoryId: d.categoryId,
       accountId: d.accountId, toAccountId: d.toAccountId,
-      note: d.note, date: d.date
+      note: d.note, memo: d.memo, date: d.date, time: d.time,
+      tags: d.tags,
+      attachments: (ui.draftAttachments || []).map(function (a) { return a.id; })
     };
     if (ui.editingId) {
       S.updateTx(ui.editingId, payload);
@@ -1977,6 +2074,8 @@
     var cat = catOf(t.categoryId);
     var acc = S.state.accounts.find(function (a) { return a.id === t.accountId; });
     var isIn = t.kind === "in";
+    var etiquetas = (t.tags || []).map(function (id) { return S.tagById(id); })
+                                  .filter(Boolean);
 
     $("#sheetDetailBody").innerHTML =
       '<div style="text-align:center;padding:var(--sp-3) 0 var(--sp-5)">' +
@@ -1991,13 +2090,41 @@
       '</div>' +
 
       '<div class="card card--quiet" style="padding:0;overflow:hidden">' +
-        detailRow("Categoría", cat.name) +
+        detailRow("Categoría", cat.emoji + " " + cat.name) +
         detailRow("Cuenta", acc ? acc.name : "—") +
         detailRow("Fecha", S.parseYmd(t.date).toLocaleDateString("es-ES", {
           weekday: "long", day: "numeric", month: "long", year: "numeric"
         })) +
+        (t.time ? detailRow("Hora", t.time) : "") +
         detailRow("Tipo", isIn ? "Ingreso" : "Gasto") +
       '</div>' +
+
+      (etiquetas.length
+        ? '<div class="field">' +
+            '<span class="field__label">Etiquetas</span>' +
+            '<div class="chips">' +
+              etiquetas.map(function (tg) {
+                return '<span class="chip" aria-pressed="true">' + esc(tg.name) + '</span>';
+              }).join("") +
+            '</div>' +
+          '</div>'
+        : "") +
+
+      (t.memo
+        ? '<div class="field">' +
+            '<span class="field__label">Notas</span>' +
+            '<p class="detail-memo">' + esc(t.memo) + '</p>' +
+          '</div>'
+        : "") +
+
+      ((t.attachments && t.attachments.length)
+        ? '<div class="field">' +
+            '<span class="field__label">Adjuntos</span>' +
+            '<div class="attach" id="detailAttach">' +
+              '<p class="field__hint">Cargando…</p>' +
+            '</div>' +
+          '</div>'
+        : "") +
 
       '<div class="field" style="display:flex;gap:var(--sp-3)">' +
         '<button type="button" class="btn btn--ghost" id="detailEdit" style="flex:1">' +
@@ -2007,6 +2134,22 @@
       '</div>';
 
     mountIcons($("#sheetDetailBody"));
+
+    if (t.attachments && t.attachments.length && window.Attach) {
+      window.Attach.getMany(t.attachments).then(function (list) {
+        var box = $("#detailAttach");
+        if (!box) return;
+        box.innerHTML = list.length
+          ? list.map(function (a) {
+              return '<a class="attach__item" href="' + esc(a.dataUrl) + '" ' +
+                       'target="_blank" rel="noopener">' +
+                  '<img class="attach__img" src="' + esc(a.dataUrl) + '" ' +
+                       'alt="' + esc(a.name) + '">' +
+                '</a>';
+            }).join("")
+          : '<p class="field__hint">Los adjuntos ya no están disponibles.</p>';
+      });
+    }
 
     $("#detailEdit").onclick = function () {
       sheets.detail.close();
@@ -2323,6 +2466,36 @@
         if (note) note.placeholder = catOf(ui.draft.categoryId).name;
         U.haptic("light"); return;
       }
+      if ((node = e.target.closest("[data-tag]"))) {
+        var tid = node.getAttribute("data-tag");
+        var pos = ui.draft.tags.indexOf(tid);
+        if (pos >= 0) ui.draft.tags.splice(pos, 1); else ui.draft.tags.push(tid);
+        node.setAttribute("aria-pressed", String(pos < 0));
+        U.haptic("light");
+        return;
+      }
+      if (e.target.closest("#addTagNew")) {
+        var nombre = prompt("Nombre de la etiqueta");
+        if (nombre == null) return;
+        var tag = S.addTag(nombre);
+        if (!tag) { U.toast("Ponle un nombre", { icon: "warning" }); return; }
+        if (ui.draft.tags.indexOf(tag.id) < 0) ui.draft.tags.push(tag.id);
+        renderAddSheet();
+        refreshAttachments();
+        U.haptic("light");
+        return;
+      }
+      if (e.target.closest("#attachAdd")) { $("#attachFile").click(); return; }
+      if ((node = e.target.closest("[data-attach-del]"))) {
+        var aid = node.getAttribute("data-attach-del");
+        ui.draftAttachments = (ui.draftAttachments || [])
+          .filter(function (a) { return a.id !== aid; });
+        /* del disco se va al guardar (o en la limpieza del arranque): si
+           el usuario cierra sin guardar, el adjunto original sigue ahí */
+        refreshAttachments();
+        U.haptic("light");
+        return;
+      }
       if (e.target.closest("#addSave")) { saveDraft(); return; }
       if (e.target.closest("#addDelete")) {
         if (!confirm("¿Eliminar este movimiento?")) return;
@@ -2337,6 +2510,7 @@
 
     addBody.addEventListener("input", function (e) {
       if (e.target.id === "addNote") ui.draft.note = e.target.value;
+      if (e.target.id === "addMemo") ui.draft.memo = e.target.value;
     });
 
     addBody.addEventListener("change", function (e) {
@@ -2349,6 +2523,24 @@
         renderAddSheet();
       }
       if (e.target.id === "addDate") ui.draft.date = e.target.value;
+      if (e.target.id === "addTime") ui.draft.time = e.target.value;
+    });
+
+    /* elegir imagen: se reduce y se guarda en IndexedDB antes de pintarla */
+    addBody.addEventListener("change", function (e) {
+      if (e.target.id !== "attachFile") return;
+      var file = e.target.files && e.target.files[0];
+      e.target.value = "";
+      if (!file) return;
+      U.toast("Procesando la imagen…", { icon: "upload" });
+      window.Attach.put(file).then(function (rec) {
+        ui.draftAttachments = (ui.draftAttachments || []).concat([rec]);
+        refreshAttachments();
+        U.haptic("success");
+      }, function (err) {
+        U.toast(err && err.message ? err.message : "No se ha podido adjuntar",
+                { icon: "warning", duration: 4500 });
+      });
     });
 
     document.addEventListener("keydown", function (e) {
@@ -2535,6 +2727,17 @@
         U.toast("Se han apuntado " + posted + " movimiento" + (posted === 1 ? "" : "s") +
                 " programado" + (posted === 1 ? "" : "s"), { icon: "calendar", duration: 4500 });
       }, 600);
+    }
+
+    /* Adjuntos que ya no cuelgan de ningún movimiento (se borró el
+       movimiento, o se quitó la imagen y se guardó): ocuparían sitio para
+       siempre, así que se barren al arrancar. */
+    if (window.Attach && window.Attach.supported()) {
+      var vivos = [];
+      S.state.transactions.forEach(function (t) {
+        if (Array.isArray(t.attachments)) vivos = vivos.concat(t.attachments);
+      });
+      window.Attach.sweep(vivos);
     }
 
     /* El tutorial manda: la primera vez el aviso de actualización espera a

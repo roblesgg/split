@@ -1037,6 +1037,104 @@ select.field__input { appearance: none; cursor: pointer; padding-right: var(--sp
 /* dentro de una fila el emoji va en su círculo hundido, como el avatar */
 .avatar-letter.cat-face { font-weight: 400; }
 
+/* ---------- notas largas ---------- */
+
+.field__input--area {
+  height: auto;
+  min-height: 92px;
+  padding: var(--sp-3) var(--sp-4);
+  line-height: 1.5;
+  resize: vertical;
+  font-family: inherit;
+}
+
+.detail-memo {
+  padding: var(--sp-4);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- etiquetas ---------- */
+
+.chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+
+.chip {
+  padding: 8px 14px;
+  border-radius: var(--r-full);
+  background: var(--surface-1);
+  box-shadow: var(--nm-out-sm);
+  font-size: 12.5px;
+  font-weight: var(--w-medium);
+  color: var(--text-secondary);
+  transition: box-shadow var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+
+/* elegida: hundida, como el resto de lo que se pulsa en esta app */
+.chip[aria-pressed="true"] {
+  box-shadow: var(--nm-in);
+  color: var(--text-primary);
+  font-weight: var(--w-semi);
+}
+
+.chip--add {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  box-shadow: none;
+  border: 1.5px dashed var(--hairline-strong);
+  color: var(--text-muted);
+}
+
+/* ---------- adjuntos ---------- */
+
+.attach { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
+
+.attach__item {
+  position: relative;
+  width: 78px;
+  height: 78px;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  background: var(--surface-2);
+  box-shadow: var(--card-shadow);
+  display: block;
+}
+
+.attach__img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.attach__del {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r-full);
+  background: rgba(16, 18, 23, 0.72);
+  color: #fff;
+}
+
+.attach__add {
+  display: grid;
+  place-items: center;
+  width: 78px;
+  height: 78px;
+  border-radius: var(--r-sm);
+  border: 1.5px dashed var(--hairline-strong);
+  color: var(--text-muted);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.attach__add:active { box-shadow: var(--nm-in); }
+
 /* ---------- rejilla de categorías del sheet ---------- */
 
 .cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-3); }

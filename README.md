@@ -18,6 +18,11 @@ Si algún navegador bloqueara el almacenamiento (modo privado, políticas
 corporativas), la app lo detecta y sigue funcionando en memoria durante la
 sesión. Si te pasa y quieres persistencia, sírvela por HTTP:
 
+```
+npx serve .          # o
+python -m http.server
+```
+
 ## La primera vez que se abre
 
 No hay datos de ejemplo cargados por defecto. La primera vez, un tutorial
@@ -29,11 +34,6 @@ si se quiere (por ejemplo, al banco real que uses) y lleva directo a
 
 El tutorial se enseña una sola vez, la primera vez que hay algo guardado en
 `localStorage`; a partir de ahí no vuelve a aparecer.
-
-```
-npx serve .          # o
-python -m http.server
-```
 
 ## Dos interfaces, un solo código
 
@@ -71,6 +71,56 @@ nómina, y no todos los meses entra lo mismo.
 | **Análisis** | Histórico con rango 3M/6M/12M, ahorro por mes, tasa de ahorro, reparto por categoría, mapa de calor y lecturas automáticas |
 | **Planes** | Cuentas, pagos programados y metas de ahorro, todo con crear, editar y borrar |
 | **Ajustes** | Ingresos, reparto por porcentajes, tema y exportar/importar |
+
+## Categorías
+
+Se crean, se renombran, se les cambia el **emoji** y el **color**, y se borran.
+No hay límite: la app trae unas básicas y a partir de ahí cada uno monta las
+suyas.
+
+De fábrica vienen diez de gasto (Comida, Compras, Gasolina, Transporte, Hogar,
+Ocio, Salud, Suscripciones, Regalos y Otros) y cuatro de ingreso (Ingreso,
+Sueldo, Extra y Regalo).
+
+Se gestionan desde **Ajustes → Categorías**, o con el botón **+** que hay al
+final del selector cuando estás apuntando un movimiento: crea la categoría sin
+perder el importe que llevaras tecleado y vuelve con ella ya elegida.
+
+Una categoría **no se puede borrar si tiene movimientos**, igual que las
+cuentas: la app dice cuántos hay en lugar de dejar importes sin clasificar. Las
+nuevas de gasto entran en el reparto al 0 %, así que crear una no te mueve
+ningún presupuesto.
+
+### Los 16 colores
+
+Están en `tokens.css` como `--cat-1..16`, en **8 familias de tono × 2
+luminosidades**. Los pares de una misma familia (azul / azul hondo, rojo /
+granate) se distinguen por claro-oscuro, que el daltonismo no altera; las
+familias entre sí, por tono.
+
+Con 16 colores no existe separación perfecta bajo daltonismo: el suelo es ΔE 4,2
+en claro y 2,2 en oscuro, y ese último es entre azul y violeta, que ya venía así
+de `--series-1` / `--series-7`. No importa aquí porque **el color de una
+categoría nunca viaja solo**: siempre lleva su emoji y su nombre al lado.
+
+## Qué se guarda de cada movimiento
+
+Importe, categoría, cuenta, **fecha y hora**, un **título** corto para la lista,
+**notas** largas para lo que no cabe en el título, **etiquetas** y **adjuntos**.
+
+Las **etiquetas** son transversales a la categoría: «Vacaciones» puede caer en
+Comida y en Transporte a la vez. Se crean al vuelo desde el propio movimiento.
+
+Los **adjuntos** (fotos de tickets) **no van en `localStorage`**. El estado
+entero se guarda ahí como una cadena JSON y la cuota ronda los 5 MB: una sola
+foto en base64 se la comería y a partir de ahí dejaría de guardarse todo lo
+demás. Van en **IndexedDB**, y el movimiento solo se queda con el id. Antes de
+guardarla, la imagen se reduce con un canvas a 1400 px de lado mayor y JPEG al
+72 %, que deja un ticket de cámara en unos 150 KB.
+
+Ojo con esto: **el archivo de Exportar no lleva los adjuntos**, solo sus ids. Al
+importarlo en otro dispositivo el movimiento aparece entero pero sin las
+imágenes.
 
 ## Traspasos entre cuentas
 
@@ -156,6 +206,7 @@ css/
 js/
   store.js          datos, localStorage, migraciones y selectores
   update.js         versión instalada y aviso de release nueva
+  attach.js         adjuntos en IndexedDB, con reducción de la imagen
   ui.js             iconos SVG, hojas arrastrables, toasts, háptica
   charts.js         motor de gráficos en SVG, escrito a mano
   app.js            render de pantallas, formularios y eventos
@@ -215,11 +266,8 @@ suficiente, cae al reparto lineal.
 
 ## Lo que todavía no hace
 
-- **Categorías fijas.** Son ocho de gasto y tres de ingreso, no se pueden crear
-  ni renombrar. Están en `CATEGORIES` dentro de `store.js`; sus colores salen de
-  la paleta validada, así que añadir más de ocho obligaría a revalidarla.
 - **Programados solo mensuales.** No hay semanal, trimestral ni anual.
-- **Una sola moneda** (euros) y sin adjuntar recibos.
+- **Una sola moneda** (euros).
 - **Sin deudas ni préstamos**: un préstamo hay que llevarlo a mano como
   movimientos sueltos.
 
@@ -233,6 +281,10 @@ Vaciar todo**.
 
 El estado guardado se migra solo al abrir una versión nueva (`migrate()` en
 `store.js`), así que actualizar la app no te borra nada.
+
+Los adjuntos viven aparte, en IndexedDB. Al arrancar se barren los que ya no
+cuelgan de ningún movimiento, para que borrar un gasto no deje su foto ocupando
+sitio para siempre.
 
 Todo vive en tu navegador, en tu dispositivo. No hay servidor detrás y tus datos
 no salen de aquí. La única conexión que hace la app es preguntarle a GitHub si
