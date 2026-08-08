@@ -5,7 +5,7 @@
 (function () {
   "use strict";
 
-  var S = window.Store, U = window.UI, C = window.Charts;
+  var S = window.Store, U = window.UI, C = window.Charts, Up = window.Updater;
   var $ = U.$, $$ = U.$$, esc = U.esc, icon = U.icon;
 
   /* ---------- estado de la interfaz ---------- */
@@ -19,7 +19,8 @@
     movsQuery: "",
     movsMonthOffset: 0,
     draft: null,
-    editingId: null
+    editingId: null,
+    update: null            /* { version, name, url } si hay una release nueva */
   };
 
   var sheets = {};
@@ -257,6 +258,25 @@
         '</section>'
       : "";
 
+    /* --- aviso de actualización, cuando hay release nueva --- */
+    var cardUpdate = ui.update
+      ? '<section class="update-card">' +
+          '<span class="update-card__icon" data-icon="download" data-icon-size="19"></span>' +
+          '<div class="update-card__body">' +
+            '<p class="update-card__title">Hay una actualización</p>' +
+            '<p class="update-card__text">' +
+              'split ' + esc(ui.update.version) + ' ya está disponible. ' +
+              'Tú tienes la ' + esc(Up.VERSION) + '.' +
+            '</p>' +
+            '<div class="update-card__actions">' +
+              '<button type="button" class="btn btn--primary" id="updateNow">' +
+                icon("download", 16) + 'Actualizar</button>' +
+              '<button type="button" class="update-card__later" id="updateLater">Ahora no</button>' +
+            '</div>' +
+          '</div>' +
+        '</section>'
+      : "";
+
     var cardQuick =
       '<div class="actions">' +
         '<button type="button" class="btn btn--primary" data-quick="gasto">' +
@@ -283,6 +303,7 @@
          ha pasado); la estrecha, las acciones y el control del mes. */
       '<div class="dash">' +
         '<div class="dash__col stagger">' +
+          (cardUpdate ? '<div style="--i:0">' + cardUpdate + '</div>' : "") +
           '<div style="--i:0">' + cardBalance + '</div>' +
           /* las acciones van pegadas a las tarjetas: en móvil todo se
              apila en una columna y deben quedar a mano, no al final */
@@ -1412,10 +1433,20 @@
         settingRow("trash", "Vaciar todo", "", "clear") +
       '</section>' +
 
+      '<section class="card card--flush">' +
+        '<div class="card__head card__pad--tight" style="margin-bottom:0">' +
+          '<h2 class="card__title">Acerca de</h2>' +
+        '</div>' +
+        settingRow("download", "Versión",
+                   ui.update ? "Hay una actualización disponible" : "Toca para buscar actualizaciones",
+                   "update", Up.VERSION) +
+      '</section>' +
+
       '<section class="card">' +
         '<p style="font-size:12px;color:var(--text-muted);line-height:1.6">' +
           'split guarda todo en el almacenamiento de este navegador, en este ' +
-          'dispositivo. No hay servidor detrás y nada sale de aquí.' +
+          'dispositivo. No hay servidor detrás y nada sale de aquí. Solo se ' +
+          'conecta a GitHub cuando comprueba si hay una versión nueva.' +
         '</p>' +
       '</section>' +
 
@@ -1580,6 +1611,24 @@
     if (action === "clear") {
       if (!confirm("¿Borrar todos tus movimientos y metas? No se puede deshacer.")) return;
       S.clearAll(); renderAll(); U.toast("Todo vaciado", { icon: "check" });
+      return;
+    }
+
+    if (action === "update") {
+      U.toast("Buscando actualizaciones…", { icon: "repeat" });
+      /* manual: se salta el límite de una comprobación cada 6 h, y aquí sí
+         se avisa aunque esa versión se hubiera descartado con «Ahora no» */
+      Up.check(true).then(function (res) {
+        if (res.status === "update") {
+          ui.update = res;
+          renderAll();
+          U.toast("split " + res.version + " disponible", { icon: "download", duration: 4500 });
+        } else if (res.status === "offline") {
+          U.toast("No se ha podido comprobar. ¿Tienes conexión?", { icon: "warning", duration: 4500 });
+        } else {
+          U.toast("Ya tienes la última versión", { icon: "check" });
+        }
+      });
     }
   }
 
@@ -1960,6 +2009,18 @@
       }
       if (e.target.closest("#movsClear")) { ui.movsQuery = ""; renderMovs(); return; }
 
+      if (e.target.closest("#updateNow")) {
+        Up.open(ui.update.url);
+        U.toast("Descargando la actualización…", { icon: "download", duration: 4500 });
+        return;
+      }
+      if (e.target.closest("#updateLater")) {
+        Up.dismiss(ui.update.version);
+        ui.update = null;
+        renderAll(); U.haptic("light");
+        return;
+      }
+
       if ((node = e.target.closest("[data-goal-add]"))) {
         var gid = node.getAttribute("data-goal-add");
         var raw = prompt("¿Cuánto quieres aportar a esta meta? (€)", "50");
@@ -2288,7 +2349,21 @@
       }, 600);
     }
 
+    /* El tutorial manda: la primera vez el aviso de actualización espera a
+       la siguiente apertura en vez de pisarlo. */
     if (firstRun) setTimeout(startOnboarding, 500);
+    else checkForUpdate();
+  }
+
+  /* Comprobación de fondo: no bloquea el arranque y, si no hay conexión,
+     no se nota. */
+  function checkForUpdate() {
+    if (!Up) return;
+    Up.check(false).then(function (res) {
+      if (res.status !== "update" || Up.isDismissed(res.version)) return;
+      ui.update = res;
+      renderAll();
+    });
   }
 
   if (document.readyState === "loading") {

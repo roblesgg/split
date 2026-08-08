@@ -107,11 +107,41 @@ lugar de borrar a ciegas. Tampoco deja quedarse sin ninguna cuenta.
 
 ## En el móvil
 
-Hay un APK listo en `split.apk`. Se instala copiándolo al teléfono y abriéndolo
-(Android pedirá permiso para instalar de origen desconocido). La app va entera
-dentro: funciona sin internet y los datos se quedan en el móvil.
+El APK está en la [última release](https://github.com/roblesgg/split/releases/latest).
+Se instala bajándolo al teléfono y abriéndolo (Android pedirá permiso para
+instalar de origen desconocido). La app va entera dentro: funciona sin internet
+y los datos se quedan en el móvil. A partir de ahí, la propia app avisa de las
+versiones nuevas.
 
 Para regenerarlo tras cambiar algo, mira `packaging/README.md`.
+
+## Actualizaciones
+
+La app avisa sola cuando hay una versión nueva. Al abrirla mira la **última
+release de GitHub**; si su etiqueta es posterior a la versión que llevas
+dentro, sale una tarjeta arriba del Resumen con **Actualizar** y **Ahora no**.
+
+- En el móvil, **Actualizar** descarga el `split.apk` de esa release y Android
+  lo instala encima del que ya tienes. Al estar firmado con la misma clave, **no
+  se pierden los datos**.
+- En escritorio abre la página de la release, que es donde están los archivos.
+- **Ahora no** silencia solo esa versión; la siguiente vuelve a avisar.
+- En **Ajustes → Acerca de** se ve la versión instalada y se puede buscar a
+  mano en cualquier momento.
+
+Sin conexión no pasa nada: la comprobación falla en silencio y la app sigue
+funcionando igual. En el arranque no se pregunta más de una vez cada 6 h.
+
+### Al publicar una versión nueva
+
+Los dos números tienen que coincidir, porque la comparación es entre ellos:
+
+1. Sube `VERSION` en `js/update.js`.
+2. Regenera el APK (`packaging/`, ver más abajo).
+3. Publica una release etiquetada igual (`vX.Y.Z`) con el `split.apk` adjunto.
+
+Si te saltas el paso 3, nadie se entera de la actualización; si te saltas el 1,
+la app seguirá avisando de una versión que ya tiene instalada.
 
 ## Estructura
 
@@ -125,6 +155,7 @@ css/
   screens.css       piezas de cada pantalla y el editor de reparto
 js/
   store.js          datos, localStorage, migraciones y selectores
+  update.js         versión instalada y aviso de release nueva
   ui.js             iconos SVG, hojas arrastrables, toasts, háptica
   charts.js         motor de gráficos en SVG, escrito a mano
   app.js            render de pantallas, formularios y eventos
@@ -203,5 +234,6 @@ Vaciar todo**.
 El estado guardado se migra solo al abrir una versión nueva (`migrate()` en
 `store.js`), así que actualizar la app no te borra nada.
 
-Todo vive en tu navegador, en tu dispositivo. No hay servidor ni se envía nada a
-ninguna parte.
+Todo vive en tu navegador, en tu dispositivo. No hay servidor detrás y tus datos
+no salen de aquí. La única conexión que hace la app es preguntarle a GitHub si
+hay una versión nueva (ver «Actualizaciones»), y en esa llamada no va nada tuyo.

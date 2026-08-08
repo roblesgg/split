@@ -1143,6 +1143,65 @@ select.field__input { appearance: none; cursor: pointer; padding-right: var(--sp
   to { opacity: 0; transform: translate3d(0, 8px, 0); }
 }
 
+/* ---------- aviso de actualización ---------- */
+
+/* Lleva el índigo de acento porque es una llamada a la acción puntual,
+   no una tarjeta más del resumen. */
+.update-card {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-4);
+  padding: var(--sp-5);
+  border-radius: var(--r-lg);
+  background: var(--surface-1);
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--accent-wash);
+}
+
+.update-card__icon {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--r-full);
+  background: var(--accent-wash);
+  color: var(--accent);
+}
+
+.update-card__body { flex: 1; min-width: 0; }
+
+.update-card__title {
+  font-size: 15px;
+  font-weight: var(--w-semi);
+  letter-spacing: -0.024em;
+  margin-bottom: 3px;
+}
+
+.update-card__text { font-size: 12.5px; color: var(--text-secondary); line-height: 1.5; }
+
+.update-card__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-top: var(--sp-4);
+}
+
+.update-card__actions .btn {
+  width: auto;
+  height: 42px;
+  padding: 0 var(--sp-5);
+  font-size: 13.5px;
+}
+
+.update-card__later {
+  padding: 0 var(--sp-3);
+  height: 42px;
+  font-size: 13px;
+  font-weight: var(--w-medium);
+  color: var(--text-muted);
+}
+
 /* ---------- tutorial de bienvenida ---------- */
 
 .onboard {
