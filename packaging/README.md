@@ -8,12 +8,42 @@ Usa [Capacitor](https://capacitorjs.com), que mete los archivos **dentro** del
 APK. No hay servidor detrás: la app funciona sin internet y los datos siguen en
 el almacenamiento local del móvil.
 
-## Regenerar el APK después de tocar la app
+## Publicar una versión (lo normal)
+
+No hace falta compilar nada a mano. En GitHub, pestaña **Actions** →
+**Publicar release** → *Run workflow*, poniendo la versión sin la «v»
+(`1.1.0`). El workflow copia la app, compila el APK **firmado**, crea la
+etiqueta y publica la release con `split.apk` adjunto.
+
+Antes de lanzarlo hay que subir `VERSION` en `js/update.js`: el workflow
+compara ambos y se planta si no coinciden, porque una app que se anuncia
+como 1.1.0 mientras la última release es la 1.2.0 avisaría en bucle de una
+actualización que ya tiene puesta.
+
+### La clave de firma
+
+Vive en dos secretos del repositorio, nunca en el código:
+
+| Secreto | Qué es |
+|---|---|
+| `ANDROID_KEYSTORE_B64` | El almacén de claves en base64 |
+| `ANDROID_KEYSTORE_PASSWORD` | Su contraseña |
+
+Es **siempre la misma clave**, y de eso depende que cada versión se instale
+encima de la anterior conservando los datos. Si se pierde, la siguiente
+versión será una app distinta para Android: habría que desinstalar y volver
+a empezar. Conviene guardarla también fuera de GitHub.
+
+## Regenerar el APK a mano (rara vez)
 
 ```powershell
 cd packaging
 npm run apk
 ```
+
+Sale firmado con la clave de depuración de *esa* máquina, así que **no se
+instala encima** de uno bajado de una release. Vale para probar en local,
+no para distribuir.
 
 El APK sale en `android\app\build\outputs\apk\debug\app-debug.apk`.
 

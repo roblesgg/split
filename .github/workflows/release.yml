@@ -1,0 +1,115 @@
+# Compila el APK y publica la release.
+#
+# Aquí sí hay SDK de Android, así que el APK sale del propio GitHub en vez
+# de tener que compilarlo a mano en un PC. Se firma con la clave guardada
+# en los secretos del repositorio: al ser siempre la misma, cada versión se
+# instala encima de la anterior sin perder los datos.
+
+name: Publicar release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Versión a publicar, sin la v (por ejemplo 1.1.0)"
+        required: true
+      notes:
+        description: "Notas de la release (si se deja vacío, las genera GitHub)"
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Comprobar la clave de firma y la versión
+        env:
+          KS: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          if [ -z "$KS" ]; then
+            echo "::error::Falta el secreto ANDROID_KEYSTORE_B64. Sin él el APK"
+            echo "::error::saldría sin firmar y Android no lo instalaría."
+            exit 1
+          fi
+
+          EN_CODIGO=$(grep -oP 'var VERSION = "\K[^"]+' js/update.js)
+          echo "Pedida: $VERSION | en el código: $EN_CODIGO"
+          if [ "$VERSION" != "$EN_CODIGO" ]; then
+            echo "::error::VERSION en js/update.js es $EN_CODIGO y se pide publicar $VERSION."
+            echo "::error::La app compara su versión con la etiqueta de la última"
+            echo "::error::release: si no coinciden, avisaría de una actualización"
+            echo "::error::que el usuario ya tiene instalada."
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Copiar la app y sincronizar Capacitor
+        working-directory: packaging
+        run: |
+          npm install
+          npm run sync
+
+      - name: Restaurar la clave de firma
+        env:
+          KS_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+        run: printf '%s' "$KS_B64" | base64 -d > "$RUNNER_TEMP/split.keystore"
+
+      - name: Compilar el APK firmado
+        working-directory: packaging/android
+        env:
+          SPLIT_KEYSTORE: ${{ runner.temp }}/split.keystore
+          SPLIT_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          SPLIT_KEY_ALIAS: split
+          SPLIT_VERSION_NAME: ${{ inputs.version }}
+          # versionCode tiene que subir en cada publicación; el número de
+          # ejecución del workflow sirve y nunca se repite
+          SPLIT_VERSION_CODE: ${{ github.run_number }}
+        run: |
+          chmod +x gradlew
+          ./gradlew --no-daemon assembleRelease
+
+      - name: Preparar el APK
+        run: |
+          APK=$(find packaging/android/app/build/outputs/apk/release -name "*.apk" | head -1)
+          if [ -z "$APK" ]; then
+            echo "::error::No se ha generado ningún APK."
+            exit 1
+          fi
+          cp "$APK" split.apk
+          ls -lh split.apk
+
+      - name: Publicar la release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+          NOTES: ${{ inputs.notes }}
+        run: |
+          TAG="v$VERSION"
+          if [ -n "$NOTES" ]; then
+            printf '%s\n' "$NOTES" > NOTAS.md
+            gh release create "$TAG" split.apk \
+              --title "split $VERSION" \
+              --target "$GITHUB_SHA" \
+              --notes-file NOTAS.md
+          else
+            gh release create "$TAG" split.apk \
+              --title "split $VERSION" \
+              --target "$GITHUB_SHA" \
+              --generate-notes
+          fi

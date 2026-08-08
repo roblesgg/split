@@ -3,12 +3,32 @@ apply plugin: 'com.android.application'
 android {
     namespace "com.roblesgg.split"
     compileSdk rootProject.ext.compileSdkVersion
+    /* Firma de las releases. La clave NO vive en el repositorio: llega por
+       variables de entorno desde los secretos de GitHub Actions. Sin ellas
+       este bloque no hace nada y el build local de depuración se comporta
+       igual que siempre. */
+    signingConfigs {
+        release {
+            def ks = System.getenv("SPLIT_KEYSTORE")
+            if (ks) {
+                storeFile file(ks)
+                storePassword System.getenv("SPLIT_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("SPLIT_KEY_ALIAS") ?: "split"
+                keyPassword System.getenv("SPLIT_KEY_PASSWORD")
+                    ?: System.getenv("SPLIT_KEYSTORE_PASSWORD")
+            }
+        }
+    }
+
     defaultConfig {
         applicationId "com.roblesgg.split"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        /* Los pone el workflow a partir de la versión que se publica. En un
+           build local a mano se quedan como estaban. */
+        versionCode System.getenv("SPLIT_VERSION_CODE")
+            ? System.getenv("SPLIT_VERSION_CODE").toInteger() : 1
+        versionName System.getenv("SPLIT_VERSION_NAME") ?: "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -20,6 +40,12 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            /* Sin clave, `assembleRelease` saldría sin firmar y Android no lo
+               instalaría. Mejor que el workflow falle claro a que publique un
+               APK que nadie puede instalar. */
+            if (System.getenv("SPLIT_KEYSTORE")) {
+                signingConfig signingConfigs.release
+            }
         }
     }
 }
