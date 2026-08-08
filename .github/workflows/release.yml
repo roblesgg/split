@@ -8,6 +8,7 @@
 name: Publicar release
 
 on:
+  # A mano desde la pestaña Actions.
   workflow_dispatch:
     inputs:
       version:
@@ -16,6 +17,12 @@ on:
       notes:
         description: "Notas de la release (si se deja vacío, las genera GitHub)"
         required: false
+
+  # O empujando una rama `publicar/vX.Y.Z`, que es lo mismo pero se puede
+  # hacer desde una consola sin entrar en la web.
+  push:
+    branches:
+      - "publicar/v*"
 
 permissions:
   contents: write
@@ -29,10 +36,29 @@ jobs:
         with:
           fetch-depth: 0
 
+      # De la entrada del workflow, o del nombre de la rama publicar/vX.Y.Z
+      - name: Averiguar la versión
+        id: v
+        env:
+          ENTRADA: ${{ inputs.version }}
+          RAMA: ${{ github.ref_name }}
+        run: |
+          if [ -n "$ENTRADA" ]; then
+            V="$ENTRADA"
+          else
+            V="${RAMA#publicar/v}"
+          fi
+          if ! printf '%s' "$V" | grep -qE '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Versión no reconocida: '$V'. Se espera X.Y.Z."
+            exit 1
+          fi
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          echo "Publicando la $V"
+
       - name: Comprobar la clave de firma y la versión
         env:
           KS: ${{ secrets.ANDROID_KEYSTORE_B64 }}
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ steps.v.outputs.version }}
         run: |
           if [ -z "$KS" ]; then
             echo "::error::Falta el secreto ANDROID_KEYSTORE_B64. Sin él el APK"
@@ -76,7 +102,7 @@ jobs:
           SPLIT_KEYSTORE: ${{ runner.temp }}/split.keystore
           SPLIT_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           SPLIT_KEY_ALIAS: split
-          SPLIT_VERSION_NAME: ${{ inputs.version }}
+          SPLIT_VERSION_NAME: ${{ steps.v.outputs.version }}
           # versionCode tiene que subir en cada publicación; el número de
           # ejecución del workflow sirve y nunca se repite
           SPLIT_VERSION_CODE: ${{ github.run_number }}
@@ -97,12 +123,21 @@ jobs:
       - name: Publicar la release
         env:
           GH_TOKEN: ${{ github.token }}
-          VERSION: ${{ inputs.version }}
+          VERSION: ${{ steps.v.outputs.version }}
           NOTES: ${{ inputs.notes }}
         run: |
           TAG="v$VERSION"
+
+          # Prioridad: lo que se escriba al lanzarlo a mano; si no, el archivo
+          # de notas versionado; y si tampoco, que las genere GitHub.
+          ARCHIVO=".github/release-notes/v$VERSION.md"
           if [ -n "$NOTES" ]; then
             printf '%s\n' "$NOTES" > NOTAS.md
+          elif [ -f "$ARCHIVO" ]; then
+            cp "$ARCHIVO" NOTAS.md
+          fi
+
+          if [ -f NOTAS.md ]; then
             gh release create "$TAG" split.apk \
               --title "split $VERSION" \
               --target "$GITHUB_SHA" \
