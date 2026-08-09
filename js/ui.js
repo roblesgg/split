@@ -257,6 +257,54 @@
   };
 
   /* ============================================================
+     Pulsación larga
+     ============================================================ */
+
+  /* Delegada, como el resto de eventos de la app. Se cancela si el dedo se
+     mueve (entonces se está desplazando, no manteniendo) o si se levanta
+     antes de tiempo.
+
+     Al dispararse hay que tragarse el clic que viene detrás: si no, además
+     de abrir la edición se seleccionaría la categoría. */
+  function longPress(root, selector, fn, ms) {
+    var timer = null, tragarClic = false, sx = 0, sy = 0;
+
+    function cancelar() {
+      if (timer) { clearTimeout(timer); timer = null; }
+    }
+
+    root.addEventListener("pointerdown", function (e) {
+      var node = e.target.closest && e.target.closest(selector);
+      if (!node) return;
+      sx = e.clientX; sy = e.clientY;
+      cancelar();
+      timer = setTimeout(function () {
+        timer = null;
+        tragarClic = true;
+        haptic("heavy");
+        fn(node);
+      }, ms || 480);
+    });
+
+    root.addEventListener("pointermove", function (e) {
+      if (!timer) return;
+      if (Math.abs(e.clientX - sx) > 10 || Math.abs(e.clientY - sy) > 10) cancelar();
+    });
+
+    root.addEventListener("pointerup", cancelar);
+    root.addEventListener("pointercancel", cancelar);
+    root.addEventListener("pointerleave", cancelar);
+
+    /* en captura, para llegar antes que el manejador que selecciona */
+    root.addEventListener("click", function (e) {
+      if (!tragarClic) return;
+      tragarClic = false;
+      e.preventDefault();
+      e.stopPropagation();
+    }, true);
+  }
+
+  /* ============================================================
      Indicador deslizante (tab bar y segmented control)
      ============================================================ */
 
@@ -338,6 +386,7 @@
     haptic: haptic, setHaptics: setHaptics,
     toast: toast,
     Sheet: Sheet,
+    longPress: longPress,
     slideIndicator: slideIndicator,
     countTo: countTo,
     tableView: tableView

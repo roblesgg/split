@@ -1420,11 +1420,11 @@
       var cat = id ? S.updateCategory(id, d) : S.addCategory(d);
       U.toast(id ? "Categoría actualizada" : "Categoría creada", { icon: "check" });
 
-      /* si se creó desde el selector del movimiento, se vuelve allí con
-         la nueva ya elegida y el importe que se llevaba tecleado */
-      if (!id && ui.catReturnToAdd) {
+      /* si se vino desde el selector del movimiento, se vuelve allí con el
+         importe que se llevaba tecleado; si además era nueva, ya elegida */
+      if (ui.catReturnToAdd) {
         ui.catReturnToAdd = false;
-        ui.draft.categoryId = cat.id;
+        if (!id) ui.draft.categoryId = cat.id;
         sheets.form.close();
         renderAddSheet();
         sheets.add.show();
@@ -1480,6 +1480,19 @@
       var resCat = S.deleteCategory(id);
       if (!resCat.ok) { U.toast(resCat.reason, { icon: "warning", duration: 5500 }); return; }
       U.toast("Categoría eliminada", { icon: "check" });
+
+      if (ui.catReturnToAdd) {
+        ui.catReturnToAdd = false;
+        /* el borrador apuntaba a la que acaba de desaparecer */
+        if (ui.draft && ui.draft.categoryId === id) {
+          var quedan = S.categoriesOf(ui.draft.kind === "in" ? "in" : "out");
+          ui.draft.categoryId = quedan.length ? quedan[0].id : "otros";
+        }
+        sheets.form.close();
+        renderAddSheet();
+        sheets.add.show();
+        return;
+      }
     }
 
     if (t === "account") {
@@ -2027,6 +2040,7 @@
                 '<span class="cat-pick__name">Nueva</span>' +
               '</button>' +
             '</div>' +
+            '<p class="field__hint">Mantén pulsada una categoría para editarla.</p>' +
           '</div>') +
 
       '<div class="field">' +
@@ -2517,6 +2531,14 @@
 
     /* --- sheet de añadir --- */
     var addBody = $("#sheetAddBody");
+
+    /* Mantener pulsada una categoría la abre para editar, en vez de
+       seleccionarla. El clic que viene detrás se traga solo. */
+    U.longPress(addBody, "[data-cat]", function (node) {
+      ui.catReturnToAdd = true;
+      sheets.add.close();
+      openForm("category", node.getAttribute("data-cat"));
+    });
 
     addBody.addEventListener("click", function (e) {
       var node;
