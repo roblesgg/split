@@ -277,6 +277,10 @@ svg { display: block; }
   grid-template-columns: repeat(5, 1fr);
   align-items: center;
   height: calc(var(--tabbar-h) + var(--safe-b));
+  /* Las cinco columnas se reparten DENTRO del carril, no en todo el ancho
+     de la pantalla. Sin esto los iconos de los extremos caían sobre la
+     curva de la pastilla y se veían pegados al borde. */
+  padding-inline: calc(var(--sp-4) + var(--sp-3));
   padding-bottom: var(--safe-b);
   background: transparent;
   /* los huecos a los lados del carril no deben tragarse los toques */
