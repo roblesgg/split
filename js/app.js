@@ -2827,8 +2827,25 @@
 
     /* El tutorial manda: la primera vez el aviso de actualización espera a
        la siguiente apertura en vez de pisarlo. */
+    asegurarHuecoInferior();
+
     if (firstRun) setTimeout(startOnboarding, 500);
     else checkForUpdate();
+  }
+
+  /* Dentro de la app, el hueco de la barra de navegación lo manda la capa
+     Android en --safe-b-native, con la medida real de ESE móvil. Si por lo
+     que sea no llegara, se reserva un mínimo prudente para que la barra de
+     pestañas no acabe debajo del gesto. El valor nativo manda siempre: esto
+     solo rellena el hueco si sigue vacío. */
+  function asegurarHuecoInferior() {
+    if (!window.Capacitor) return;
+    setTimeout(function () {
+      var raiz = document.documentElement;
+      if (!raiz.style.getPropertyValue("--safe-b-native")) {
+        raiz.style.setProperty("--safe-b-native", "24px");
+      }
+    }, 1500);
   }
 
   /* Comprobación de fondo: no bloquea el arranque y, si no hay conexión,
