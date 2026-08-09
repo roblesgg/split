@@ -103,6 +103,52 @@
 
   function monthName(key) { return S.monthLabel(key).split(" ")[0]; }
 
+  /* ---------- tarjetas plegables ----------
+     Qué está plegado se guarda aparte del estado de datos: es una
+     preferencia de la pantalla, no algo que exportar ni migrar. */
+
+  var FOLD_KEY = "split.folds";
+  var folds = null;
+
+  function foldState() {
+    if (!folds) {
+      try { folds = JSON.parse(localStorage.getItem(FOLD_KEY)) || {}; }
+      catch (e) { folds = {}; }
+    }
+    return folds;
+  }
+
+  /* abiertas por defecto: plegar es una decisión del usuario */
+  function isFolded(id) { return foldState()[id] === true; }
+
+  function setFolded(id, plegada) {
+    foldState()[id] = plegada;
+    try { localStorage.setItem(FOLD_KEY, JSON.stringify(folds)); } catch (e) {}
+  }
+
+  /* `extra` es lo que va a la derecha del título (un enlace, por ejemplo);
+     va fuera del botón, porque un botón dentro de otro no es válido. */
+  function foldCard(id, titulo, sub, extra, cuerpo, flush) {
+    var abierta = !isFolded(id);
+    return '<section class="card' + (flush ? " card--flush" : "") + '">' +
+        '<div class="card__head' + (flush ? " card__pad--tight" : "") + '" ' +
+             'style="margin-bottom:' + (abierta && !flush ? "var(--sp-4)" : "0") + '">' +
+          '<button type="button" class="fold-head" data-fold="' + esc(id) + '" ' +
+                  'aria-expanded="' + abierta + '">' +
+            '<span>' +
+              '<span class="card__title">' + titulo + '</span>' +
+              (sub ? '<span class="card__sub" style="display:block">' + sub + '</span>' : "") +
+            '</span>' +
+            '<span class="fold-head__chev" data-icon="chevDown" data-icon-size="15"></span>' +
+          '</button>' +
+          (extra || "") +
+        '</div>' +
+        '<div class="fold" data-open="' + abierta + '">' +
+          '<div class="fold__inner">' + cuerpo + '</div>' +
+        '</div>' +
+      '</section>';
+  }
+
   /* presupuestos vigentes, derivados del reparto */
   function budgetRows(monthKey) {
     var spent = {};
@@ -187,18 +233,11 @@
                  series.map(function (m) { return m.net; })) +
       '</div>';
 
-    var cardBudgets =
-      '<section class="card">' +
-        '<div class="card__head">' +
-          '<div>' +
-            '<h2 class="card__title">Presupuesto de ' + esc(monthName(curKey)) + '</h2>' +
-            '<p class="card__sub">' + esc(money(cur.expense)) + ' de ' +
-              esc(money(S.budgetTotal())) + ' asignados</p>' +
-          '</div>' +
-          '<button type="button" class="card__link" data-goto="ajustes">Editar</button>' +
-        '</div>' +
-        rows.map(meterHtml).join("") +
-      '</section>';
+    var cardBudgets = foldCard("presupuesto",
+      "Presupuesto de " + esc(monthName(curKey)),
+      esc(money(cur.expense)) + " de " + esc(money(S.budgetTotal())) + " asignados",
+      '<button type="button" class="card__link" data-goto="ajustes">Editar</button>',
+      rows.map(meterHtml).join(""));
 
     /* --- tarjeta de límite: el presupuesto del mes de un vistazo --- */
     var budgetTotal = S.budgetTotal();
@@ -239,14 +278,8 @@
     /* --- lo que viene: pagos y cobros programados --- */
     var upcoming = S.upcomingRecurring(4);
     var cardUpcoming = upcoming.length
-      ? '<section class="card card--flush">' +
-          '<div class="card__head card__pad--tight" style="margin-bottom:0">' +
-            '<div>' +
-              '<h2 class="card__title">Lo que viene</h2>' +
-              ''+
-            '</div>' +
-            '<button type="button" class="card__link" data-goto="ahorro">Gestionar</button>' +
-          '</div>' +
+      ? foldCard("proximos", "Lo que viene", "",
+          '<button type="button" class="card__link" data-goto="ahorro">Gestionar</button>',
           upcoming.map(function (u) {
             var r = u.r;
             var sign = r.kind === "in" ? "+" : r.kind === "transfer" ? "" : "−";
@@ -266,8 +299,7 @@
                   (r.kind === "in" ? ' style="color:var(--money-in)"' : '') + '>' +
                   sign + esc(S.moneyShort(r.amount)) + '</span>' +
               '</button>';
-          }).join("") +
-        '</section>'
+          }).join(""), true)
       : "";
 
     /* --- aviso de actualización, cuando hay release nueva --- */
@@ -304,16 +336,12 @@
                 'aria-label="Ir a Análisis" data-icon="chart" data-icon-size="18"></button>' +
       '</div>';
 
-    var cardRecent =
-      '<section class="card card--flush">' +
-        '<div class="card__head card__pad--tight" style="margin-bottom:0">' +
-          '<h2 class="card__title">Últimos movimientos</h2>' +
-          '<button type="button" class="card__link" data-goto="movs">Ver todo</button>' +
-        '</div>' +
-        (recent.length
-          ? '<div class="rows">' + recent.map(txRowHtml).join("") + '</div>'
-          : emptyHtml("list", "Sin movimientos", "Pulsa «Nuevo movimiento» para registrar el primero.")) +
-      '</section>';
+    var cardRecent = foldCard("recientes", "Últimos movimientos", "",
+      '<button type="button" class="card__link" data-goto="movs">Ver todo</button>',
+      (recent.length
+        ? '<div class="rows">' + recent.map(txRowHtml).join("") + '</div>'
+        : emptyHtml("list", "Sin movimientos", "Pulsa «Nuevo movimiento» para registrar el primero.")),
+      true);
 
     root.innerHTML =
       /* La columna ancha lleva el hilo (saldo → cifras → reparto → qué
@@ -2343,6 +2371,21 @@
       if ((node = e.target.closest("[data-amonth]"))) {
         ui.monthOffset = Math.max(0, ui.monthOffset - (+node.getAttribute("data-amonth")));
         renderAnalisis(); U.haptic("light"); return;
+      }
+      if ((node = e.target.closest("[data-fold]"))) {
+        var fid = node.getAttribute("data-fold");
+        var abierta = node.getAttribute("aria-expanded") === "true";
+        var caja = node.closest(".card__head").parentNode.querySelector(".fold");
+        node.setAttribute("aria-expanded", String(!abierta));
+        if (caja) caja.setAttribute("data-open", String(!abierta));
+        /* la cabecera se pega al cuerpo al plegarse */
+        var cab = node.closest(".card__head");
+        if (cab && !cab.classList.contains("card__pad--tight")) {
+          cab.style.marginBottom = abierta ? "0" : "var(--sp-4)";
+        }
+        setFolded(fid, abierta);
+        U.haptic("light");
+        return;
       }
       if (e.target.closest("#movsClear")) { ui.movsQuery = ""; renderMovs(); return; }
 

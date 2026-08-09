@@ -213,8 +213,19 @@ svg { display: block; }
 }
 
 @keyframes view-in {
-  from { opacity: 0; transform: translate3d(0, 6px, 0); }
+  from { opacity: 0; transform: translate3d(0, 10px, 0) scale(0.995); }
   to   { opacity: 1; transform: none; }
+}
+
+/* Quien pide menos movimiento en el sistema no debería tragarse ninguno de
+   estos adornos: quedan los cambios de estado, sin desplazamientos. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 .stagger > * {
@@ -250,15 +261,40 @@ svg { display: block; }
    Barra inferior (solo móvil): flotante y elevada
    ============================================================ */
 
+/* Flota sobre el contenido en vez de apoyarse en una franja opaca de ancho
+   completo, cuyo borde superior se recortaba contra lo que hubiera detrás.
+   El hueco ya lo reserva el padding de .scroll-area, así que no tapa nada. */
 .tabbar {
-  flex: none;
-  position: relative;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   align-items: center;
   height: calc(var(--tabbar-h) + var(--safe-b));
   padding-bottom: var(--safe-b);
-  background: var(--page);
+  background: transparent;
+  /* los huecos a los lados del carril no deben tragarse los toques */
+  pointer-events: none;
+}
+
+/* Desvanecido por encima: el contenido se apaga antes de llegar al carril,
+   en vez de cortarse con un filo. */
+.tabbar::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: calc(100% + 32px);
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(to bottom,
+              transparent 0%,
+              color-mix(in srgb, var(--page) 82%, transparent) 42%,
+              var(--page) 78%);
 }
 
 .tabbar::before {
@@ -271,6 +307,7 @@ svg { display: block; }
   border-radius: var(--r-full);
   background: var(--surface-1);
   box-shadow: var(--nm-out);
+  pointer-events: auto;
 }
 
 .tabbar__pill { display: none; }
@@ -278,6 +315,7 @@ svg { display: block; }
 .tab {
   position: relative;
   z-index: 1;
+  pointer-events: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -293,6 +331,14 @@ svg { display: block; }
 .tab[data-view] { padding-bottom: 11px; }
 
 .tab[aria-selected="true"] { color: var(--text-primary); }
+
+/* el icono acompaña al toque y se asienta al quedar elegido */
+.tab .tab__icon {
+  transition: transform var(--dur-base) var(--ease-ios);
+}
+
+.tab:active .tab__icon { transform: scale(0.86); }
+.tab[aria-selected="true"] .tab__icon { transform: translateY(-1px) scale(1.06); }
 
 /* Punto de acento de la pestaña activa: uno de los pocos toques de color
    de la app. Ahora va debajo del icono, en el hueco que dejó el texto. */
