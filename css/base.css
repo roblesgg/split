@@ -56,13 +56,16 @@ svg { display: block; }
 
 ::selection { background: var(--accent-wash); color: var(--text-primary); }
 
-.scroll-area::-webkit-scrollbar { width: 10px; }
-.scroll-area::-webkit-scrollbar-track { background: transparent; }
-.scroll-area::-webkit-scrollbar-thumb {
-  background: var(--hairline-strong);
-  border: 3px solid var(--page);
-  border-radius: var(--r-full);
+/* En el móvil no se pinta barra de scroll. Y no es solo por estética: en
+   cuanto se le da estilo, deja de flotar por encima y pasa a ocupar sitio
+   en la maquetación. Esos 10px se comían el borde derecho y dejaban la
+   columna centrada 5px escorada a la izquierda. */
+.scroll-area {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+
+.scroll-area::-webkit-scrollbar { width: 0; height: 0; display: none; }
 
 /* ---------- utilidades ---------- */
 
@@ -389,6 +392,22 @@ svg { display: block; }
 
   .app { flex-direction: row; }
   .tabbar { display: none; }
+
+  /* Con ratón sí se espera ver por dónde va el scroll. El hueco se reserva
+     a ambos lados para que la columna siga centrada. */
+  .scroll-area {
+    scrollbar-width: thin;
+    scrollbar-color: var(--hairline-strong) transparent;
+    scrollbar-gutter: stable both-edges;
+  }
+
+  .scroll-area::-webkit-scrollbar { width: 10px; height: 10px; display: block; }
+  .scroll-area::-webkit-scrollbar-track { background: transparent; }
+  .scroll-area::-webkit-scrollbar-thumb {
+    background: var(--hairline-strong);
+    border: 3px solid var(--page);
+    border-radius: var(--r-full);
+  }
 
   .sidebar {
     flex: none;
