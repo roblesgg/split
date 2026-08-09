@@ -32,4 +32,9 @@
     <!-- Permissions -->
 
     <uses-permission android:name="android.permission.INTERNET" />
+
+    <!-- Para abrir el instalador con el APK que la propia app descarga.
+         Android sigue pidiendo confirmación al usuario: esto solo evita
+         tener que pasar por el navegador. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 </manifest>

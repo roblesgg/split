@@ -40,6 +40,10 @@ public class MainActivity extends BridgeActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        /* Antes de super.onCreate, que es cuando Capacitor carga la página:
+           un plugin registrado después no lo vería el lado web. */
+        registerPlugin(ActualizadorPlugin.class);
+
         super.onCreate(savedInstanceState);
 
         /* La página tarda en cargar más de lo que tarda la primera pasada de

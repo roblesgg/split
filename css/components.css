@@ -1506,6 +1506,23 @@ select.field__input { appearance: none; cursor: pointer; padding-right: var(--sp
   font-size: 13.5px;
 }
 
+.update-bar {
+  height: 5px;
+  margin-top: var(--sp-3);
+  border-radius: var(--r-full);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.update-bar__fill {
+  display: block;
+  width: 2%;
+  height: 100%;
+  border-radius: var(--r-full);
+  background: var(--accent);
+  transition: width var(--dur-base) var(--ease-out);
+}
+
 .update-card__link {
   display: inline-block;
   margin-top: var(--sp-3);

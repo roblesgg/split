@@ -14,7 +14,7 @@
   /* Versión de ESTA copia de la app. Al publicar una release nueva hay
      que subirla aquí y etiquetar la release igual (vX.Y.Z), porque la
      comparación es entre este número y el tag de la última release. */
-  var VERSION = "1.4.1";
+  var VERSION = "1.5.0";
 
   var REPO = "roblesgg/split";
   var API = "https://api.github.com/repos/" + REPO + "/releases/latest";
@@ -166,11 +166,71 @@
               && window.Capacitor.getPlatform() !== "web");
   }
 
+  /* ---------- descarga dentro de la app ----------
+     Si el plugin nativo está disponible, la actualización se baja sin salir
+     de la app y salta directo al instalador. Si no lo está (navegador, o
+     una versión antigua del envoltorio), se sigue abriendo el navegador
+     como hasta ahora: peor, pero funciona.
+
+     Android enseña igualmente su pantalla de confirmación. Eso no lo puede
+     saltar ninguna app. */
+
+  function pluginNativo() {
+    var P = window.Capacitor && window.Capacitor.Plugins;
+    var A = P && P.Actualizador;
+    return (A && typeof A.descargar === "function") ? A : null;
+  }
+
+  /* Resuelve a:
+       "instalando"   se descargó y se abrió el instalador
+       "sin-permiso"  falta el permiso de instalar apps
+       "sin-plugin"   no hay descarga nativa; que lo abra el navegador
+       "error"        falló la descarga */
+  function descargarEInstalar(url, alProgresar) {
+    var A = pluginNativo();
+    if (!A) return Promise.resolve("sin-plugin");
+
+    return new Promise(function (resolve) {
+      var suelta = null;
+      function terminar(r) {
+        if (suelta && typeof suelta.remove === "function") {
+          try { suelta.remove(); } catch (e) {}
+        }
+        resolve(r);
+      }
+
+      try {
+        suelta = A.addListener("progreso", function (ev) {
+          if (typeof alProgresar === "function") alProgresar(ev);
+          if (ev && ev.fase === "instalando") terminar("instalando");
+          if (ev && ev.fase === "error") terminar("error");
+        });
+      } catch (e) { /* sin eventos se sigue igual, solo sin barra */ }
+
+      A.descargar({ url: url }).then(function () {
+        /* la resolución de verdad llega por el evento */
+      }, function (err) {
+        var msg = (err && (err.message || err.errorMessage)) || "";
+        terminar(msg.indexOf("sin-permiso") >= 0 ? "sin-permiso" : "error");
+      });
+    });
+  }
+
+  function pedirPermisoInstalar() {
+    var A = pluginNativo();
+    if (A && typeof A.pedirPermiso === "function") {
+      try { A.pedirPermiso(); } catch (e) {}
+    }
+  }
+
   window.Updater = {
     VERSION: VERSION,
     RELEASES_URL: RELEASES_URL,
     check: check,
     open: open,
+    descargarEInstalar: descargarEInstalar,
+    pedirPermisoInstalar: pedirPermisoInstalar,
+    hayDescargaNativa: function () { return !!pluginNativo(); },
     enCapacitor: enCapacitor,
     dismiss: dismiss,
     isDismissed: isDismissed,

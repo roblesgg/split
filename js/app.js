@@ -317,6 +317,9 @@
                 icon("download", 16) + 'Actualizar</button>' +
               '<button type="button" class="update-card__later" id="updateLater">Ahora no</button>' +
             '</div>' +
+            '<div class="update-bar" id="updateBar" hidden>' +
+              '<span class="update-bar__fill" id="updateBarFill"></span>' +
+            '</div>' +
             /* Enlace de verdad, no un botón: si el WebView se atragantara
                con la descarga del botón, tocar un <a> siempre acaba en el
                navegador del sistema. */
@@ -2403,11 +2406,7 @@
       }
       if (e.target.closest("#movsClear")) { ui.movsQuery = ""; renderMovs(); return; }
 
-      if (e.target.closest("#updateNow")) {
-        Up.open(ui.update.url);
-        U.toast("Descargando la actualización…", { icon: "download", duration: 4500 });
-        return;
-      }
+      if (e.target.closest("#updateNow")) { descargarActualizacion(); return; }
       if (e.target.closest("#updateLater")) {
         Up.dismiss(ui.update.version);
         ui.update = null;
@@ -2868,6 +2867,51 @@
         raiz.style.setProperty("--safe-b-native", "24px");
       }
     }, 1500);
+  }
+
+  /* Baja la actualización sin salir de la app cuando se puede, y si no,
+     tira del navegador como se hacía antes. */
+  function descargarActualizacion() {
+    var boton = $("#updateNow");
+    var barra = $("#updateBar");
+
+    if (!Up.hayDescargaNativa()) {
+      Up.open(ui.update.url);
+      U.toast("Descargando la actualización…", { icon: "download", duration: 4500 });
+      return;
+    }
+
+    if (boton) { boton.disabled = true; boton.innerHTML = icon("download", 16) + "Descargando…"; }
+    if (barra) barra.hidden = false;
+
+    Up.descargarEInstalar(ui.update.url, function (ev) {
+      var pct = (ev && ev.pct) || 0;
+      var relleno = $("#updateBarFill");
+      if (relleno) relleno.style.width = Math.max(2, pct) + "%";
+      if (boton && ev && ev.fase === "descargando") {
+        boton.innerHTML = icon("download", 16) + "Descargando… " + pct + " %";
+      }
+    }).then(function (res) {
+      if (res === "instalando") {
+        if (boton) boton.innerHTML = icon("check", 16) + "Abriendo el instalador…";
+        return;
+      }
+
+      /* cualquier otro final deja el botón como estaba */
+      if (boton) { boton.disabled = false; boton.innerHTML = icon("download", 16) + "Actualizar"; }
+      if (barra) barra.hidden = true;
+
+      if (res === "sin-permiso") {
+        U.toast("Android necesita tu permiso para instalar. Te llevo a los ajustes.",
+                { icon: "warning", duration: 5500 });
+        Up.pedirPermisoInstalar();
+      } else if (res === "sin-plugin") {
+        Up.open(ui.update.url);
+      } else {
+        U.toast("No se ha podido descargar. Prueba con el enlace de abajo.",
+                { icon: "warning", duration: 5000 });
+      }
+    });
   }
 
   /* Comprobación de fondo: no bloquea el arranque y, si no hay conexión,
