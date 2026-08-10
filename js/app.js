@@ -302,6 +302,29 @@
           }).join(""), true)
       : "";
 
+    /* --- cobros esperando el visto bueno ---
+       Si se cerró la hoja sin contestar, la cola no se pierde: queda a la
+       vista en Inicio hasta que se conteste. */
+    var cola = S.pendientes();
+    var cardCola = cola.length
+      ? '<section class="update-card">' +
+          '<span class="update-card__icon" data-icon="calendar" data-icon-size="19"></span>' +
+          '<div class="update-card__body">' +
+            '<p class="update-card__title">' +
+              (cola.length === 1 ? "Tienes 1 movimiento por confirmar"
+                                 : "Tienes " + cola.length + " movimientos por confirmar") + '</p>' +
+            '<p class="update-card__text">' + esc(cola[0].note) +
+              (cola.length > 1
+                ? " y " + (cola.length - 1) + " más. Dinos el importe y se apuntan."
+                : ". Dinos el importe y se apunta.") + '</p>' +
+            '<div class="update-card__actions">' +
+              '<button type="button" class="btn btn--primary" id="colaAbrir">' +
+                icon("check", 16) + 'Confirmar</button>' +
+            '</div>' +
+          '</div>' +
+        '</section>'
+      : "";
+
     /* --- aviso de actualización, cuando hay release nueva --- */
     var cardUpdate = ui.update
       ? '<section class="update-card">' +
@@ -351,6 +374,7 @@
          ha pasado); la estrecha, las acciones y el control del mes. */
       '<div class="dash">' +
         '<div class="dash__col stagger">' +
+          (cardCola ? '<div style="--i:0">' + cardCola + '</div>' : "") +
           (cardUpdate ? '<div style="--i:0">' + cardUpdate + '</div>' : "") +
           '<div style="--i:0">' + cardBalance + '</div>' +
           /* las acciones van pegadas a las tarjetas: en móvil todo se
@@ -1020,7 +1044,7 @@
                           'data-form-id="' + esc(r.id) + '" style="text-align:left">' +
                     '<span class="account__name">' + esc(r.note) + '</span>' +
                     '<span class="account__type">' +
-                      (r.active ? "Cada día " + r.day + " · próximo " +
+                      (r.active ? ritmoDe(r) + " · próximo " +
                         esc(due.toLocaleDateString("es-ES", { day: "numeric", month: "short" }))
                         : "En pausa") +
                     '</span>' +
@@ -1118,9 +1142,15 @@
     } else {
       d = it
         ? { kind: it.kind, note: it.note, amount: it.amount, day: it.day,
+            freq: it.freq === "semanal" ? "semanal" : "mensual",
+            weekday: it.weekday == null ? 0 : it.weekday,
+            pagas: +it.pagas === 14 ? 14 : 12,
+            confirmar: !!it.confirmar,
             categoryId: it.categoryId, accountId: it.accountId,
             toAccountId: it.toAccountId || (accs[1] || accs[0]).id }
-        : { kind: "out", note: "", amount: "", day: 1, categoryId: "hogar",
+        : { kind: "out", note: "", amount: "", day: 1,
+            freq: "mensual", weekday: 0, pagas: 12, confirmar: false,
+            categoryId: "hogar",
             accountId: accs[0].id, toAccountId: (accs[1] || accs[0]).id };
     }
 
@@ -1153,6 +1183,34 @@
             esc(value === "" || value == null ? "" : value) + '">' +
           '<span class="input-affix__suffix">' + (suffix || "€") + '</span>' +
         '</div>' +
+      '</div>';
+  }
+
+  var DIAS_LARGO = ["Lunes", "Martes", "Miércoles", "Jueves",
+                    "Viernes", "Sábado", "Domingo"];
+
+  /* Cómo se lee el ritmo de un programado en una línea. */
+  function ritmoDe(r) {
+    if (r.freq === "semanal") {
+      return "Cada " + DIAS_LARGO[r.weekday || 0].toLowerCase();
+    }
+    if (r.kind === "in" && +r.pagas === 14) return "14 pagas, día " + r.day;
+    return "Cada día " + r.day;
+  }
+
+  /* Un interruptor de sí/no con su explicación debajo. Es un botón, no un
+     checkbox: así se puede tocar en cualquier parte de la fila, que en el
+     móvil es la diferencia entre acertar y no. */
+  function switchRow(id, label, hint, on) {
+    return '<div class="field" style="margin-top:var(--sp-5)">' +
+        '<button type="button" class="switch-row" id="' + id + '" ' +
+                'role="switch" aria-checked="' + (!!on) + '">' +
+          '<span class="switch-row__text">' +
+            '<span class="switch-row__label">' + esc(label) + '</span>' +
+            (hint ? '<span class="switch-row__hint">' + esc(hint) + '</span>' : "") +
+          '</span>' +
+          '<span class="switch" aria-hidden="true"><span class="switch__dot"></span></span>' +
+        '</button>' +
       '</div>';
   }
 
@@ -1304,6 +1362,7 @@
         return c.kind === (d.kind === "in" ? "in" : "out");
       });
       var mismaCuenta = d.kind === "transfer" && d.accountId === d.toAccountId;
+      var esSem = d.freq === "semanal";
 
       html =
         '<div class="segmented" id="fSeg" role="tablist">' +
@@ -1324,14 +1383,66 @@
                  'value="' + esc(d.note) + '">' +
         '</div>' +
 
-        '<div class="field__row" style="margin-top:var(--sp-5)">' +
+        '<div class="field" style="margin-top:var(--sp-5)">' +
           numField("fAmount", "Importe", d.amount, 5) +
-          '<div>' +
-            '<label class="field__label" for="fDay">Día del mes</label>' +
-            '<input type="number" class="field__input" id="fDay" data-f="Day" min="1" max="28" ' +
-                   'step="1" inputmode="numeric" value="' + esc(d.day) + '">' +
+        '</div>' +
+
+        /* Con qué ritmo se repite. Dos opciones y ya: nadie quiere una
+           pantalla de reglas de calendario para apuntar el alquiler. */
+        '<div class="field" style="margin-top:var(--sp-5)">' +
+          '<span class="field__label">Cada cuánto</span>' +
+          '<div class="segmented" id="fFreqSeg" role="tablist">' +
+            '<span class="segmented__thumb" id="fFreqThumb" aria-hidden="true"></span>' +
+            '<button type="button" class="segmented__btn" role="tab" data-ffreq="mensual" ' +
+                    'aria-selected="' + !esSem + '">Al mes</button>' +
+            '<button type="button" class="segmented__btn" role="tab" data-ffreq="semanal" ' +
+                    'aria-selected="' + esSem + '">A la semana</button>' +
           '</div>' +
         '</div>' +
+
+        /* Y qué día. Los siete días caben en una fila a lo ancho de la
+           hoja; metidos en media columna se partían en dos. */
+        (esSem
+          ? '<div class="field" style="margin-top:var(--sp-5)">' +
+              '<span class="field__label">Qué día</span>' +
+              '<div class="chips chips--dias" role="group" aria-label="Día de la semana">' +
+                DIAS_LARGO.map(function (nombre, i) {
+                  return '<button type="button" class="chip chip--dia" data-fweekday="' + i + '" ' +
+                         'aria-pressed="' + (d.weekday === i) + '" ' +
+                         'aria-label="' + esc(nombre) + '">' +
+                         esc(S.DOW_SHORT[i]) + '</button>';
+                }).join("") +
+              '</div>' +
+            '</div>'
+          : '<div class="field" style="margin-top:var(--sp-5)">' +
+              '<label class="field__label" for="fDay">Día del mes</label>' +
+              '<input type="number" class="field__input" id="fDay" data-f="Day" min="1" max="28" ' +
+                     'step="1" inputmode="numeric" value="' + esc(d.day) + '">' +
+            '</div>') +
+
+        /* Las catorce pagas son cosa de las nóminas de aquí: dos extras,
+           en junio y en diciembre. Solo tiene sentido en cobros mensuales. */
+        (d.kind === "in" && !esSem
+          ? '<div class="field" style="margin-top:var(--sp-5)">' +
+              '<span class="field__label">Pagas al año</span>' +
+              '<div class="segmented" id="fPagasSeg" role="tablist">' +
+                '<span class="segmented__thumb" id="fPagasThumb" aria-hidden="true"></span>' +
+                '<button type="button" class="segmented__btn" role="tab" data-fpagas="12" ' +
+                        'aria-selected="' + (+d.pagas !== 14) + '">12</button>' +
+                '<button type="button" class="segmented__btn" role="tab" data-fpagas="14" ' +
+                        'aria-selected="' + (+d.pagas === 14) + '">14</button>' +
+              '</div>' +
+            '</div>'
+          : "") +
+
+        /* El sueldo casi nunca cae clavado: horas de más, un mes con
+           menos días trabajados... Con esto la app pregunta en vez de
+           apuntar una cifra que luego hay que corregir a mano. */
+        switchRow("fConfirmar", "Preguntarme el importe",
+          d.kind === "in"
+            ? "Antes de apuntarlo te enseña la cifra por si cobras algo más o menos"
+            : "Antes de apuntarlo te deja ajustar la cifra",
+          d.confirmar) +
 
         (d.kind === "transfer"
           ? '<div class="field__row" style="margin-top:var(--sp-5)">' +
@@ -1364,8 +1475,11 @@
         '<p class="field__hint">' +
           (mismaCuenta
             ? icon("warning", 12) + " Elige dos cuentas distintas."
-            : "Se apunta solo cada mes. Máximo día 28." +
-              "") +
+            : esSem
+              ? "Se apunta solo cada " + DIAS_LARGO[d.weekday || 0].toLowerCase() + "."
+              : (d.kind === "in" && +d.pagas === 14
+                  ? "Se apunta solo cada mes, con paga extra en junio y en diciembre. Máximo día 28."
+                  : "Se apunta solo cada mes. Máximo día 28.")) +
         '</p>';
     }
 
@@ -1390,6 +1504,14 @@
       var seg = $("#fSeg", body);
       if (seg) U.slideIndicator(seg, $("#fThumb", body),
         $('[data-fkind="' + d.kind + '"]', seg));
+
+      var segF = $("#fFreqSeg", body);
+      if (segF) U.slideIndicator(segF, $("#fFreqThumb", body),
+        $('[data-ffreq="' + (d.freq === "semanal" ? "semanal" : "mensual") + '"]', segF));
+
+      var segP = $("#fPagasSeg", body);
+      if (segP) U.slideIndicator(segP, $("#fPagasThumb", body),
+        $('[data-fpagas="' + (+d.pagas === 14 ? 14 : 12) + '"]', segP));
     });
   }
 
@@ -1463,6 +1585,11 @@
       }
       var data = {
         kind: d.kind, note: d.note, amount: d.amount, day: d.day,
+        freq: d.freq === "semanal" ? "semanal" : "mensual",
+        weekday: d.weekday || 0,
+        /* las catorce pagas solo existen en un cobro mensual */
+        pagas: (d.kind === "in" && d.freq !== "semanal" && +d.pagas === 14) ? 14 : 12,
+        confirmar: !!d.confirmar,
         accountId: d.accountId,
         toAccountId: d.kind === "transfer" ? d.toAccountId : null,
         categoryId: d.kind === "transfer" ? "otros" : d.categoryId
@@ -1474,6 +1601,10 @@
     sheets.form.close();
     S.runRecurring();
     renderAll();
+
+    /* Si el programado que se acaba de guardar ya tocaba y pide que le
+       pregunten el importe, se pregunta ahora y no en la próxima apertura. */
+    if (t === "recurring" && hayPendientes()) setTimeout(abrirCobros, 380);
   }
 
   function deleteForm() {
@@ -1532,7 +1663,16 @@
     var cats = S.CATEGORIES.filter(function (c) { return c.kind === "out"; });
 
     var media = S.averageIncome(inc.months);
-    var esAuto = inc.mode !== "manual";
+    var modo = inc.mode === "manual" ? "manual"
+             : inc.mode === "trabajos" ? "trabajos" : "auto";
+
+    /* Los cobros programados: cada uno es "un trabajo" en la práctica, y
+       lo que se enseña es lo que supone al mes ya repartido (una nómina de
+       catorce pagas rinde más al mes de lo que pone en el recibo). */
+    var trabajos = (S.state.recurring || []).filter(function (r) {
+      return r.active && r.kind === "in";
+    });
+    var declarado = S.declaredIncome();
 
     var main =
       '<section class="card">' +
@@ -1543,20 +1683,30 @@
         '<div class="segmented" id="incSeg" role="tablist">' +
           '<span class="segmented__thumb" id="incThumb" aria-hidden="true"></span>' +
           '<button type="button" class="segmented__btn" role="tab" data-incmode="auto" ' +
-                  'aria-selected="' + esAuto + '">Automático</button>' +
+                  'aria-selected="' + (modo === "auto") + '">Automático</button>' +
+          '<button type="button" class="segmented__btn" role="tab" data-incmode="trabajos" ' +
+                  'aria-selected="' + (modo === "trabajos") + '">Trabajos</button>' +
           '<button type="button" class="segmented__btn" role="tab" data-incmode="manual" ' +
-                  'aria-selected="' + !esAuto + '">Manual</button>' +
+                  'aria-selected="' + (modo === "manual") + '">Manual</button>' +
         '</div>' +
 
-        (esAuto
-          ? '<div class="hero-center" style="padding:var(--sp-5) 0 var(--sp-3)">' +
-              '<p class="hero-center__value">' + bigAmount(planned) + '</p>' +
-              '<p class="card__sub" style="margin-top:var(--sp-2)">' +
-                (media > 0
-                  ? "Media de tus últimos " + inc.months + " meses"
-                  : "Aún sin historial: se usa la cifra manual") + '</p>' +
-            '</div>' +
-            '<div class="field">' +
+        '<div class="hero-center" style="padding:var(--sp-5) 0 var(--sp-3)">' +
+          '<p class="hero-center__value">' + bigAmount(planned) + '</p>' +
+          '<p class="card__sub" style="margin-top:var(--sp-2)">' +
+            (modo === "manual" ? "La cifra que has puesto tú"
+             : modo === "trabajos"
+               ? (declarado > 0
+                    ? (trabajos.length === 1
+                         ? "Lo que cobras de tu único trabajo"
+                         : "Suma de tus " + trabajos.length + " trabajos")
+                    : "Aún no has programado ningún cobro")
+               : (media > 0
+                    ? "Media de tus últimos " + inc.months + " meses"
+                    : "Aún sin historial: se usa la cifra manual")) + '</p>' +
+        '</div>' +
+
+        (modo === "auto"
+          ? '<div class="field">' +
               '<label class="field__label" for="incMonths">Meses que promedia</label>' +
               '<select class="field__input" id="incMonths">' +
                 [3, 6, 12].map(function (n) {
@@ -1564,7 +1714,46 @@
                          (inc.months === n ? " selected" : "") + '>' + n + ' meses</option>';
                 }).join("") +
               '</select>' +
+              '<p class="field__hint">Cuenta lo que te ha entrado de verdad. ' +
+                'Un mes con paga extra sube la media solo.</p>' +
             '</div>'
+
+        : modo === "trabajos"
+          ? (trabajos.length
+              ? '<div class="mini-list">' +
+                  trabajos.map(function (r) {
+                    var alMes = S.mensualizar(r);
+                    /* Solo se repite el importe suelto cuando no coincide
+                       con lo que sale al mes; si coincide, sobra. */
+                    var detalle = r.freq === "semanal"
+                      ? "Cada " + DIAS_LARGO[r.weekday || 0].toLowerCase() +
+                        ", " + S.moneyShort(r.amount)
+                      : (+r.pagas === 14
+                           ? "14 pagas de " + S.moneyShort(r.amount)
+                           : "Cada día " + r.day);
+                    return '<button type="button" class="mini-list__row" ' +
+                             'data-form="recurring" data-form-id="' + esc(r.id) + '">' +
+                        '<span class="mini-list__text">' +
+                          '<span class="mini-list__name">' + esc(r.note) + '</span>' +
+                          '<span class="mini-list__meta">' + esc(detalle) + '</span>' +
+                        '</span>' +
+                        '<span class="mini-list__value">' + esc(S.moneyShort(alMes)) + '</span>' +
+                      '</button>';
+                  }).join("") +
+                '</div>' +
+                '<p class="field__hint" style="margin-top:var(--sp-3)">' +
+                  'Al mes, repartiendo las pagas extra y las semanas del año. ' +
+                  'Toca uno para cambiarlo.</p>' +
+                '<button type="button" class="btn btn--ghost" data-form="recurring" ' +
+                        'style="width:100%;margin-top:var(--sp-4)">' +
+                  icon("plus", 16) + 'Añadir otro trabajo</button>'
+
+              : emptyHtml("calendar", "Ningún cobro programado",
+                  "Programa aquí lo que cobras de cada trabajo y la app suma sola.") +
+                '<button type="button" class="btn btn--primary" data-form="recurring" ' +
+                        'style="width:100%;margin-top:var(--sp-4)">' +
+                  icon("plus", 16) + 'Añadir mi primer trabajo</button>')
+
           : '<div class="field">' +
               '<label class="field__label" for="incManual">Tu cifra</label>' +
               '<div class="input-affix">' +
@@ -1700,7 +1889,7 @@
     requestAnimationFrame(function () {
       var seg = $("#incSeg", root);
       if (seg) U.slideIndicator(seg, $("#incThumb", root),
-        $('[data-incmode="' + (esAuto ? "auto" : "manual") + '"]', seg));
+        $('[data-incmode="' + modo + '"]', seg));
     });
   }
 
@@ -2356,6 +2545,7 @@
         openForm(node.getAttribute("data-form"), node.getAttribute("data-form-id"));
         return;
       }
+      if (e.target.closest("#colaAbrir")) { abrirCobros(); return; }
       if ((node = e.target.closest("[data-rec-toggle]"))) {
         var r = S.toggleRecurring(node.getAttribute("data-rec-toggle"));
         S.runRecurring();
@@ -2441,6 +2631,38 @@
       }, 240);
     });
 
+    /* --- confirmar un programado --- */
+    var cobroBody = $("#sheetCobroBody");
+
+    cobroBody.addEventListener("click", function (e) {
+      var cola = S.pendientes();
+      var p = cola[0];
+      if (!p) { sheets.cobro.close(); return; }
+
+      if (e.target.closest("#cobroOk")) {
+        var campo = $("#cobroAmount", cobroBody);
+        var importe = campo ? parseFloat(campo.value) : NaN;
+        if (!(importe > 0)) {
+          U.toast("El importe tiene que ser mayor que cero", { icon: "warning" });
+          return;
+        }
+        S.confirmarPendiente(p.id, importe);
+        U.haptic("success");
+        U.toast("Apuntado " + money(importe), { icon: "check" });
+        seguirCobros();
+        return;
+      }
+
+      if (e.target.closest("#cobroNo")) {
+        S.descartarPendiente(p.id);
+        U.haptic("light");
+        seguirCobros();
+      }
+    });
+
+    /* Cerrar la hoja no descarta nada: lo que quede sigue en la cola y
+       vuelve a preguntarse la próxima vez que se abra la app. */
+
     /* --- sheet de formulario (cuentas, metas, programados) --- */
     var formBody = $("#sheetFormBody");
 
@@ -2491,6 +2713,37 @@
           else if (form.d.kind === "out") form.d.categoryId = "hogar";
         }
         renderForm();
+        U.haptic("light");
+        return;
+      }
+      if ((node = e.target.closest("[data-ffreq]"))) {
+        form.d.freq = node.getAttribute("data-ffreq");
+        renderForm();
+        U.haptic("light");
+        return;
+      }
+      if ((node = e.target.closest("[data-fpagas]"))) {
+        form.d.pagas = +node.getAttribute("data-fpagas");
+        renderForm();
+        U.haptic("light");
+        return;
+      }
+      if ((node = e.target.closest("[data-fweekday]"))) {
+        form.d.weekday = +node.getAttribute("data-fweekday");
+        $$("[data-fweekday]", formBody).forEach(function (b) {
+          b.setAttribute("aria-pressed", String(b === node));
+        });
+        var pista = $(".field__hint", formBody);
+        if (pista) {
+          pista.textContent = "Se apunta solo cada " +
+            DIAS_LARGO[form.d.weekday].toLowerCase() + ".";
+        }
+        U.haptic("light");
+        return;
+      }
+      if ((node = e.target.closest("#fConfirmar"))) {
+        form.d.confirmar = node.getAttribute("aria-checked") !== "true";
+        node.setAttribute("aria-checked", String(form.d.confirmar));
         U.haptic("light");
         return;
       }
@@ -2797,6 +3050,77 @@
   }
 
   /* ============================================================
+     Confirmar un programado antes de apuntarlo
+
+     Un sueldo casi nunca cae clavado. Quien marque «preguntarme el
+     importe» no verá el movimiento apuntado solo: al abrir la app se le
+     enseña la cifra prevista con el cursor puesto, y con tocar «Apuntar»
+     entra tal cual. Se van pasando de uno en uno, que es más fácil de
+     entender que una lista con varias casillas.
+     ============================================================ */
+
+  function hayPendientes() { return S.pendientes().length > 0; }
+
+  function renderCobro() {
+    var cola = S.pendientes();
+    var p = cola[0];
+    if (!p) { sheets.cobro.close(); return; }
+
+    var esIn = p.kind === "in";
+    var body = $("#sheetCobroBody");
+
+    $("#sheetCobroTitle").textContent = esIn ? "¿Cuánto has cobrado?" : "¿Cuánto ha sido?";
+
+    body.innerHTML =
+      (cola.length > 1
+        ? '<p class="card__sub" style="text-align:center">Te quedan ' +
+            cola.length + ' por confirmar</p>'
+        : "") +
+
+      '<div style="text-align:center;padding:var(--sp-3) 0 var(--sp-5)">' +
+        '<p class="card__title">' + esc(p.note) + '</p>' +
+        '<p class="card__sub" style="margin-top:2px">' +
+          esc(S.relDayLabel(p.date)) + ' · ' + esc(accName(p.accountId)) + '</p>' +
+      '</div>' +
+
+      '<div class="field">' +
+        '<label class="field__label" for="cobroAmount">Importe</label>' +
+        '<div class="input-affix">' +
+          '<input type="number" class="field__input field__input--big" id="cobroAmount" ' +
+                 'min="0" step="0.01" inputmode="decimal" value="' + esc(p.amount) + '">' +
+          '<span class="input-affix__suffix">€</span>' +
+        '</div>' +
+        '<p class="field__hint">Lo previsto eran ' + esc(money(p.amount)) +
+          '. Cámbialo si este mes ha sido otra cifra.</p>' +
+      '</div>' +
+
+      '<div class="field" style="margin-top:var(--sp-6)">' +
+        '<button type="button" class="btn btn--primary" id="cobroOk">' +
+          icon("check", 17) + 'Apuntar</button>' +
+      '</div>' +
+      '<div class="field">' +
+        '<button type="button" class="btn btn--ghost" id="cobroNo" style="width:100%">' +
+          (esIn ? "Este mes no lo he cobrado" : "Este mes no lo he pagado") + '</button>' +
+      '</div>';
+
+    mountIcons(body);
+  }
+
+  /* Siguiente de la cola, o cerrar y repintar si ya no queda ninguno. */
+  function seguirCobros() {
+    if (hayPendientes()) { renderCobro(); return; }
+    sheets.cobro.close();
+    renderAll();
+  }
+
+  function abrirCobros() {
+    if (!hayPendientes()) return;
+    renderCobro();
+    sheets.cobro.show();
+    /* el teclado tapa media pantalla: mejor que no salte solo */
+  }
+
+  /* ============================================================
      Arranque
      ============================================================ */
 
@@ -2811,6 +3135,7 @@
     sheets.add = new U.Sheet($("#sheetAdd"), $("#scrim"));
     sheets.detail = new U.Sheet($("#sheetDetail"), $("#scrim"));
     sheets.form = new U.Sheet($("#sheetForm"), $("#scrim"));
+    sheets.cobro = new U.Sheet($("#sheetCobro"), $("#scrim"));
 
     mountIcons(document);
     updateThemeIcon();
@@ -2851,7 +3176,7 @@
     asegurarHuecoInferior();
 
     if (firstRun) setTimeout(startOnboarding, 500);
-    else checkForUpdate();
+    else { checkForUpdate(); setTimeout(abrirCobros, 700); }
   }
 
   /* Dentro de la app, el hueco de la barra de navegación lo manda la capa

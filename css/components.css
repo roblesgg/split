@@ -759,6 +759,126 @@
   color: var(--text-primary);
 }
 
+/* Los siete días reparten el ancho a partes iguales: en cualquier móvil
+   caben en una fila, y así ninguno queda más gordo que otro. */
+.chips--dias {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  overflow: visible;
+}
+
+.chip--dia {
+  justify-content: center;
+  width: auto;
+  min-width: 0;
+  padding: 0;
+  font-size: 12px;
+}
+
+/* ---------- lista breve de dos columnas ---------- */
+
+.mini-list { display: grid; gap: var(--sp-2); margin-top: var(--sp-4); }
+
+.mini-list__row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  width: 100%;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-lg);
+  background: var(--surface-1);
+  box-shadow: var(--nm-out-sm);
+  text-align: left;
+  transition: box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.mini-list__row:active { box-shadow: var(--nm-in); }
+
+.mini-list__text { flex: 1; min-width: 0; }
+
+.mini-list__name {
+  display: block;
+  font-size: 13.5px;
+  font-weight: var(--w-semi);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mini-list__meta {
+  display: block;
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.mini-list__value {
+  flex: none;
+  font-size: 14px;
+  font-weight: var(--w-bold);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- interruptor de sí/no ---------- */
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  width: 100%;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-lg);
+  background: var(--surface-1);
+  box-shadow: var(--nm-out-sm);
+  text-align: left;
+}
+
+.switch-row__text { flex: 1; min-width: 0; }
+
+.switch-row__label {
+  display: block;
+  font-size: 13.5px;
+  font-weight: var(--w-semi);
+  color: var(--text-primary);
+}
+
+.switch-row__hint {
+  display: block;
+  margin-top: 2px;
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.switch {
+  flex: none;
+  position: relative;
+  width: 46px;
+  height: 27px;
+  border-radius: var(--r-full);
+  background: var(--surface-2);
+  box-shadow: var(--nm-in);
+  transition: background var(--dur-base) var(--ease-out);
+}
+
+.switch__dot {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 21px;
+  height: 21px;
+  border-radius: 50%;
+  background: var(--surface-1);
+  box-shadow: var(--nm-out-sm);
+  transition: transform var(--dur-base) var(--ease-out),
+              background var(--dur-base) var(--ease-out);
+}
+
+.switch-row[aria-checked="true"] .switch { background: var(--accent); }
+.switch-row[aria-checked="true"] .switch__dot { transform: translateX(19px); }
+
 /* ---------- segmented: canal hundido, pulgar elevado ---------- */
 
 .segmented {
@@ -1003,6 +1123,15 @@
 }
 
 select.field__input { appearance: none; cursor: pointer; padding-right: var(--sp-6); }
+
+/* la cifra que se confirma es lo único que se mira en esa pantalla */
+.field__input--big {
+  height: 62px;
+  font-size: 28px;
+  font-weight: var(--w-bold);
+  letter-spacing: -0.02em;
+  text-align: center;
+}
 
 .field__row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
 

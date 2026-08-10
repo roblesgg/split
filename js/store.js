@@ -313,7 +313,7 @@
   function defaultState() {
     var today = ymd(new Date());
     return {
-      version: 7,
+      version: 8,
       createdAt: today,
       categories: cloneCategories(),
       tags: [],
@@ -340,7 +340,10 @@
         { id: "g2", name: "Viaje",                 target: 1500, saved: 620,  monthly: 90 },
         { id: "g3", name: "Portátil nuevo",        target: 1800, saved: 410,  monthly: 75 }
       ],
-      transactions: seedTransactions(today)
+      transactions: seedTransactions(today),
+
+      /* Programados que esperan un visto bueno antes de apuntarse. */
+      pendientes: []
     };
   }
 
@@ -351,7 +354,7 @@
   function freshState() {
     var today = ymd(new Date());
     return {
-      version: 7,
+      version: 8,
       createdAt: today,
       categories: cloneCategories(),
       tags: [],
@@ -362,7 +365,8 @@
         { id: "banco", name: "Banco", type: "Banco", slot: 1, color: 1, icon: "wallet", opening: 0 }
       ],
       goals: [],
-      transactions: []
+      transactions: [],
+      pendientes: []
     };
   }
 
@@ -491,6 +495,19 @@
         if (a.color == null) a.color = SLOT_A_COLOR[a.slot] || (((i * 5) % 16) + 1);
       });
       s.version = 7;
+    }
+
+    if (s.version < 8) {
+      /* v8 abre los programados a otras frecuencias y a preguntar el
+         importe antes de apuntarlo. Lo que ya existe se queda como
+         estaba: mensual, doce pagas y sin preguntar nada. */
+      if (!Array.isArray(s.pendientes)) s.pendientes = [];
+      (s.recurring || []).forEach(function (r) {
+        if (!r.freq) r.freq = "mensual";
+        if (r.kind === "in" && r.pagas == null) r.pagas = 12;
+        if (r.confirmar == null) r.confirmar = false;
+      });
+      s.version = 8;
     }
 
     invalidateCats();
@@ -904,10 +921,19 @@
       toAccountId: data.kind === "transfer" ? (data.toAccountId || null) : null,
       note: (data.note || "").trim() || "Programado",
       day: Math.min(28, Math.max(1, parseInt(data.day, 10) || 1)),
+      freq: data.freq === "semanal" ? "semanal" : "mensual",
+      /* lunes = 0, igual que dowMon */
+      weekday: Math.min(6, Math.max(0, parseInt(data.weekday, 10) || 0)),
+      /* 14 pagas solo tiene sentido en un ingreso mensual */
+      pagas: (data.kind === "in" && +data.pagas === 14) ? 14 : 12,
+      confirmar: !!data.confirmar,
       active: data.active !== false,
-      /* arranca en el mes anterior para que el del mes en curso se
-         apunte en cuanto llegue su día */
-      lastPosted: addMonths(currentMonthKey(), -1)
+      /* Mensual arranca en el mes anterior, para que el de este mes se
+         apunte en cuanto llegue su día. Semanal arranca hoy, para que la
+         primera vez sea el próximo día de la semana elegido y no se
+         apunten de golpe semanas ya pasadas. */
+      lastPosted: addMonths(currentMonthKey(), -1),
+      lastDate: ymd(new Date())
     };
     state.recurring.push(r);
     save();
@@ -927,6 +953,21 @@
     if (patch.accountId != null) r.accountId = patch.accountId;
     if (patch.toAccountId !== undefined) r.toAccountId = patch.toAccountId;
     if (patch.day != null) r.day = Math.min(28, Math.max(1, parseInt(patch.day, 10) || 1));
+    if (patch.freq != null) {
+      var nueva = patch.freq === "semanal" ? "semanal" : "mensual";
+      /* Cambiar de ritmo empieza de cero: si no, al pasar a semanal se
+         apuntarían de golpe todas las semanas desde una fecha vieja. */
+      if (nueva !== r.freq) {
+        r.freq = nueva;
+        r.lastDate = ymd(new Date());
+        r.lastPosted = currentMonthKey();
+      }
+    }
+    if (patch.weekday != null) {
+      r.weekday = Math.min(6, Math.max(0, parseInt(patch.weekday, 10) || 0));
+    }
+    if (patch.pagas != null) r.pagas = (r.kind === "in" && +patch.pagas === 14) ? 14 : 12;
+    if (patch.confirmar != null) r.confirmar = !!patch.confirmar;
     if (patch.active != null) r.active = !!patch.active;
     save();
     return r;
@@ -952,55 +993,147 @@
 
   /* Apunta los programados que ya han vencido, mes a mes desde el último
      apuntado hasta hoy. Se llama al arrancar la app. */
+  /* ---------- cuándo toca ----------
+     Mensual: el día del mes elegido, con la salvedad de que un ingreso de
+     14 pagas añade una extra en junio y en diciembre, que es como se
+     reparten aquí.
+     Semanal: el día de la semana elegido, cada siete días. */
+
+  function esSemanal(r) { return r.freq === "semanal"; }
+
+  /* Fechas pendientes desde la última apuntada hasta hoy, sin incluir
+     futuras. Devuelve [{ fecha: Date, extra: bool }]. */
+  function vencimientos(r, hasta) {
+    var out = [];
+    var guard = 0;
+
+    if (esSemanal(r)) {
+      var desde = r.lastDate ? parseYmd(r.lastDate) : new Date();
+      var d = new Date(desde.getFullYear(), desde.getMonth(), desde.getDate());
+      /* al primer día de la semana elegido que caiga después */
+      do { d.setDate(d.getDate() + 1); } while (dowMon(d) !== (r.weekday || 0));
+      while (d <= hasta && guard++ < 400) {
+        out.push({ fecha: new Date(d), extra: false });
+        d.setDate(d.getDate() + 7);
+      }
+      return out;
+    }
+
+    var cur = currentMonthKey();
+    var m = r.lastPosted ? addMonths(r.lastPosted, 1) : cur;
+    while (m <= cur && guard++ < 120) {
+      var fecha = dateOfMonth(m, r.day);
+      if (fecha > hasta) break;
+      out.push({ fecha: fecha, extra: false });
+      /* la paga extra cae el mismo día, en junio y en diciembre */
+      if (r.kind === "in" && +r.pagas === 14) {
+        var mes = +m.split("-")[1];
+        if (mes === 6 || mes === 12) out.push({ fecha: fecha, extra: true });
+      }
+      m = addMonths(m, 1);
+    }
+    return out;
+  }
+
+  /* Marca hasta dónde se ha llegado, para no repetir. */
+  function anotarUltimo(r, fecha) {
+    if (esSemanal(r)) r.lastDate = ymd(fecha);
+    else r.lastPosted = monthKey(ymd(fecha));
+  }
+
+  function movimientoDe(r, fecha, extra) {
+    return {
+      id: nextId(),
+      createdAt: Date.now(),
+      date: ymd(fecha),
+      time: "",
+      kind: r.kind,
+      categoryId: r.categoryId,
+      accountId: r.accountId,
+      toAccountId: r.kind === "transfer" ? r.toAccountId : null,
+      amount: r.amount,
+      note: extra ? r.note + " (paga extra)" : r.note,
+      memo: "",
+      tags: [],
+      attachments: [],
+      fromRecurring: r.id
+    };
+  }
+
+  /* Apunta lo vencido. Lo que pida confirmación no se apunta: se deja en
+     la cola de pendientes para preguntar el importe al abrir la app, que
+     un sueldo casi nunca cae clavado. */
   function runRecurring() {
     if (!Array.isArray(state.recurring)) state.recurring = [];
-    var today = new Date();
-    today.setHours(23, 59, 59, 999);
-    var cur = currentMonthKey();
-    var posted = 0;
+    if (!Array.isArray(state.pendientes)) state.pendientes = [];
+
+    var hoy = new Date();
+    hoy.setHours(23, 59, 59, 999);
+    var puestos = 0, encolados = 0;
 
     state.recurring.forEach(function (r) {
       if (!r.active) return;
-      var m = r.lastPosted ? addMonths(r.lastPosted, 1) : cur;
-      var guard = 0;
-      while (m <= cur && guard++ < 120) {
-        var date = dateOfMonth(m, r.day);
-        if (date > today) break;
-        state.transactions.push({
-          id: nextId(),
-          createdAt: Date.now(),
-          date: ymd(date),
-          kind: r.kind,
-          categoryId: r.categoryId,
-          accountId: r.accountId,
-          toAccountId: r.kind === "transfer" ? r.toAccountId : null,
-          amount: r.amount,
-          note: r.note,
-          memo: "",
-          tags: [],
-          attachments: [],
-          fromRecurring: r.id
-        });
-        r.lastPosted = m;
-        posted++;
-        m = addMonths(m, 1);
-      }
+      vencimientos(r, hoy).forEach(function (v) {
+        var mov = movimientoDe(r, v.fecha, v.extra);
+        if (r.confirmar) {
+          state.pendientes.push(mov);
+          encolados++;
+        } else {
+          state.transactions.push(mov);
+          puestos++;
+        }
+        anotarUltimo(r, v.fecha);
+      });
     });
 
-    if (posted) { sortTx(); save(); }
-    return posted;
+    if (puestos || encolados) { sortTx(); save(); }
+    return puestos;
+  }
+
+  /* ---------- cola de confirmación ---------- */
+
+  function pendientes() {
+    return Array.isArray(state.pendientes) ? state.pendientes : [];
+  }
+
+  /* Se acepta con el importe que diga el usuario, que para eso se pregunta. */
+  function confirmarPendiente(id, importe) {
+    var i = state.pendientes.findIndex(function (p) { return p.id === id; });
+    if (i < 0) return null;
+    var mov = state.pendientes.splice(i, 1)[0];
+    if (importe != null && isFinite(+importe) && +importe > 0) {
+      mov.amount = Math.round(Math.abs(+importe) * 100) / 100;
+    }
+    state.transactions.push(mov);
+    sortTx();
+    save();
+    return mov;
+  }
+
+  /* Descartar no reprograma nada: el mes que viene volverá a tocar. */
+  function descartarPendiente(id) {
+    state.pendientes = state.pendientes.filter(function (p) { return p.id !== id; });
+    save();
   }
 
   /* próxima fecha en que se apuntará */
   function nextDue(r) {
+    var hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    if (esSemanal(r)) {
+      var d = new Date(hoy);
+      var guard = 0;
+      while (dowMon(d) !== (r.weekday || 0) && guard++ < 8) d.setDate(d.getDate() + 1);
+      return d;
+    }
+
     var cur = currentMonthKey();
     var m = r.lastPosted ? addMonths(r.lastPosted, 1) : cur;
     if (m < cur) m = cur;
-    var today = new Date();
-    today.setHours(0, 0, 0, 0);
-    var d = dateOfMonth(m, r.day);
-    if (d < today) d = dateOfMonth(addMonths(m, 1), r.day);
-    return d;
+    var f = dateOfMonth(m, r.day);
+    if (f < hoy) f = dateOfMonth(addMonths(m, 1), r.day);
+    return f;
   }
 
   function upcomingRecurring(limit) {
@@ -1011,14 +1144,27 @@
       .slice(0, limit || 4);
   }
 
+  /* Lo que supone al mes un programado, sea cual sea su ritmo.
+     Semanal: hay 52 semanas en el año, no 48, así que cuatro pagos al mes
+     se quedan cortos; se reparte 52/12.
+     Catorce pagas: las dos extras también se reparten, para que el mes de
+     junio no parezca de golpe un sueldazo y los demás una miseria. */
+  function mensualizar(r) {
+    var base = +r.amount || 0;
+    if (esSemanal(r)) return base * 52 / 12;
+    if (r.kind === "in" && +r.pagas === 14) return base * 14 / 12;
+    return base;
+  }
+
   /* cuánto compromete al mes lo que está programado */
   function recurringMonthly() {
     var out = 0, inc = 0, moved = 0;
     (state.recurring || []).forEach(function (r) {
       if (!r.active) return;
-      if (r.kind === "out") out += r.amount;
-      else if (r.kind === "in") inc += r.amount;
-      else moved += r.amount;
+      var m = mensualizar(r);
+      if (r.kind === "out") out += m;
+      else if (r.kind === "in") inc += m;
+      else moved += m;
     });
     return {
       expense: Math.round(out * 100) / 100,
@@ -1048,10 +1194,31 @@
     return Math.round((suma / contados) * 100) / 100;
   }
 
+  /* Suma de los ingresos programados, ya repartidos al mes. Es lo que
+     cobras "de nómina": no cuenta lo que apuntes a mano por tu cuenta. */
+  function declaredIncome() {
+    var total = 0;
+    (state.recurring || []).forEach(function (r) {
+      if (r.active && r.kind === "in") total += mensualizar(r);
+    });
+    return Math.round(total * 100) / 100;
+  }
+
+  var INCOME_MODES = ["auto", "manual", "trabajos"];
+
   /* Cuánto hay para repartir este mes. */
   function plannedIncome() {
     var i = state.income || { mode: "auto", manual: 0, months: 3 };
+
     if (i.mode === "manual") return Math.max(0, +i.manual || 0);
+
+    if (i.mode === "trabajos") {
+      var d = declaredIncome();
+      /* si todavía no hay ningún ingreso programado no se deja el reparto
+         a cero: se cae a la media real, y de ahí a la cifra manual */
+      if (d > 0) return d;
+    }
+
     var media = averageIncome(i.months);
     /* sin historial todavía, cae a la cifra manual para no dejar los
        presupuestos a cero el primer mes */
@@ -1060,7 +1227,7 @@
 
   function setIncome(patch) {
     state.income = Object.assign({}, state.income, patch);
-    if (state.income.mode !== "manual") state.income.mode = "auto";
+    if (INCOME_MODES.indexOf(state.income.mode) < 0) state.income.mode = "auto";
     state.income.manual = Math.max(0, +state.income.manual || 0);
     state.income.months = Math.min(12, Math.max(1, parseInt(state.income.months, 10) || 3));
     save();
@@ -1368,10 +1535,16 @@
     deleteRecurring: deleteRecurring, toggleRecurring: toggleRecurring,
     runRecurring: runRecurring, nextDue: nextDue,
     upcomingRecurring: upcomingRecurring, recurringMonthly: recurringMonthly,
+    mensualizar: mensualizar,
+
+    /* cola de confirmación */
+    pendientes: pendientes,
+    confirmarPendiente: confirmarPendiente,
+    descartarPendiente: descartarPendiente,
 
     /* ingresos y reparto */
     plannedIncome: plannedIncome, setIncome: setIncome,
-    averageIncome: averageIncome,
+    averageIncome: averageIncome, declaredIncome: declaredIncome,
     allocationSum: allocationSum, savingsPct: savingsPct,
     setAllocation: setAllocation, resetAllocation: resetAllocation,
     budgetFor: budgetFor, budgetTotal: budgetTotal,

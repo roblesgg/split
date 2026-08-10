@@ -25,6 +25,21 @@ body {
 h1, h2, h3, h4, p, figure, ul, ol { margin: 0; padding: 0; }
 ul, ol { list-style: none; }
 
+/* Una app no es una página: al mantener pulsado un botón no debe salir el
+   selector de texto ni el menú de copiar. Se apaga en todo y se vuelve a
+   encender abajo donde el texto sí se quiere poder copiar. */
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* lo que sí es texto: importes, notas y campos */
+input, textarea, .detail-memo, .row__title, .paycard__value, .balance__value {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 button {
   font: inherit;
   color: inherit;
@@ -32,6 +47,9 @@ button {
   background: none;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 input, select, textarea {
