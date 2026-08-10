@@ -108,7 +108,46 @@
               color-mix(in srgb, var(--acc-color, var(--cat-16)) 38%, #101318) 100%);
   box-shadow: var(--nm-out-lg);
   color: #ffffff;
+  /* ahora son botones (tocar una tarjeta abre esa cuenta) y los botones
+     centran el texto por defecto */
+  text-align: left;
 }
+
+/* La de crear cuenta no es una tarjeta de verdad: no lleva color ni
+   sombra, solo el hueco punteado de «aquí cabe otra». */
+.paycard--nueva {
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  background: none;
+  border: 2px dashed var(--hairline-strong);
+  box-shadow: none;
+  color: var(--text-secondary);
+  transition: border-color var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+
+.paycard--nueva::after { content: none; }
+
+.paycard--nueva:active {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.paycard__plus {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--surface-1);
+  box-shadow: var(--nm-out-sm);
+  color: var(--accent);
+}
+
+.paycard__nueva-txt { font-size: 14.5px; font-weight: var(--w-semi); color: var(--text-primary); }
+.paycard__nueva-sub { font-size: 11.5px; color: var(--text-muted); }
 
 /* veladura diagonal, el único brillo de la pieza */
 .paycard::after {

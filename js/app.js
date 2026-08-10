@@ -43,7 +43,7 @@
       text: "En Ajustes decides cuánto entra al mes y qué parte va a cada categoría. " +
             "Lo que no repartas es tu ahorro." },
     { icon: "chart", title: "Análisis y planes",
-      text: "Gráficos de ahorro y de gasto por categoría, y en Planes tus cuentas, " +
+      text: "Gráficos de ahorro y de gasto por categoría, y en Mi dinero tus cuentas, " +
             "pagos programados y metas de ahorro." }
   ];
 
@@ -193,7 +193,8 @@
           accounts.map(function (a, i) {
             /* cada tarjeta con el color de su cuenta; ya no hay una
                "principal" distinta, todas se ven como tarjetas */
-            return '<article class="paycard" data-card="' + i + '" ' +
+            return '<button type="button" class="paycard" data-card="' + i + '" ' +
+                   'data-form="account" data-form-id="' + esc(a.id) + '" ' +
                    'style="--acc-color:' + S.catColorVar(a) + '">' +
                 '<div class="paycard__top">' +
                   '<span class="paycard__dots">' +
@@ -213,11 +214,21 @@
                   '</span>' +
                   '<span class="paycard__mark" aria-hidden="true"><span></span><span></span></span>' +
                 '</div>' +
-              '</article>';
+              '</button>';
           }).join("") +
+
+          /* La última del carrusel es la de crear otra. Antes había que
+             saber que las cuentas se administran en otra pantalla, y no
+             había forma de adivinarlo: aquí se ve deslizando, que es lo
+             que uno hace con unas tarjetas. */
+          '<button type="button" class="paycard paycard--nueva" data-form="account">' +
+            '<span class="paycard__plus" data-icon="plus" data-icon-size="22"></span>' +
+            '<span class="paycard__nueva-txt">Añadir cuenta</span>' +
+            '<span class="paycard__nueva-sub">Otro banco, una hucha, efectivo…</span>' +
+          '</button>' +
         '</div>' +
         '<div class="cards__dots" id="cardsDots" aria-hidden="true">' +
-          accounts.map(function (a, i) {
+          accounts.concat([null]).map(function (a, i) {
             return '<span class="cards__dot" data-on="' + (i === 0) + '"></span>';
           }).join("") +
         '</div>' +
@@ -2464,17 +2475,32 @@
     inicio:   { eyebrow: null, title: "Resumen" },
     movs:     { eyebrow: "Histórico", title: "Movimientos" },
     analisis: { eyebrow: "Datos", title: "Análisis" },
-    ahorro:   { eyebrow: "Tu plan", title: "Planes" },
+    /* «Planes» no decía qué había dentro y las cuentas estaban escondidas
+       ahí. Se llama por lo que la gente viene a buscar. */
+    ahorro:   { eyebrow: "Cuentas y metas", title: "Mi dinero" },
     ajustes:  { eyebrow: "Configuración", title: "Ajustes" }
   };
+
+  /* Dónde se quedó cada pantalla. Bajar media lista de movimientos, mirar
+     una cosa en Análisis y volver para encontrarte otra vez arriba del todo
+     es de las cosas que más cansan de una app. Tocar la pestaña de la
+     pantalla en la que ya estás sigue llevando arriba, que es el atajo que
+     todo el mundo conoce. */
+  var desplazamiento = {};
 
   function goTo(view, skipHash) {
     if (!TITLES[view]) view = "inicio";
 
+    var area = $("#scrollArea");
+
     if (ui.view === view) {
-      $("#scrollArea").scrollTo({ top: 0, behavior: "smooth" });
+      desplazamiento[view] = 0;
+      area.scrollTo({ top: 0, behavior: "smooth" });
       return;
     }
+
+    desplazamiento[ui.view] = area.scrollTop;
+
     ui.view = view;
     if (!skipHash && location.hash.slice(1) !== view) location.hash = view;
 
@@ -2486,10 +2512,14 @@
     });
 
     setTopbar(view);
-    $("#scrollArea").scrollTop = 0;
 
     U.haptic("light");
     renderView(view);
+
+    /* después de pintar, que si no la altura todavía es la de antes y el
+       navegador recorta la posición */
+    var y = desplazamiento[view] || 0;
+    requestAnimationFrame(function () { area.scrollTop = y; });
   }
 
   function setTopbar(view) {
@@ -3121,6 +3151,38 @@
   }
 
   /* ============================================================
+     Botón atrás
+
+     En Android el botón de atrás es el gesto de «déjame salir de aquí».
+     Sin esto, el WebView lo interpretaba como el atrás de un navegador:
+     con una hoja abierta te sacaba de la pantalla en la que estabas y la
+     hoja se quedaba puesta.
+
+     El orden es el que espera cualquiera: primero se cierra lo que está
+     encima, después se vuelve al Resumen, y solo cuando no queda nada que
+     cerrar se sale de la app. Devuelve true si ha hecho algo; si devuelve
+     false, la capa Android cierra la aplicación.
+     ============================================================ */
+
+  function atras() {
+    /* El tutorial es lo primero que hay por encima de todo. */
+    if ($("#onboard").getAttribute("data-open") === "true") {
+      skipOnboarding();
+      return true;
+    }
+
+    /* La hoja de encima, no todas: del detalle se salta a editar, y
+       atrás tiene que devolverte al detalle. */
+    if (U.cerrarHojaDeArriba()) return true;
+
+    /* Desde cualquier pantalla, atrás lleva al Resumen. Desde el Resumen
+       ya no hay a dónde volver. */
+    if (ui.view !== "inicio") { goTo("inicio"); return true; }
+
+    return false;
+  }
+
+  /* ============================================================
      Arranque
      ============================================================ */
 
@@ -3136,6 +3198,19 @@
     sheets.detail = new U.Sheet($("#sheetDetail"), $("#scrim"));
     sheets.form = new U.Sheet($("#sheetForm"), $("#scrim"));
     sheets.cobro = new U.Sheet($("#sheetCobro"), $("#scrim"));
+
+    /* Al formulario de categoría se llega a veces desde un movimiento a
+       medio escribir. Salir de ahí de cualquier manera —la X, el botón
+       atrás, arrastrando la hoja hacia abajo, tocando fuera— tiene que
+       devolverte al movimiento con lo que llevabas tecleado, no dejarte
+       en blanco. Guardar y borrar bajan la bandera antes de cerrar, así
+       que esto solo salta cuando de verdad se ha abandonado. */
+    sheets.form.onClose = function () {
+      if (!ui.catReturnToAdd) return;
+      ui.catReturnToAdd = false;
+      renderAddSheet();
+      sheets.add.show();
+    };
 
     mountIcons(document);
     updateThemeIcon();
@@ -3249,6 +3324,19 @@
       renderAll();
     });
   }
+
+  /* Lo único que la app enseña al exterior: el botón atrás de Android
+     entra por aquí. */
+  window.App = { atras: atras };
+
+  /* En el escritorio no hay botón físico, pero Escape es lo mismo y así se
+     puede probar el recorrido sin un móvil delante. Las hojas ya se cierran
+     ellas con Escape cuando tienen el foco; esto cubre el resto. */
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape") return;
+    if (U.hayHojaAbierta()) return;   /* de eso se encarga la propia hoja */
+    if (atras()) e.preventDefault();
+  });
 
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);

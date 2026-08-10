@@ -5,6 +5,8 @@ import android.view.ActionMode;
 import android.view.View;
 import android.webkit.WebView;
 
+import androidx.activity.OnBackPressedCallback;
+
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -60,6 +62,7 @@ public class MainActivity extends BridgeActivity {
         });
 
         quitarSeleccionDeTexto();
+        atenderBotonAtras();
 
         final View root = findViewById(android.R.id.content);
 
@@ -84,6 +87,39 @@ public class MainActivity extends BridgeActivity {
         /* Si el teclado tapa un campo, el WebView se redimensiona solo:
            pedimos que nos vuelvan a pasar los insets al cambiar. */
         ViewCompat.requestApplyInsets(root);
+    }
+
+    /**
+     * El botón de atrás del móvil.
+     *
+     * Capacitor no lo toca, así que sin esto el sistema cerraba la app de
+     * golpe: daba igual que hubiera una hoja abierta o que estuvieras en
+     * Ajustes. Atrás tiene que deshacer lo último que hiciste, no echarte.
+     *
+     * Se le pregunta a la app qué quiere hacer. Si tiene algo que cerrar lo
+     * cierra y responde true; si responde false es que ya está en el Resumen
+     * sin nada encima, y ahí sí toca salir.
+     *
+     * Va por el despachador de androidx y no sobrescribiendo onBackPressed:
+     * ese método está obsoleto y exige llamar a super, cosa que aquí no
+     * interesa porque justamente queremos quedarnos con el gesto.
+     *
+     * El callback de evaluateJavascript llega en el hilo de interfaz, que es
+     * donde hay que estar para cerrar la actividad.
+     */
+    private void atenderBotonAtras() {
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                final WebView web = getBridge() == null ? null : getBridge().getWebView();
+                if (web == null) { finish(); return; }
+
+                web.evaluateJavascript(
+                        "(function(){try{return !!(window.App&&App.atras&&App.atras())}"
+                                + "catch(e){return false}})()",
+                        valor -> { if (!"true".equals(valor)) finish(); });
+            }
+        });
     }
 
     /**

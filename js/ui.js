@@ -157,6 +157,26 @@
      por umbral de recorrido, como una hoja modal de iOS
      ============================================================ */
 
+  /* Las hojas se apilan: del detalle de un movimiento se salta a editarlo,
+     y del formulario de un movimiento a crear una categoría. Para que el
+     botón atrás del móvil cierre la de encima y no las dos, hace falta
+     saber en qué orden se abrieron. */
+  var apiladas = [];
+
+  function hojaDeArriba() {
+    return apiladas.length ? apiladas[apiladas.length - 1] : null;
+  }
+
+  /* Cierra la hoja de encima. Devuelve true si había alguna. */
+  function cerrarHojaDeArriba() {
+    var h = hojaDeArriba();
+    if (!h) return false;
+    h.close();
+    return true;
+  }
+
+  function hayHojaAbierta() { return apiladas.length > 0; }
+
   function Sheet(rootEl, scrimEl) {
     this.root = rootEl;
     this.scrim = scrimEl;
@@ -237,6 +257,7 @@
 
   Sheet.prototype.show = function () {
     this._lastFocus = document.activeElement;
+    if (apiladas.indexOf(this) < 0) apiladas.push(this);
     this.open = true;
     this.root.setAttribute("data-open", "true");
     this.root.setAttribute("aria-hidden", "false");
@@ -248,6 +269,8 @@
 
   Sheet.prototype.close = function () {
     if (!this.open) return;
+    var i = apiladas.indexOf(this);
+    if (i >= 0) apiladas.splice(i, 1);
     this.open = false;
     this.root.setAttribute("data-open", "false");
     this.root.setAttribute("aria-hidden", "true");
@@ -386,6 +409,8 @@
     haptic: haptic, setHaptics: setHaptics,
     toast: toast,
     Sheet: Sheet,
+    cerrarHojaDeArriba: cerrarHojaDeArriba,
+    hayHojaAbierta: hayHojaAbierta,
     longPress: longPress,
     slideIndicator: slideIndicator,
     countTo: countTo,

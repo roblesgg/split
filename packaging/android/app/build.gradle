@@ -59,6 +59,10 @@ repositories {
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
+    /* El botón atrás se atiende con OnBackPressedCallback. Capacitor se
+       trae androidx.activity pero como `implementation`, así que no llega
+       hasta aquí: hay que pedirla explícitamente. */
+    implementation "androidx.activity:activity:$androidxActivityVersion"
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation project(':capacitor-android')
