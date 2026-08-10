@@ -87,12 +87,16 @@
     return ((now - before) / Math.abs(before)) * 100;
   }
 
+  /* Se llama después de cada repintado, así que es el sitio natural para
+     dejar también listos los campos recién creados: el teclado del móvil
+     tiene que enseñar «Listo» en todos, no solo en los del HTML fijo. */
   function mountIcons(root) {
     $$("[data-icon]", root || document).forEach(function (n) {
       if (n.getAttribute("data-icon-done")) return;
       n.innerHTML = icon(n.getAttribute("data-icon"), +(n.getAttribute("data-icon-size") || 20));
       n.setAttribute("data-icon-done", "1");
     });
+    U.tecladoComodo(root || document);
   }
 
   /* importe con céntimos en menor tamaño */
@@ -246,25 +250,34 @@
                  series.map(function (m) { return m.net; })) +
       '</div>';
 
-    var cardBudgets = foldCard("presupuesto",
-      "Presupuesto de " + esc(monthName(curKey)),
-      esc(money(cur.expense)) + " de " + esc(money(S.budgetTotal())) + " asignados",
-      '<button type="button" class="card__link" data-goto="ajustes">Editar</button>',
-      rows.map(meterHtml).join(""));
+    /* Sin presupuesto puesto no se enseña ninguna de las dos tarjetas: un
+       «0 € de 0 €» y unas barras vacías no dicen nada, y encima dan la
+       impresión de que la app te está midiendo por un plan que no has
+       hecho. Quien lo quiera, lo pone en Ajustes. */
+    var budgetTotal = S.budgetTotal();
+    var hayPresupuesto = rows.length > 0 && budgetTotal > 0;
+
+    var cardBudgets = hayPresupuesto
+      ? foldCard("presupuesto",
+          "Presupuesto de " + esc(monthName(curKey)),
+          esc(money(cur.expense)) + " de " + esc(money(budgetTotal)) + " asignados",
+          '<button type="button" class="card__link" data-goto="ajustes">Editar</button>',
+          rows.map(meterHtml).join(""))
+      : "";
 
     /* --- tarjeta de límite: el presupuesto del mes de un vistazo --- */
-    var budgetTotal = S.budgetTotal();
     var usedRatio = budgetTotal > 0 ? Math.min(1, cur.expense / budgetTotal) : 0;
-    var cardLimit =
-      '<button type="button" class="limit" data-goto="ajustes">' +
-        '<span class="limit__ring" data-limit-ring="' + usedRatio + '"></span>' +
-        '<span class="limit__body">' +
-          '<span class="limit__label">Presupuesto de ' + esc(monthName(curKey)) + '</span>' +
-          '<span class="limit__value">' + esc(S.moneyShort(cur.expense)) + ' de ' +
-            esc(S.moneyShort(budgetTotal)) + '</span>' +
-        '</span>' +
-        '<span class="limit__chev" data-icon="chevron" data-icon-size="18"></span>' +
-      '</button>';
+    var cardLimit = hayPresupuesto
+      ? '<button type="button" class="limit" data-goto="ajustes">' +
+          '<span class="limit__ring" data-limit-ring="' + usedRatio + '"></span>' +
+          '<span class="limit__body">' +
+            '<span class="limit__label">Presupuesto de ' + esc(monthName(curKey)) + '</span>' +
+            '<span class="limit__value">' + esc(S.moneyShort(cur.expense)) + ' de ' +
+              esc(S.moneyShort(budgetTotal)) + '</span>' +
+          '</span>' +
+          '<span class="limit__chev" data-icon="chevron" data-icon-size="18"></span>' +
+        '</button>'
+      : "";
 
     /* --- tiles: en qué se está yendo el mes --- */
     var topCats = S.byCategory(curKey, "out").slice(0, 4);
@@ -398,9 +411,9 @@
           '<div style="--i:4">' + cardRecent + '</div>' +
         '</div>' +
         '<div class="dash__col stagger">' +
-          '<div style="--i:1">' + cardLimit + '</div>' +
+          (cardLimit ? '<div style="--i:1">' + cardLimit + '</div>' : "") +
           '<div style="--i:2">' + cardUpcoming + '</div>' +
-          '<div style="--i:3">' + cardBudgets + '</div>' +
+          (cardBudgets ? '<div style="--i:3">' + cardBudgets + '</div>' : "") +
         '</div>' +
       '</div>';
 
@@ -1770,11 +1783,12 @@
     var sum = S.allocationSum();
     var savings = S.savingsPct();
     var theme = S.getTheme();
-    /* Las del sistema («Ajuste de saldo») quedan fuera del reparto: no se
-       presupuesta lo que por definición no habías previsto. */
-    var cats = S.CATEGORIES.filter(function (c) {
-      return c.kind === "out" && !c.sistema;
+    /* Las del sistema («Ajuste de saldo») quedan fuera del presupuesto: no
+       se presupuesta lo que por definición no habías previsto. */
+    var presupuestadas = S.budgetedCategories().filter(function (c) {
+      return !c.sistema;
     });
+    var sinPresupuesto = S.unbudgetedCategories();
 
     var media = S.averageIncome(inc.months);
     var modo = inc.mode === "manual" ? "manual"
@@ -1878,46 +1892,86 @@
             '</div>') +
       '</section>' +
 
+      /* ---- presupuesto por categoría ----
+         Esto NO son las cuentas: son los tipos de gasto. La confusión es
+         fácil de tener, así que lo dice el subtítulo. Y no viene nada
+         puesto de fábrica: se añade lo que a cada uno le interese
+         vigilar, y lo demás ni aparece. */
       '<section class="card">' +
         '<div class="card__head">' +
           '<div>' +
-            '<h2 class="card__title">Reparto</h2>' +
-            '<p class="card__sub">Lo que sobra va a ahorro</p>' +
+            '<h2 class="card__title">Presupuesto del mes</h2>' +
+            '<p class="card__sub">Cuánto quieres gastar como mucho en cada tipo de ' +
+              'gasto. No son tus cuentas.</p>' +
           '</div>' +
-          '<button type="button" class="card__link" id="allocReset">Restablecer</button>' +
+          (presupuestadas.length
+            ? '<button type="button" class="card__link" id="allocReset">Vaciar</button>'
+            : "") +
         '</div>' +
 
-        '<div class="alloc-bar" id="allocBar" role="img" aria-label="Reparto del sueldo"></div>' +
+        (planned <= 0
+          ? emptyHtml("wallet", "Primero, cuánto cobras",
+              "Pon ahí arriba lo que entra al mes. Sin eso no hay de dónde repartir.")
 
-        '<div class="alloc-head">' +
-          '<p class="card__sub" id="allocSummary"></p>' +
-          '<p class="alloc-total" id="allocTotal"></p>' +
-        '</div>' +
+          : presupuestadas.length
+            ? '<div class="alloc-bar" id="allocBar" role="img" ' +
+                    'aria-label="Reparto del sueldo"></div>' +
 
-        '<div id="allocRows">' +
-          cats.map(function (c) {
-            var pct = S.state.allocation[c.id] || 0;
-            return '<div class="alloc-row">' +
-                '<div class="alloc-row__head">' +
-                  '<span class="alloc-row__dot" style="background:' + S.catColorVar(c) + '"></span>' +
-                  '<span class="alloc-row__name">' + esc(c.emoji || "") + ' ' + esc(c.name) + '</span>' +
-                  '<span class="alloc-row__eur" data-alloc-eur="' + c.id + '">' +
-                    esc(S.moneyShort(S.budgetFor(c.id))) + '</span>' +
-                  '<span class="alloc-row__pct" data-alloc-pct="' + c.id + '">' + pct + ' %</span>' +
-                '</div>' +
-                '<input type="range" class="range" data-alloc="' + c.id + '" ' +
-                       'min="0" max="60" step="1" value="' + pct + '" ' +
-                       'style="--range-color:' + S.catColorVar(c) +
-                         ';--fill:' + ((pct / 60) * 100).toFixed(1) + '" ' +
-                       'aria-label="Porcentaje para ' + esc(c.name) + '">' +
-              '</div>';
-          }).join("") +
-        '</div>' +
+              '<div class="alloc-head">' +
+                '<p class="card__sub" id="allocSummary"></p>' +
+                '<p class="alloc-total" id="allocTotal"></p>' +
+              '</div>' +
 
-        U.tableView("tblAllocSet", ["Partida", "Porcentaje", "Al mes"],
-          cats.map(function (c) {
-            return [c.name, (S.state.allocation[c.id] || 0) + " %", money(S.budgetFor(c.id))];
-          }).concat([["Ahorro", savings + " %", money(Math.round(planned * savings / 100))]])) +
+              '<div id="allocRows">' +
+                presupuestadas.map(function (c) {
+                  return '<div class="pres-fila">' +
+                      catFace(c, 18, "pres-fila__cara") +
+                      '<span class="pres-fila__texto">' +
+                        '<span class="pres-fila__nombre">' + esc(c.name) + '</span>' +
+                        '<span class="pres-fila__pct" data-alloc-pct="' + c.id + '">' +
+                          (S.state.allocation[c.id] || 0) + ' % de lo que entra</span>' +
+                      '</span>' +
+                      '<span class="input-affix pres-fila__campo">' +
+                        '<input type="number" class="field__input" data-alloc-eur="' +
+                               esc(c.id) + '" min="0" step="10" inputmode="decimal" ' +
+                               'value="' + S.budgetFor(c.id) + '" ' +
+                               'aria-label="Presupuesto de ' + esc(c.name) + '">' +
+                        '<span class="input-affix__suffix">€</span>' +
+                      '</span>' +
+                      '<button type="button" class="icon-btn pres-fila__quitar" ' +
+                              'data-alloc-quitar="' + esc(c.id) + '" ' +
+                              'aria-label="Quitar ' + esc(c.name) + ' del presupuesto" ' +
+                              'data-icon="close" data-icon-size="13"></button>' +
+                    '</div>';
+                }).join("") +
+              '</div>'
+
+            : emptyHtml("chart", "Sin presupuesto, de momento",
+                "Añade abajo los gastos que quieras vigilar. Lo que no pongas " +
+                "sigue contándose, simplemente no tiene tope.")) +
+
+        (planned > 0 && sinPresupuesto.length
+          ? '<div class="field" style="margin-top:var(--sp-5)">' +
+              '<span class="field__label">' +
+                (presupuestadas.length ? "Añadir otro" : "Empieza por uno") + '</span>' +
+              '<div class="chips">' +
+                sinPresupuesto.map(function (c) {
+                  return '<button type="button" class="chip" data-alloc-add="' +
+                           esc(c.id) + '">' + esc(c.emoji || "") + ' ' +
+                           esc(c.name) + '</button>';
+                }).join("") +
+              '</div>' +
+            '</div>'
+          : "") +
+
+        (presupuestadas.length
+          ? U.tableView("tblAllocSet", ["Partida", "Al mes", "Porcentaje"],
+              presupuestadas.map(function (c) {
+                return [c.name, money(S.budgetFor(c.id)),
+                        (S.state.allocation[c.id] || 0) + " %"];
+              }).concat([["Ahorro", money(Math.round(planned * savings / 100)),
+                          savings + " %"]]))
+          : "") +
       '</section>';
 
     var side =
@@ -2036,7 +2090,7 @@
     var summary = $("#allocSummary");
     if (!bar) return;
 
-    var segs = S.CATEGORIES.filter(function (c) { return c.kind === "out"; })
+    var segs = S.budgetedCategories()
       .map(function (c) {
         return { pct: S.state.allocation[c.id] || 0, color: c.color, name: c.name };
       })
@@ -2060,14 +2114,11 @@
       : "Quedan <strong>" + savings + " %</strong> para ahorro, " +
         esc(S.moneyShort(Math.round(planned * savings / 100))) + " al mes.";
 
-    $$("[data-alloc-eur]").forEach(function (n) {
-      n.textContent = S.moneyShort(S.budgetFor(n.getAttribute("data-alloc-eur")));
-    });
+    /* El campo en euros NO se reescribe mientras se teclea: hacerlo
+       movería el cursor a media cifra. Solo se refresca el porcentaje. */
     $$("[data-alloc-pct]").forEach(function (n) {
-      n.textContent = (S.state.allocation[n.getAttribute("data-alloc-pct")] || 0) + " %";
-    });
-    $$("[data-alloc]").forEach(function (n) {
-      n.style.setProperty("--fill", ((n.value / (+n.max || 60)) * 100).toFixed(1));
+      n.textContent = (S.state.allocation[n.getAttribute("data-alloc-pct")] || 0) +
+                      " % de lo que entra";
     });
   }
 
@@ -2078,8 +2129,8 @@
       if (e.target.id === "incManual") {
         S.setIncome({ manual: e.target.value });
         refreshAllocation();
-      } else if (e.target.matches("[data-alloc]")) {
-        S.setAllocation(e.target.getAttribute("data-alloc"), +e.target.value);
+      } else if (e.target.matches("[data-alloc-eur]")) {
+        S.setAllocationEuros(e.target.getAttribute("data-alloc-eur"), e.target.value);
         refreshAllocation();
       }
     });
@@ -2091,17 +2142,38 @@
     });
 
     root.addEventListener("click", function (e) {
-      var node = e.target.closest("[data-incmode]");
-      if (!node) return;
-      S.setIncome({ mode: node.getAttribute("data-incmode") });
-      renderAjustes();
-      U.haptic("light");
-    });
+      var node;
 
-    $("#allocReset").addEventListener("click", function () {
-      S.resetAllocation();
-      renderAjustes();
-      U.toast("Reparto restablecido", { icon: "check" });
+      if ((node = e.target.closest("[data-incmode]"))) {
+        S.setIncome({ mode: node.getAttribute("data-incmode") });
+        renderAjustes();
+        U.haptic("light");
+        return;
+      }
+
+      /* Añadir una categoría al presupuesto: entra con un décimo de lo
+         que cobras, una cifra redonda de la que partir en vez de un cero
+         que no dice nada. */
+      if ((node = e.target.closest("[data-alloc-add]"))) {
+        S.setAllocation(node.getAttribute("data-alloc-add"), 10);
+        renderAjustes();
+        U.haptic("light");
+        return;
+      }
+
+      if ((node = e.target.closest("[data-alloc-quitar]"))) {
+        S.removeAllocation(node.getAttribute("data-alloc-quitar"));
+        renderAjustes();
+        U.haptic("light");
+        return;
+      }
+
+      if (e.target.closest("#allocReset")) {
+        if (!confirm("¿Quitar todo el presupuesto? Los movimientos no se tocan.")) return;
+        S.resetAllocation();
+        renderAjustes();
+        U.toast("Presupuesto vaciado", { icon: "check" });
+      }
     });
 
     $$("[data-setting]", root).forEach(function (btn) {
@@ -2191,7 +2263,10 @@
           accountId: (opts && opts.accountId) || accs[0].id,
           toAccountId: null,
           note: "", memo: "", date: S.ymd(new Date()), time: nowHHMM(),
-          tags: [], attachments: [] };
+          tags: [], attachments: [],
+          /* reparto de un ingreso entre varias cuentas: apagado por
+             defecto, y `trozos` guarda cuánto va a cada una */
+          reparto: false, trozos: {} };
 
     /* en un traspaso el destino tiene que ser otra cuenta */
     if (!t) {
@@ -2376,17 +2451,38 @@
               '<input type="time" class="field__input" id="addTime" value="' + esc(d.time) + '">' +
             '</div>' +
           '</div>'
-        : '<div class="field__row" style="margin-top:var(--sp-4)">' +
-            '<div>' +
-              '<label class="field__label" for="addAccount">Cuenta</label>' +
-              accountSelect("addAccount", d.accountId) +
-            '</div>' +
-            '<div>' +
-              '<label class="field__label" for="addDate">Fecha</label>' +
-              '<input type="date" class="field__input" id="addDate" value="' + esc(d.date) + '" ' +
-                     'max="' + esc(S.ymd(new Date())) + '">' +
-            '</div>' +
-          '</div>' +
+        : (d.reparto
+            ? repartoHtml(d, v)
+            : '<div class="field__row" style="margin-top:var(--sp-4)">' +
+                '<div>' +
+                  '<label class="field__label" for="addAccount">Cuenta</label>' +
+                  accountSelect("addAccount", d.accountId) +
+                '</div>' +
+                '<div>' +
+                  '<label class="field__label" for="addDate">Fecha</label>' +
+                  '<input type="date" class="field__input" id="addDate" value="' +
+                         esc(d.date) + '" max="' + esc(S.ymd(new Date())) + '">' +
+                '</div>' +
+              '</div>') +
+
+          /* Solo tiene sentido en un ingreso nuevo y con más de una cuenta:
+             editar uno ya guardado es editar ese, no repartir de nuevo. */
+          (d.kind === "in" && !ui.editingId && S.state.accounts.length > 1
+            ? '<button type="button" class="btn btn--ghost" id="addReparto" ' +
+                      'style="width:100%;margin-top:var(--sp-3)">' +
+                icon(d.reparto ? "close" : "swap", 15) +
+                (d.reparto ? "Ingresar todo en una cuenta" : "Repartir entre varias cuentas") +
+              '</button>'
+            : "") +
+
+          (d.reparto
+            ? '<div class="field">' +
+                '<label class="field__label" for="addDate">Fecha</label>' +
+                '<input type="date" class="field__input" id="addDate" value="' +
+                       esc(d.date) + '" max="' + esc(S.ymd(new Date())) + '">' +
+              '</div>'
+            : "") +
+
           '<div class="field">' +
             '<label class="field__label" for="addTime">Hora</label>' +
             '<input type="time" class="field__input" id="addTime" value="' + esc(d.time) + '">' +
@@ -2426,6 +2522,99 @@
     });
   }
 
+  /* ---------- repartir un ingreso entre cuentas ----------
+     Se cobra una cantidad y no toda va al mismo sitio: una parte a la
+     cuenta del día a día y otra a la hucha. Antes había que apuntar el
+     ingreso entero y luego un traspaso a mano.
+
+     No se inventa nada nuevo en los datos: se guarda un ingreso por
+     cuenta. Cada uno es un movimiento normal, se edita y se borra por
+     separado, y los saldos salen solos. */
+
+  function sumaTrozos(d) {
+    return S.state.accounts.reduce(function (t, a) {
+      var v = parseFloat(d.trozos[a.id]);
+      return t + (isFinite(v) && v > 0 ? v : 0);
+    }, 0);
+  }
+
+  function restoPorRepartir(d, total) {
+    return Math.round((total - sumaTrozos(d)) * 100) / 100;
+  }
+
+  function repartoHtml(d, total) {
+    var resto = restoPorRepartir(d, total);
+
+    return '<div class="field" style="margin-top:var(--sp-4)">' +
+        '<div class="card__head" style="margin-bottom:var(--sp-3)">' +
+          '<span class="field__label" style="margin:0">Cuánto va a cada cuenta</span>' +
+          '<button type="button" class="card__link" id="addRepartoIgual">A partes iguales</button>' +
+        '</div>' +
+
+        S.state.accounts.map(function (a) {
+          var val = d.trozos[a.id];
+          return '<div class="reparto-fila">' +
+              '<span class="reparto-fila__punto" ' +
+                    'style="background:' + S.catColorVar(a) + '"></span>' +
+              '<span class="reparto-fila__nombre">' + esc(a.name) + '</span>' +
+              '<span class="input-affix reparto-fila__campo">' +
+                '<input type="number" class="field__input" data-trozo="' + esc(a.id) + '" ' +
+                       'min="0" step="0.01" inputmode="decimal" placeholder="0" ' +
+                       'value="' + esc(val == null ? "" : val) + '">' +
+                '<span class="input-affix__suffix">€</span>' +
+              '</span>' +
+            '</div>';
+        }).join("") +
+
+        '<div class="ajuste" id="addResto" data-dif="' +
+              (Math.abs(resto) < 0.005 ? "cero" : resto > 0 ? "out" : "in") + '">' +
+          textoResto(resto) +
+        '</div>' +
+      '</div>';
+  }
+
+  function textoResto(resto) {
+    if (Math.abs(resto) < 0.005) {
+      return '<span class="ajuste__txt">Repartido del todo.</span>';
+    }
+    if (resto > 0) {
+      return '<span class="ajuste__txt">Queda por repartir</span>' +
+             '<span class="ajuste__eur">' + esc(money(resto)) + '</span>';
+    }
+    return '<span class="ajuste__txt">Te has pasado</span>' +
+           '<span class="ajuste__eur">' + esc(money(-resto)) + '</span>';
+  }
+
+  /* Se recalcula sin repintar: repintar dejaría el campo sin foco. */
+  function refreshResto() {
+    var caja = $("#addResto");
+    if (!caja) return;
+    var resto = restoPorRepartir(ui.draft, draftValue());
+    caja.setAttribute("data-dif",
+      Math.abs(resto) < 0.005 ? "cero" : resto > 0 ? "out" : "in");
+    caja.innerHTML = textoResto(resto);
+    refreshAmount();
+  }
+
+  function repartirIgual() {
+    var cuentas = S.state.accounts;
+    var total = draftValue();
+    var trozo = Math.floor((total / cuentas.length) * 100) / 100;
+    var acumulado = 0;
+
+    cuentas.forEach(function (a, i) {
+      /* el último se lleva lo que sobre del redondeo, para que la suma
+         cuadre al céntimo */
+      var v = i === cuentas.length - 1
+        ? Math.round((total - acumulado) * 100) / 100
+        : trozo;
+      acumulado += v;
+      ui.draft.trozos[a.id] = v;
+    });
+
+    renderAddSheet();
+  }
+
   function refreshAmount() {
     var v = draftValue();
     var disp = $("#amountDisplay"), txt = $("#amountText"), save = $("#addSave");
@@ -2433,14 +2622,54 @@
     txt.textContent = S.num2.format(v);
     disp.classList.toggle("is-zero", v === 0);
     if (save) {
+      var d = ui.draft;
+      var repartoMal = d.reparto &&
+        Math.abs(restoPorRepartir(d, v)) >= 0.005;
       save.disabled = v <= 0 ||
-        (ui.draft.kind === "transfer" && ui.draft.accountId === ui.draft.toAccountId);
+        (d.kind === "transfer" && d.accountId === d.toAccountId) ||
+        repartoMal;
     }
   }
 
   function saveDraft() {
     var d = ui.draft, v = draftValue();
     if (v <= 0) return;
+
+    /* Repartido: un ingreso por cuenta, todos con el mismo título, fecha
+       y categoría. Los adjuntos van solo en el primero: duplicar la foto
+       de una nómina en cada trozo ocuparía sitio para nada. */
+    if (d.reparto && !ui.editingId) {
+      var resto = restoPorRepartir(d, v);
+      if (Math.abs(resto) >= 0.005) {
+        U.toast(resto > 0
+          ? "Todavía quedan " + money(resto) + " por repartir"
+          : "Te has pasado en " + money(-resto), { icon: "warning" });
+        return;
+      }
+
+      var adjuntos = (ui.draftAttachments || []).map(function (a) { return a.id; });
+      var puestos = 0;
+      S.state.accounts.forEach(function (a) {
+        var trozo = parseFloat(d.trozos[a.id]);
+        if (!(trozo > 0)) return;
+        S.addTx({
+          kind: "in", amount: trozo, categoryId: d.categoryId,
+          accountId: a.id, toAccountId: null,
+          note: d.note, memo: d.memo, date: d.date, time: d.time,
+          tags: d.tags,
+          attachments: puestos === 0 ? adjuntos : []
+        });
+        puestos++;
+      });
+
+      U.toast("Ingreso de " + money(v) + " repartido en " + puestos +
+              (puestos === 1 ? " cuenta" : " cuentas"), { icon: "check" });
+      U.haptic("success");
+      sheets.add.close();
+      renderAll();
+      return;
+    }
+
     var payload = {
       kind: d.kind, amount: v, categoryId: d.categoryId,
       accountId: d.accountId, toAccountId: d.toAccountId,
@@ -3006,6 +3235,19 @@
         else ui.draft.categoryId = "otros";
         renderAddSheet(); U.haptic("light"); return;
       }
+      if (e.target.closest("#addReparto")) {
+        ui.draft.reparto = !ui.draft.reparto;
+        /* al encender, el importe entero va a la cuenta que estaba
+           elegida: repartir desde cero obligaría a teclear dos veces */
+        if (ui.draft.reparto) {
+          ui.draft.trozos = {};
+          ui.draft.trozos[ui.draft.accountId] = draftValue();
+        }
+        renderAddSheet(); U.haptic("light"); return;
+      }
+      if (e.target.closest("#addRepartoIgual")) {
+        repartirIgual(); U.haptic("light"); return;
+      }
       if ((node = e.target.closest("[data-cat-new]"))) {
         /* el borrador (importe incluido) sobrevive en ui.draft, así que al
            volver del formulario se sigue donde se estaba */
@@ -3068,6 +3310,10 @@
     addBody.addEventListener("input", function (e) {
       if (e.target.id === "addNote") ui.draft.note = e.target.value;
       if (e.target.id === "addMemo") ui.draft.memo = e.target.value;
+      if (e.target.hasAttribute("data-trozo")) {
+        ui.draft.trozos[e.target.getAttribute("data-trozo")] = e.target.value;
+        refreshResto();
+      }
     });
 
     addBody.addEventListener("change", function (e) {
@@ -3513,6 +3759,7 @@
     };
 
     mountIcons(document);
+    U.vigilarTeclado();
     updateThemeIcon();
     bind();
 

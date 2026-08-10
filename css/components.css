@@ -822,6 +822,75 @@
   font-size: 12px;
 }
 
+/* ---------- filas del presupuesto ---------- */
+
+.pres-fila {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.pres-fila:last-child { border-bottom: 0; }
+
+.pres-fila__cara { flex: none; }
+.pres-fila__texto { flex: 1; min-width: 0; }
+
+.pres-fila__nombre {
+  display: block;
+  font-size: 13.5px;
+  font-weight: var(--w-semi);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pres-fila__pct {
+  display: block;
+  margin-top: 1px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.pres-fila__campo { display: block; flex: none; width: 108px; }
+.pres-fila__campo .field__input { height: 42px; text-align: right; }
+
+.pres-fila__quitar { flex: none; width: 30px; height: 30px; }
+
+/* ---------- repartir un ingreso entre cuentas ---------- */
+
+.reparto-fila {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) 0;
+}
+
+.reparto-fila__punto {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.reparto-fila__nombre {
+  flex: 1;
+  min-width: 0;
+  font-size: 13.5px;
+  font-weight: var(--w-medium);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ancho fijo para que las cifras queden en columna */
+/* es un <span>, así que sin esto el ancho no se aplica */
+.reparto-fila__campo { display: block; flex: none; width: 128px; }
+.reparto-fila__campo .field__input { height: 44px; text-align: right; }
+
 /* ---------- aviso de lo que va a apuntar el ajuste ---------- */
 
 .ajuste {

@@ -368,7 +368,11 @@
       categories: cloneCategories(),
       tags: [],
       income: { mode: "auto", manual: 0, months: 3 },
-      allocation: Object.assign({}, DEFAULT_ALLOCATION),
+      /* Vacío a propósito. Traer diez categorías presupuestadas que nadie
+         ha elegido hace que la pantalla de Ajustes parezca de otro y que
+         el Resumen enseñe barras de un plan que no es tuyo. Se empieza
+         sin presupuesto y se añade lo que a cada uno le interese. */
+      allocation: {},
       recurring: [],
       accounts: [
         { id: "banco", name: "Banco", type: "Banco", slot: 1, color: 1, icon: "wallet", opening: 0 }
@@ -1319,8 +1323,43 @@
     save();
   }
 
+  /* La gente piensa en euros, no en porcentajes: «doscientos al mes de
+     comida». Por dentro se sigue guardando el porcentaje, que es lo que
+     hace que el presupuesto se ajuste solo cuando cambia el ingreso. */
+  function setAllocationEuros(catId, euros) {
+    var base = plannedIncome();
+    if (!(base > 0)) return false;
+    var pct = Math.max(0, Math.min(100, Math.round((+euros || 0) / base * 100)));
+    state.allocation[catId] = pct;
+    save();
+    return true;
+  }
+
+  /* Quitar una categoría del presupuesto no es lo mismo que ponerla a
+     cero: deja de aparecer en la lista. */
+  function removeAllocation(catId) {
+    delete state.allocation[catId];
+    save();
+  }
+
+  /* Las que aún no están presupuestadas, para poder añadirlas. */
+  function unbudgetedCategories() {
+    return categoriesOf("out").filter(function (c) {
+      return !c.sistema && state.allocation[c.id] == null;
+    });
+  }
+
+  /* Las que sí, en el orden en que se pusieron. */
+  function budgetedCategories() {
+    return categoriesOf("out").filter(function (c) {
+      return state.allocation[c.id] != null;
+    });
+  }
+
+  /* Vaciarlo, no volver a un reparto de fábrica: el presupuesto es de
+     quien lo hace, y empezar de cero es una opción legítima. */
   function resetAllocation() {
-    state.allocation = Object.assign({}, DEFAULT_ALLOCATION);
+    state.allocation = {};
     save();
   }
 
@@ -1619,6 +1658,9 @@
     averageIncome: averageIncome, declaredIncome: declaredIncome,
     allocationSum: allocationSum, savingsPct: savingsPct,
     setAllocation: setAllocation, resetAllocation: resetAllocation,
+    setAllocationEuros: setAllocationEuros, removeAllocation: removeAllocation,
+    unbudgetedCategories: unbudgetedCategories,
+    budgetedCategories: budgetedCategories,
     budgetFor: budgetFor, budgetTotal: budgetTotal,
     DEFAULT_ALLOCATION: DEFAULT_ALLOCATION,
 

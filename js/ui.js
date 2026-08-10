@@ -280,6 +280,80 @@
   };
 
   /* ============================================================
+     Teclado del sistema
+
+     Un campo dentro de una hoja modal es el peor sitio para escribir: la
+     hoja está en position:fixed, así que el navegador no siempre acierta a
+     desplazarla, y el campo se queda debajo del teclado.
+
+     Tres cosas, y las tres hacen falta:
+
+     1. Que el teclado enseñe «Listo» y no «Intro». Con enterkeyhint basta
+        en Android; sin él sale una flecha de salto de línea que en un
+        campo de una línea no hace nada y confunde.
+     2. Que ese Listo cierre el teclado de verdad. Enter en un input suelto
+        (sin <form>) no hace nada por su cuenta.
+     3. Que al enfocar un campo, la hoja se desplace hasta dejarlo a la
+        vista. Se hace con un pequeño retraso porque el teclado tarda en
+        abrirse y hasta entonces el alto visible todavía es el de antes.
+     ============================================================ */
+
+  var UNA_LINEA = /^(text|search|url|tel|email|number|date|time|password)$/i;
+
+  function tecladoComodo(raiz) {
+    /* Los que ya llevan enterkeyhint puesto a mano se respetan. */
+    $$("input, textarea", raiz).forEach(function (el) {
+      if (el.hasAttribute("enterkeyhint")) return;
+      el.setAttribute("enterkeyhint", el.tagName === "TEXTAREA" ? "enter" : "done");
+    });
+  }
+
+  /* Deja el campo enfocado a la vista, por encima del teclado. */
+  function acercarCampo(el) {
+    if (!el || typeof el.scrollIntoView !== "function") return;
+    try {
+      el.scrollIntoView({ block: "center", behavior: "smooth" });
+    } catch (e) {
+      el.scrollIntoView(false);
+    }
+  }
+
+  /* Se engancha una vez, al arrancar, y vale para todo lo que se pinte
+     después: los dos eventos son delegables. */
+  function vigilarTeclado() {
+    document.addEventListener("focusin", function (e) {
+      var el = e.target;
+      if (!el.matches || !el.matches("input, textarea, select")) return;
+      /* 260 ms: lo que tarda el teclado en subir y en reajustarse el alto
+         visible. Antes de eso, desplazar no sirve de nada. */
+      setTimeout(function () {
+        if (document.activeElement === el) acercarCampo(el);
+      }, 260);
+    });
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key !== "Enter") return;
+      var el = e.target;
+      if (!el.matches || !el.matches("input")) return;
+      if (!UNA_LINEA.test(el.type || "text")) return;
+      /* En un campo de una línea, Enter significa «ya está»: se cierra el
+         teclado en vez de no hacer nada. */
+      e.preventDefault();
+      el.blur();
+    });
+
+    /* Si el envoltorio no encoge la ventana (navegador de escritorio con
+       teclado en pantalla, o un WebView antiguo), al menos se vuelve a
+       acercar el campo cuando cambia el alto visible. */
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener("resize", function () {
+        var el = document.activeElement;
+        if (el && el.matches && el.matches("input, textarea")) acercarCampo(el);
+      });
+    }
+  }
+
+  /* ============================================================
      Pulsación larga
      ============================================================ */
 
@@ -410,6 +484,8 @@
     toast: toast,
     Sheet: Sheet,
     cerrarHojaDeArriba: cerrarHojaDeArriba,
+    tecladoComodo: tecladoComodo,
+    vigilarTeclado: vigilarTeclado,
     hayHojaAbierta: hayHojaAbierta,
     longPress: longPress,
     slideIndicator: slideIndicator,

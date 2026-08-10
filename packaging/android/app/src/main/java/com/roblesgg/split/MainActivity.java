@@ -71,12 +71,26 @@ public class MainActivity extends BridgeActivity {
                     WindowInsetsCompat.Type.systemBars()
                             | WindowInsetsCompat.Type.displayCutout());
 
-            /* el 0 de abajo es lo que deja que la app llegue al borde */
-            view.setPadding(barras.left, barras.top, barras.right, 0);
+            /* El teclado sí aparta el contenido, y por eso lleva su propio
+               inset. Sin esto la ventana seguía llegando al borde de abajo
+               y el teclado tapaba justo el campo que se estaba rellenando:
+               no había forma de ver lo que se escribía en los últimos
+               campos de una hoja.
+
+               No reaparece el trozo negro de antes porque mientras el
+               teclado está abierto lo que hay debajo del WebView es el
+               teclado, no el fondo de la ventana. Con el teclado cerrado
+               esto vale 0 y todo queda como estaba. */
+            int teclado = windowInsets.getInsets(WindowInsetsCompat.Type.ime()).bottom;
+
+            view.setPadding(barras.left, barras.top, barras.right, teclado);
 
             /* en píxeles CSS, no físicos: el CSS razona en los primeros */
             float densidad = getResources().getDisplayMetrics().density;
-            huecoAbajo = Math.round(barras.bottom / densidad);
+            /* Con el teclado abierto el inset del teclado ya se come la
+               barra de navegación: reservarla otra vez dejaría un hueco de
+               más encima del teclado. */
+            huecoAbajo = teclado > 0 ? 0 : Math.round(barras.bottom / densidad);
             pasarHuecoAlWeb();
 
             /* CONSUMED evita que los hijos vuelvan a aplicar el mismo
