@@ -113,6 +113,14 @@
   text-align: left;
 }
 
+/* Fuera del carrusel (dentro de la hoja de una cuenta) no hay a qué
+   ajustarse: ocupa el ancho y baja un poco de altura. */
+.paycard--suelta {
+  flex: none;
+  width: 100%;
+  min-height: 150px;
+}
+
 /* La de crear cuenta no es una tarjeta de verdad: no lleva color ni
    sombra, solo el hueco punteado de «aquí cabe otra». */
 .paycard--nueva {

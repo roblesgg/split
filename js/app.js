@@ -17,9 +17,11 @@
     range: 12,               /* meses de histórico que se dibujan */
     movsKind: "all",
     movsQuery: "",
+    movsAccount: null,       /* si se llega desde una cuenta, solo la suya */
     movsMonthOffset: 0,
     draft: null,
     editingId: null,
+    cuentaReturn: null,      /* a qué cuenta volver al salir de su edición */
     update: null            /* { version, name, url } si hay una release nueva */
   };
 
@@ -194,7 +196,7 @@
             /* cada tarjeta con el color de su cuenta; ya no hay una
                "principal" distinta, todas se ven como tarjetas */
             return '<button type="button" class="paycard" data-card="' + i + '" ' +
-                   'data-form="account" data-form-id="' + esc(a.id) + '" ' +
+                   'data-cuenta="' + esc(a.id) + '" ' +
                    'style="--acc-color:' + S.catColorVar(a) + '">' +
                 '<div class="paycard__top">' +
                   '<span class="paycard__dots">' +
@@ -536,6 +538,18 @@
     var key = movsMonth();
     var list = S.txOfMonth(key);
 
+    /* Al venir de «Ver todos» desde una cuenta, la lista se queda en ella
+       hasta que se quite la chapa. Es un filtro visible, no una trampa. */
+    var cuentaFiltro = ui.movsAccount
+      ? S.state.accounts.find(function (a) { return a.id === ui.movsAccount; })
+      : null;
+    if (!cuentaFiltro) ui.movsAccount = null;
+    if (cuentaFiltro) {
+      list = list.filter(function (t) {
+        return t.accountId === ui.movsAccount || t.toAccountId === ui.movsAccount;
+      });
+    }
+
     if (ui.movsKind !== "all") {
       list = list.filter(function (t) { return t.kind === ui.movsKind; });
     }
@@ -589,6 +603,16 @@
               '<button type="button" class="segmented__btn" role="tab" data-kind="out" ' +
                       'aria-selected="' + (ui.movsKind === "out") + '">Gastos</button>' +
             '</div>' +
+
+            (cuentaFiltro
+              ? '<div class="chips">' +
+                  '<button type="button" class="chip" id="movsAccClear" ' +
+                          'aria-pressed="true">' +
+                    esc(cuentaFiltro.name) +
+                    '<span data-icon="close" data-icon-size="11"></span>' +
+                  '</button>' +
+                '</div>'
+              : "") +
           '</div>' +
 
           '<div class="kpi-row section-gap" style="--i:1">' +
@@ -1011,8 +1035,8 @@
           '<button type="button" class="card__link" data-form="account">+ Nueva</button>' +
         '</div>' +
         accounts.map(function (a) {
-          return '<button type="button" class="account" data-form="account" ' +
-                  'data-form-id="' + esc(a.id) + '" style="width:100%;text-align:left">' +
+          return '<button type="button" class="account" data-cuenta="' + esc(a.id) + '" ' +
+                  'style="width:100%;text-align:left">' +
               '<span class="account__badge" data-icon="' + esc(a.icon || "wallet") +
                     '" data-icon-size="17"></span>' +
               '<span class="account__body">' +
@@ -2072,7 +2096,9 @@
      Sheet · añadir / editar movimiento
      ============================================================ */
 
-  function openAdd(kind, txId) {
+  /* `opts.accountId` deja la cuenta ya elegida: se usa al apuntar desde
+     dentro de una cuenta, donde dar por hecho la primera sería absurdo. */
+  function openAdd(kind, txId, opts) {
     var t = txId ? S.state.transactions.find(function (x) { return x.id === txId; }) : null;
     ui.editingId = txId || null;
     var accs = S.state.accounts;
@@ -2083,10 +2109,17 @@
           tags: Array.isArray(t.tags) ? t.tags.slice() : [],
           attachments: Array.isArray(t.attachments) ? t.attachments.slice() : [] }
       : { kind: kind || "out", amount: "", categoryId: kind === "in" ? "nomina" : "comida",
-          accountId: accs[0].id,
-          toAccountId: accs.length > 1 ? accs[1].id : accs[0].id,
+          accountId: (opts && opts.accountId) || accs[0].id,
+          toAccountId: null,
           note: "", memo: "", date: S.ymd(new Date()), time: nowHHMM(),
           tags: [], attachments: [] };
+
+    /* en un traspaso el destino tiene que ser otra cuenta */
+    if (!t) {
+      ui.draft.toAccountId = (accs.find(function (x) {
+        return x.id !== ui.draft.accountId;
+      }) || accs[0]).id;
+    }
 
     /* los adjuntos viven en IndexedDB: se piden aparte y se pintan cuando
        llegan, sin bloquear la apertura del sheet */
@@ -2571,6 +2604,10 @@
       if ((node = e.target.closest("[data-tx]"))) { openDetail(node.getAttribute("data-tx")); return; }
       if ((node = e.target.closest("[data-goto]"))) { goTo(node.getAttribute("data-goto")); return; }
 
+      if ((node = e.target.closest("[data-cuenta]"))) {
+        openCuenta(node.getAttribute("data-cuenta"));
+        return;
+      }
       if ((node = e.target.closest("[data-form]"))) {
         openForm(node.getAttribute("data-form"), node.getAttribute("data-form-id"));
         return;
@@ -2625,6 +2662,9 @@
         return;
       }
       if (e.target.closest("#movsClear")) { ui.movsQuery = ""; renderMovs(); return; }
+      if (e.target.closest("#movsAccClear")) {
+        ui.movsAccount = null; renderMovs(); U.haptic("light"); return;
+      }
 
       if (e.target.closest("#updateNow")) { descargarActualizacion(); return; }
       if (e.target.closest("#updateLater")) {
@@ -2659,6 +2699,45 @@
         var input = $("#movsSearch");
         if (input) { input.focus(); input.setSelectionRange(input.value.length, input.value.length); }
       }, 240);
+    });
+
+    /* --- una cuenta por dentro --- */
+    var cuentaBody = $("#sheetCuentaBody");
+
+    cuentaBody.addEventListener("click", function (e) {
+      var id = cuentaAbierta;
+      var node;
+
+      /* un movimiento de la lista abre su detalle, como en cualquier
+         otra parte de la app */
+      if ((node = e.target.closest("[data-tx]"))) {
+        sheets.cuenta.close();
+        var txId = node.getAttribute("data-tx");
+        setTimeout(function () { openDetail(txId); }, 220);
+        return;
+      }
+
+      if (e.target.closest("#cuentaGasto")) {
+        sheets.cuenta.close();
+        setTimeout(function () { openAdd("out", null, { accountId: id }); }, 220);
+        return;
+      }
+      if (e.target.closest("#cuentaTraspaso")) {
+        sheets.cuenta.close();
+        setTimeout(function () { openAdd("transfer", null, { accountId: id }); }, 220);
+        return;
+      }
+      if (e.target.closest("#cuentaEditar")) {
+        ui.cuentaReturn = id;
+        sheets.cuenta.close();
+        setTimeout(function () { openForm("account", id); }, 220);
+        return;
+      }
+      if (e.target.closest("#cuentaVerTodos")) {
+        sheets.cuenta.close();
+        ui.movsAccount = id;
+        goTo("movs");
+      }
     });
 
     /* --- confirmar un programado --- */
@@ -3080,6 +3159,119 @@
   }
 
   /* ============================================================
+     Una cuenta por dentro
+
+     Tocar una tarjeta abría directamente el formulario de editar, y eso
+     no es lo que uno espera: al tocar tu cuenta quieres VERLA —cuánto
+     tienes, qué ha entrado y salido este mes, los últimos movimientos— y
+     desde ahí decidir si hay algo que cambiar.
+     ============================================================ */
+
+  var cuentaAbierta = null;
+
+  /* Todo lo que ha pasado por esta cuenta, entradas y salidas, con el
+     signo visto desde ella: un traspaso que sale resta y el mismo
+     traspaso visto desde la cuenta de destino suma. */
+  function movimientosDe(accId) {
+    return S.state.transactions.filter(function (t) {
+      return t.accountId === accId || t.toAccountId === accId;
+    });
+  }
+
+  function efectoEnCuenta(t, accId) {
+    if (t.kind === "transfer") return t.toAccountId === accId ? t.amount : -t.amount;
+    return t.kind === "in" ? t.amount : -t.amount;
+  }
+
+  function renderCuenta() {
+    var a = S.state.accounts.find(function (x) { return x.id === cuentaAbierta; });
+    if (!a) { sheets.cuenta.close(); return; }
+
+    var body = $("#sheetCuentaBody");
+    var curKey = S.currentMonthKey();
+    var propios = movimientosDe(a.id);
+
+    /* del mes en curso, y separando lo que entra de lo que sale */
+    var entra = 0, sale = 0;
+    propios.forEach(function (t) {
+      if (S.monthKey(t.date) !== curKey) return;
+      var e = efectoEnCuenta(t, a.id);
+      if (e >= 0) entra += e; else sale += -e;
+    });
+
+    var ultimos = propios.slice(0, 5);
+    var uso = S.accountUsage(a.id);
+
+    $("#sheetCuentaTitle").textContent = a.name;
+
+    body.innerHTML =
+      /* la misma tarjeta que en el Resumen, para que se vea que es ella */
+      '<div class="paycard paycard--suelta" style="--acc-color:' + S.catColorVar(a) + '">' +
+        '<div class="paycard__top">' +
+          '<span class="paycard__dots"><i></i><i></i><i></i><i></i>' + esc(a.name) + '</span>' +
+          '<span class="paycard__type">' + esc(a.type) + '</span>' +
+        '</div>' +
+        '<div>' +
+          '<p class="paycard__label">Saldo</p>' +
+          '<p class="paycard__value">' + bigAmount(S.accountBalance(a.id)) + '</p>' +
+        '</div>' +
+      '</div>' +
+
+      '<p class="field__label" style="margin-top:var(--sp-5)">En ' +
+        esc(monthName(curKey)) + '</p>' +
+      '<div class="kpi-row">' +
+        '<div class="stat stat--compact stat--quiet">' +
+          '<p class="stat__label">Ha entrado</p>' +
+          '<p class="stat__value" style="color:var(--money-in)">+ ' +
+            esc(S.moneyShort(entra)) + '</p>' +
+        '</div>' +
+        '<div class="stat stat--compact stat--quiet">' +
+          '<p class="stat__label">Ha salido</p>' +
+          '<p class="stat__value">− ' + esc(S.moneyShort(sale)) + '</p>' +
+        '</div>' +
+      '</div>' +
+
+      '<div class="field" style="margin-top:var(--sp-6)">' +
+        '<div class="card__head" style="margin-bottom:var(--sp-3)">' +
+          '<h3 class="card__title">Últimos movimientos</h3>' +
+          (propios.length > 5
+            ? '<button type="button" class="card__link" id="cuentaVerTodos">Ver todos</button>'
+            : "") +
+        '</div>' +
+        (ultimos.length
+          ? ultimos.map(txRowHtml).join("")
+          : emptyHtml("list", "Todavía nada",
+              "Los movimientos que apuntes en esta cuenta saldrán aquí.")) +
+      '</div>' +
+
+      '<div class="field" style="margin-top:var(--sp-6)">' +
+        '<button type="button" class="btn btn--primary" id="cuentaGasto" style="width:100%">' +
+          icon("plus", 17) + 'Apuntar aquí un movimiento</button>' +
+      '</div>' +
+      '<div class="field">' +
+        '<button type="button" class="btn btn--ghost" id="cuentaTraspaso" style="width:100%">' +
+          icon("swap", 17) + 'Hacer un traspaso</button>' +
+      '</div>' +
+      '<div class="field">' +
+        '<button type="button" class="btn btn--ghost" id="cuentaEditar" style="width:100%">' +
+          icon("edit", 16) + 'Editar la cuenta</button>' +
+      '</div>' +
+      '<p class="field__hint" style="text-align:center">' +
+        (uso.transactions === 1 ? "1 movimiento" : uso.transactions + " movimientos") +
+        (uso.recurring
+          ? " · " + (uso.recurring === 1 ? "1 programado" : uso.recurring + " programados")
+          : "") + '</p>';
+
+    mountIcons(body);
+  }
+
+  function openCuenta(id) {
+    cuentaAbierta = id;
+    renderCuenta();
+    sheets.cuenta.show();
+  }
+
+  /* ============================================================
      Confirmar un programado antes de apuntarlo
 
      Un sueldo casi nunca cae clavado. Quien marque «preguntarme el
@@ -3198,6 +3390,7 @@
     sheets.detail = new U.Sheet($("#sheetDetail"), $("#scrim"));
     sheets.form = new U.Sheet($("#sheetForm"), $("#scrim"));
     sheets.cobro = new U.Sheet($("#sheetCobro"), $("#scrim"));
+    sheets.cuenta = new U.Sheet($("#sheetCuenta"), $("#scrim"));
 
     /* Al formulario de categoría se llega a veces desde un movimiento a
        medio escribir. Salir de ahí de cualquier manera —la X, el botón
@@ -3206,10 +3399,24 @@
        en blanco. Guardar y borrar bajan la bandera antes de cerrar, así
        que esto solo salta cuando de verdad se ha abandonado. */
     sheets.form.onClose = function () {
-      if (!ui.catReturnToAdd) return;
-      ui.catReturnToAdd = false;
-      renderAddSheet();
-      sheets.add.show();
+      if (ui.catReturnToAdd) {
+        ui.catReturnToAdd = false;
+        renderAddSheet();
+        sheets.add.show();
+        return;
+      }
+
+      /* Lo mismo al editar una cuenta desde dentro de la cuenta: se
+         vuelve a ella con los cambios ya puestos. Si se acaba de
+         borrar, no hay a dónde volver. */
+      if (ui.cuentaReturn) {
+        var id = ui.cuentaReturn;
+        ui.cuentaReturn = null;
+        if (!S.state.accounts.some(function (a) { return a.id === id; })) return;
+        cuentaAbierta = id;
+        renderCuenta();
+        sheets.cuenta.show();
+      }
     };
 
     mountIcons(document);

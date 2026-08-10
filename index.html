@@ -155,6 +155,18 @@
     <div class="sheet__body" id="sheetFormBody"></div>
   </div>
 
+  <!-- una cuenta por dentro: saldo, su mes y sus últimos movimientos -->
+  <div class="sheet" id="sheetCuenta" data-open="false" role="dialog" aria-modal="true"
+       aria-labelledby="sheetCuentaTitle" aria-hidden="true">
+    <div class="sheet__grabber" aria-hidden="true"></div>
+    <div class="sheet__head">
+      <h2 class="sheet__title" id="sheetCuentaTitle">Cuenta</h2>
+      <button type="button" class="icon-btn" data-sheet-close aria-label="Cerrar"
+              data-icon="close" data-icon-size="16"></button>
+    </div>
+    <div class="sheet__body" id="sheetCuentaBody"></div>
+  </div>
+
   <!-- confirmar un programado que pidió que le preguntaran el importe -->
   <div class="sheet" id="sheetCobro" data-open="false" role="dialog" aria-modal="true"
        aria-labelledby="sheetCobroTitle" aria-hidden="true">
