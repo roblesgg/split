@@ -128,7 +128,14 @@
     { id: "ingreso",  name: "Ingreso",       emoji: "💰", color: 3,  kind: "in" },
     { id: "nomina",   name: "Sueldo",        emoji: "💼", color: 15, kind: "in" },
     { id: "extra",    name: "Extra",         emoji: "⏰", color: 6,  kind: "in" },
-    { id: "regalo",   name: "Regalo",        emoji: "🎁", color: 10, kind: "in" }
+    { id: "regalo",   name: "Regalo",        emoji: "🎁", color: 10, kind: "in" },
+
+    /* Las dos del corregir saldo. No son un gasto ni un ingreso de verdad:
+       son la diferencia entre lo que la app creía y lo que hay. Van en su
+       propia categoría para que se vea cuánto se escapa sin apuntar, en
+       vez de disfrazarse de «Otros». */
+    { id: "ajuste",   name: "Ajuste de saldo", emoji: "⚖️", color: 8, kind: "out", sistema: true },
+    { id: "ajusteIn", name: "Ajuste de saldo", emoji: "⚖️", color: 8, kind: "in",  sistema: true }
   ];
 
   /* Cuando una categoría se borra pero algo todavía la nombra. No debería
@@ -306,14 +313,16 @@
 
   function cloneCategories() {
     return DEFAULT_CATEGORIES.map(function (c) {
-      return { id: c.id, name: c.name, emoji: c.emoji, color: c.color, kind: c.kind };
+      var copia = { id: c.id, name: c.name, emoji: c.emoji, color: c.color, kind: c.kind };
+      if (c.sistema) copia.sistema = true;
+      return copia;
     });
   }
 
   function defaultState() {
     var today = ymd(new Date());
     return {
-      version: 8,
+      version: 9,
       createdAt: today,
       categories: cloneCategories(),
       tags: [],
@@ -354,7 +363,7 @@
   function freshState() {
     var today = ymd(new Date());
     return {
-      version: 8,
+      version: 9,
       createdAt: today,
       categories: cloneCategories(),
       tags: [],
@@ -508,6 +517,26 @@
         if (r.confirmar == null) r.confirmar = false;
       });
       s.version = 8;
+    }
+
+    if (s.version < 9) {
+      /* v9 trae el corregir saldo, con sus dos categorías. Se añaden solo
+         si no existen ya: alguien pudo crearse una con ese id a mano. */
+      if (!Array.isArray(s.categories)) s.categories = cloneCategories();
+      var yaHay = {};
+      s.categories.forEach(function (c) { yaHay[c.id] = true; });
+      DEFAULT_CATEGORIES.forEach(function (d) {
+        if (d.id !== "ajuste" && d.id !== "ajusteIn") return;
+        if (yaHay[d.id]) return;
+        s.categories.push({ id: d.id, name: d.name, emoji: d.emoji,
+                            color: d.color, kind: d.kind, sistema: true });
+      });
+
+      /* Fuera del reparto a propósito: un ajuste no se presupuesta, y una
+         instalación nueva tampoco le pone entrada. */
+      if (s.allocation) delete s.allocation.ajuste;
+
+      s.version = 9;
     }
 
     invalidateCats();
@@ -801,6 +830,13 @@
   function deleteCategory(id) {
     var c = state.categories.find(function (x) { return x.id === id; });
     if (!c) return { ok: false, reason: "Esa categoría ya no existe." };
+
+    if (c.sistema) {
+      return {
+        ok: false,
+        reason: "Esta la usa la app al corregir un saldo, así que no se puede borrar."
+      };
+    }
 
     var quedan = state.categories.filter(function (x) {
       return x.kind === c.kind && x.id !== id;
@@ -1173,6 +1209,40 @@
     };
   }
 
+  /* ---------- corregir el saldo ----------
+     A todos se nos escapa algún gasto: pagas un café en efectivo, no lo
+     apuntas, y al cabo del mes la app dice una cifra y el banco otra. En
+     vez de ponerse a buscar qué falta, se dice cuánto hay de verdad y la
+     app apunta la diferencia como un movimiento más, con su fecha y su
+     categoría. Así el saldo cuadra y queda constancia de cuánto se ha
+     escapado, que es un dato que interesa. */
+
+  function corregirSaldo(accId, saldoReal) {
+    var acc = state.accounts.find(function (a) { return a.id === accId; });
+    if (!acc) return null;
+
+    var real = Math.round((+saldoReal || 0) * 100) / 100;
+    var actual = accountBalance(accId);
+    var dif = Math.round((real - actual) * 100) / 100;
+
+    /* ya cuadraba: no se apunta un movimiento de cero euros */
+    if (Math.abs(dif) < 0.005) return { dif: 0, tx: null };
+
+    var entra = dif > 0;
+    var tx = addTx({
+      date: ymd(new Date()),
+      time: "",
+      kind: entra ? "in" : "out",
+      amount: Math.abs(dif),
+      categoryId: entra ? "ajusteIn" : "ajuste",
+      accountId: accId,
+      note: "Ajuste de saldo",
+      memo: "Corrección para cuadrar con " + eur.format(real) + " en " + acc.name + "."
+    });
+
+    return { dif: dif, tx: tx };
+  }
+
   /* ---------- ingresos y reparto ---------- */
 
   /* Media de lo que ha entrado de verdad en los últimos meses cerrados.
@@ -1543,6 +1613,8 @@
     descartarPendiente: descartarPendiente,
 
     /* ingresos y reparto */
+    corregirSaldo: corregirSaldo,
+
     plannedIncome: plannedIncome, setIncome: setIncome,
     averageIncome: averageIncome, declaredIncome: declaredIncome,
     allocationSum: allocationSum, savingsPct: savingsPct,

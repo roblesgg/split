@@ -1161,7 +1161,12 @@
     var accs = S.state.accounts;
     var d;
 
-    if (type === "category") {
+    if (type === "saldo") {
+      /* No se edita nada de la cuenta: solo se dice cuánto hay de verdad
+         y la app apunta la diferencia. */
+      var cuenta = S.state.accounts.find(function (x) { return x.id === id; });
+      d = { accountId: id, real: cuenta ? S.accountBalance(id) : 0 };
+    } else if (type === "category") {
       d = it ? { name: it.name, emoji: it.emoji, color: it.color, kind: it.kind }
              : { name: "", emoji: "🏷️", color: 1,
                  kind: (opts && opts.kind === "in") ? "in" : "out" };
@@ -1195,6 +1200,7 @@
       account: id ? "Editar cuenta" : "Nueva cuenta",
       goal: id ? "Editar meta" : "Nueva meta",
       recurring: id ? "Editar programado" : "Nuevo programado",
+      saldo: "Corregir el saldo",
       category: id ? "Editar categoría" : "Nueva categoría"
     }[type] || "Editar";
 
@@ -1203,6 +1209,7 @@
   }
 
   function findFor(type, id) {
+    if (type === "saldo") return null;   /* no edita una ficha, ajusta una cifra */
     if (type === "category") return S.state.categories.find(function (x) { return x.id === id; });
     if (type === "account") return S.state.accounts.find(function (x) { return x.id === id; });
     if (type === "goal") return S.state.goals.find(function (x) { return x.id === id; });
@@ -1392,6 +1399,45 @@
         '</div>';
     }
 
+    if (t === "saldo") {
+      var cuentaS = S.state.accounts.find(function (x) { return x.id === d.accountId; });
+      var actual = cuentaS ? S.accountBalance(d.accountId) : 0;
+      var puesto = parseFloat(d.real);
+      var dif = isFinite(puesto) ? Math.round((puesto - actual) * 100) / 100 : 0;
+
+      html =
+        '<div style="text-align:center;padding:var(--sp-2) 0 var(--sp-5)">' +
+          '<p class="card__title">' + esc(cuentaS ? cuentaS.name : "") + '</p>' +
+          '<p class="card__sub" style="margin-top:2px">La app dice que tienes ' +
+            esc(money(actual)) + '</p>' +
+        '</div>' +
+
+        '<div class="field">' +
+          '<label class="field__label" for="fReal">¿Cuánto tienes de verdad?</label>' +
+          '<div class="input-affix">' +
+            '<input type="number" class="field__input field__input--big" id="fReal" ' +
+                   'data-f="Real" step="0.01" inputmode="decimal" value="' +
+                   esc(d.real) + '">' +
+            '<span class="input-affix__suffix">€</span>' +
+          '</div>' +
+        '</div>' +
+
+        /* Lo que se va a apuntar, dicho antes de tocar nada. Que nadie se
+           encuentre un movimiento que no esperaba. */
+        '<div class="ajuste" id="fAjuste" data-dif="' +
+              (dif > 0 ? "in" : dif < 0 ? "out" : "cero") + '">' +
+          (Math.abs(dif) < 0.005
+            ? '<span class="ajuste__txt">Ya cuadra: no hay nada que apuntar.</span>'
+            : '<span class="ajuste__txt">Se apuntará ' +
+                (dif > 0 ? "un ingreso" : "un gasto") + ' de</span>' +
+              '<span class="ajuste__eur">' + esc(money(Math.abs(dif))) + '</span>') +
+        '</div>' +
+
+        '<p class="field__hint">Queda como un movimiento normal, con la fecha de ' +
+          'hoy y la categoría «Ajuste de saldo». Se puede borrar o editar después ' +
+          'como cualquier otro.</p>';
+    }
+
     if (t === "recurring") {
       var cats = S.CATEGORIES.filter(function (c) {
         return c.kind === (d.kind === "in" ? "in" : "out");
@@ -1525,9 +1571,10 @@
       '<div class="field" style="margin-top:var(--sp-6)">' +
         '<button type="button" class="btn btn--primary" id="fSave"' +
           (bloqueado ? " disabled" : "") + '>' +
-          icon("check", 17) + (form.id ? "Guardar cambios" : "Crear") + '</button>' +
+          icon("check", 17) +
+          (t === "saldo" ? "Corregir" : form.id ? "Guardar cambios" : "Crear") + '</button>' +
       '</div>' +
-      (form.id
+      (form.id && t !== "saldo"
         ? '<div class="field">' +
             '<button type="button" class="btn btn--danger" id="fDelete" style="width:100%">' +
               icon("trash", 16) + 'Eliminar</button>' +
@@ -1561,6 +1608,21 @@
     if (nameEl) nameEl.textContent = String(form.d.name || "").trim() || "Sin nombre";
   }
 
+  function refreshAjuste() {
+    var caja = $("#fAjuste");
+    if (!caja) return;
+    var actual = S.accountBalance(form.d.accountId);
+    var puesto = parseFloat(form.d.real);
+    var dif = isFinite(puesto) ? Math.round((puesto - actual) * 100) / 100 : 0;
+
+    caja.setAttribute("data-dif", dif > 0 ? "in" : dif < 0 ? "out" : "cero");
+    caja.innerHTML = Math.abs(dif) < 0.005
+      ? '<span class="ajuste__txt">Ya cuadra: no hay nada que apuntar.</span>'
+      : '<span class="ajuste__txt">Se apuntará ' +
+          (dif > 0 ? "un ingreso" : "un gasto") + ' de</span>' +
+        '<span class="ajuste__eur">' + esc(money(Math.abs(dif))) + '</span>';
+  }
+
   /* vista previa de la tarjeta en el formulario de cuenta */
   function refreshCardPreview() {
     var box = $("#fCardPreview");
@@ -1590,6 +1652,19 @@
         sheets.add.show();
         return;
       }
+    }
+
+    if (t === "saldo") {
+      var puestoS = parseFloat(d.real);
+      if (!isFinite(puestoS)) {
+        U.toast("Pon cuánto tienes de verdad", { icon: "warning" }); return;
+      }
+      var res = S.corregirSaldo(d.accountId, puestoS);
+      if (!res) { U.toast("Esa cuenta ya no existe", { icon: "warning" }); return; }
+      U.toast(res.dif === 0
+        ? "Ya cuadraba: no se ha apuntado nada"
+        : "Saldo corregido, " + (res.dif > 0 ? "+" : "−") + money(Math.abs(res.dif)),
+        { icon: "check" });
     }
 
     if (t === "account") {
@@ -1695,7 +1770,11 @@
     var sum = S.allocationSum();
     var savings = S.savingsPct();
     var theme = S.getTheme();
-    var cats = S.CATEGORIES.filter(function (c) { return c.kind === "out"; });
+    /* Las del sistema («Ajuste de saldo») quedan fuera del reparto: no se
+       presupuesta lo que por definición no habías previsto. */
+    var cats = S.CATEGORIES.filter(function (c) {
+      return c.kind === "out" && !c.sistema;
+    });
 
     var media = S.averageIncome(inc.months);
     var modo = inc.mode === "manual" ? "manual"
@@ -2727,6 +2806,12 @@
         setTimeout(function () { openAdd("transfer", null, { accountId: id }); }, 220);
         return;
       }
+      if (e.target.closest("#cuentaCorregir")) {
+        ui.cuentaReturn = id;
+        sheets.cuenta.close();
+        setTimeout(function () { openForm("saldo", id); }, 220);
+        return;
+      }
       if (e.target.closest("#cuentaEditar")) {
         ui.cuentaReturn = id;
         sheets.cuenta.close();
@@ -2784,6 +2869,7 @@
       Saved: function (v) { form.d.saved = v; },
       Monthly: function (v) { form.d.monthly = v; },
       Amount: function (v) { form.d.amount = v; },
+      Real: function (v) { form.d.real = v; },
       Day: function (v) { form.d.day = v; },
       Cat: function (v) { form.d.categoryId = v; }
     };
@@ -2800,6 +2886,9 @@
       if (!readField(e.target)) return;
       if (form.type === "category") refreshCatPreview();
       if (form.type === "account") refreshCardPreview();
+      /* el aviso de «se apuntará X» se recalcula mientras se teclea, sin
+         repintar: repintar dejaría el campo sin foco a media cifra */
+      if (form.type === "saldo") refreshAjuste();
     });
 
     formBody.addEventListener("change", function (e) {
@@ -3252,9 +3341,13 @@
         '<button type="button" class="btn btn--ghost" id="cuentaTraspaso" style="width:100%">' +
           icon("swap", 17) + 'Hacer un traspaso</button>' +
       '</div>' +
-      '<div class="field">' +
-        '<button type="button" class="btn btn--ghost" id="cuentaEditar" style="width:100%">' +
-          icon("edit", 16) + 'Editar la cuenta</button>' +
+      '<div class="field" style="display:flex;gap:var(--sp-3)">' +
+        /* sin icono: con él «Corregir saldo» se parte en dos líneas y la
+           pareja de botones queda descuadrada */
+        '<button type="button" class="btn btn--ghost" id="cuentaCorregir" style="flex:1">' +
+          'Corregir saldo</button>' +
+        '<button type="button" class="btn btn--ghost" id="cuentaEditar" style="flex:1">' +
+          icon("edit", 16) + 'Editar</button>' +
       '</div>' +
       '<p class="field__hint" style="text-align:center">' +
         (uso.transactions === 1 ? "1 movimiento" : uso.transactions + " movimientos") +

@@ -822,6 +822,33 @@
   font-size: 12px;
 }
 
+/* ---------- aviso de lo que va a apuntar el ajuste ---------- */
+
+.ajuste {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-top: var(--sp-4);
+  padding: var(--sp-4);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  box-shadow: var(--nm-in);
+}
+
+.ajuste__txt { font-size: 13px; color: var(--text-secondary); }
+
+.ajuste__eur {
+  font-size: 17px;
+  font-weight: var(--w-bold);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ajuste[data-dif="in"]  .ajuste__eur { color: var(--money-in); }
+.ajuste[data-dif="out"] .ajuste__eur { color: var(--money-out); }
+.ajuste[data-dif="cero"] { justify-content: center; }
+
 /* ---------- lista breve de dos columnas ---------- */
 
 .mini-list { display: grid; gap: var(--sp-2); margin-top: var(--sp-4); }
