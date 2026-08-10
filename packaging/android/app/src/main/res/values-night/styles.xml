@@ -10,6 +10,11 @@
         <item name="android:navigationBarColor">@color/splitPage</item>
         <item name="android:windowLightStatusBar">false</item>
         <item name="android:windowLightNavigationBar">false</item>
+
+        <!-- Sin agarraderas de selección: ver handle_invisible.xml -->
+        <item name="android:textSelectHandle">@drawable/handle_invisible</item>
+        <item name="android:textSelectHandleLeft">@drawable/handle_invisible</item>
+        <item name="android:textSelectHandleRight">@drawable/handle_invisible</item>
     </style>
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">

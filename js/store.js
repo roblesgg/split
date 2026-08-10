@@ -322,7 +322,7 @@
   function defaultState() {
     var today = ymd(new Date());
     return {
-      version: 9,
+      version: 10,
       createdAt: today,
       categories: cloneCategories(),
       tags: [],
@@ -363,7 +363,7 @@
   function freshState() {
     var today = ymd(new Date());
     return {
-      version: 9,
+      version: 10,
       createdAt: today,
       categories: cloneCategories(),
       tags: [],
@@ -541,6 +541,24 @@
       if (s.allocation) delete s.allocation.ajuste;
 
       s.version = 9;
+    }
+
+    if (s.version < 10) {
+      /* v10: un programado puede tener varios días de la semana, hora de
+         aviso, importe abierto y tarifa por hora. Lo que ya existe se
+         queda exactamente igual: un solo día, sin avisos y con su
+         importe fijo. */
+      (s.recurring || []).forEach(function (r) {
+        if (!Array.isArray(r.weekdays)) {
+          r.weekdays = [Math.min(6, Math.max(0, parseInt(r.weekday, 10) || 0))];
+        }
+        delete r.weekday;
+        if (r.hora == null) r.hora = "09:00";
+        if (r.avisar == null) r.avisar = false;
+        if (r.importeAbierto == null) r.importeAbierto = false;
+        if (r.tarifa === undefined) r.tarifa = null;
+      });
+      s.version = 10;
     }
 
     invalidateCats();
@@ -962,11 +980,24 @@
       note: (data.note || "").trim() || "Programado",
       day: Math.min(28, Math.max(1, parseInt(data.day, 10) || 1)),
       freq: data.freq === "semanal" ? "semanal" : "mensual",
-      /* lunes = 0, igual que dowMon */
-      weekday: Math.min(6, Math.max(0, parseInt(data.weekday, 10) || 0)),
+      /* lunes = 0, igual que dowMon. Varios, que hay trabajos de martes
+         y jueves. */
+      weekdays: normalizarDias(data.weekdays, parseInt(data.weekday, 10) || 0),
       /* 14 pagas solo tiene sentido en un ingreso mensual */
       pagas: (data.kind === "in" && +data.pagas === 14) ? 14 : 12,
       confirmar: !!data.confirmar,
+
+      /* Sin importe fijo: el sueldo depende de las horas, así que no se
+         apunta nada solo, se pregunta. */
+      importeAbierto: !!data.importeAbierto,
+      /* Si además se cobra por horas, se pregunta cuántas y multiplica. */
+      tarifa: data.tarifa != null && +data.tarifa > 0
+        ? Math.round((+data.tarifa) * 100) / 100 : null,
+
+      /* Recordatorio: a qué hora avisar el día que toca. */
+      hora: normalizeTime(data.hora) || "09:00",
+      avisar: !!data.avisar,
+
       active: data.active !== false,
       /* Mensual arranca en el mes anterior, para que el de este mes se
          apunte en cuanto llegue su día. Semanal arranca hoy, para que la
@@ -1003,11 +1034,19 @@
         r.lastPosted = currentMonthKey();
       }
     }
-    if (patch.weekday != null) {
-      r.weekday = Math.min(6, Math.max(0, parseInt(patch.weekday, 10) || 0));
+    if (patch.weekdays != null) {
+      r.weekdays = normalizarDias(patch.weekdays, diasDe(r)[0]);
+      delete r.weekday;
     }
     if (patch.pagas != null) r.pagas = (r.kind === "in" && +patch.pagas === 14) ? 14 : 12;
     if (patch.confirmar != null) r.confirmar = !!patch.confirmar;
+    if (patch.importeAbierto != null) r.importeAbierto = !!patch.importeAbierto;
+    if (patch.tarifa !== undefined) {
+      r.tarifa = patch.tarifa != null && +patch.tarifa > 0
+        ? Math.round((+patch.tarifa) * 100) / 100 : null;
+    }
+    if (patch.hora != null) r.hora = normalizeTime(patch.hora) || r.hora || "09:00";
+    if (patch.avisar != null) r.avisar = !!patch.avisar;
     if (patch.active != null) r.active = !!patch.active;
     save();
     return r;
@@ -1041,6 +1080,33 @@
 
   function esSemanal(r) { return r.freq === "semanal"; }
 
+  /* Los días de la semana en los que toca. Antes era uno solo; ahora son
+     varios, porque hay trabajos de martes y jueves. Se acepta lo viejo
+     para no romper lo que ya estaba guardado. */
+  function diasDe(r) {
+    if (Array.isArray(r.weekdays) && r.weekdays.length) {
+      return r.weekdays.slice().sort(function (a, b) { return a - b; });
+    }
+    return [Math.min(6, Math.max(0, parseInt(r.weekday, 10) || 0))];
+  }
+
+  function normalizarDias(lista, respaldo) {
+    var vistos = {}, out = [];
+    (Array.isArray(lista) ? lista : []).forEach(function (d) {
+      var n = parseInt(d, 10);
+      if (!isFinite(n) || n < 0 || n > 6 || vistos[n]) return;
+      vistos[n] = true;
+      out.push(n);
+    });
+    if (!out.length) out = [respaldo == null ? 0 : respaldo];
+    return out.sort(function (a, b) { return a - b; });
+  }
+
+  /* Un programado «de importe abierto» no apunta nada por su cuenta: solo
+     avisa de que toca y pregunta cuánto ha sido. Es lo que hace falta
+     cuando el sueldo depende de las horas que se acaben echando. */
+  function esAbierto(r) { return !!r.importeAbierto; }
+
   /* Fechas pendientes desde la última apuntada hasta hoy, sin incluir
      futuras. Devuelve [{ fecha: Date, extra: bool }]. */
   function vencimientos(r, hasta) {
@@ -1048,13 +1114,15 @@
     var guard = 0;
 
     if (esSemanal(r)) {
+      var dias = diasDe(r);
       var desde = r.lastDate ? parseYmd(r.lastDate) : new Date();
       var d = new Date(desde.getFullYear(), desde.getMonth(), desde.getDate());
-      /* al primer día de la semana elegido que caiga después */
-      do { d.setDate(d.getDate() + 1); } while (dowMon(d) !== (r.weekday || 0));
+      /* día a día desde el siguiente al último apuntado: con varios días
+         elegidos ya no vale saltar de siete en siete */
+      d.setDate(d.getDate() + 1);
       while (d <= hasta && guard++ < 400) {
-        out.push({ fecha: new Date(d), extra: false });
-        d.setDate(d.getDate() + 7);
+        if (dias.indexOf(dowMon(d)) >= 0) out.push({ fecha: new Date(d), extra: false });
+        d.setDate(d.getDate() + 1);
       }
       return out;
     }
@@ -1083,10 +1151,14 @@
 
   function movimientoDe(r, fecha, extra) {
     return {
+      /* La tarifa viaja con el movimiento pendiente para que al
+         confirmarlo se puedan pedir horas en vez de euros aunque
+         entretanto se haya cambiado el programado. */
+      tarifa: r.tarifa || null,
       id: nextId(),
       createdAt: Date.now(),
       date: ymd(fecha),
-      time: "",
+      time: r.hora || "",
       kind: r.kind,
       categoryId: r.categoryId,
       accountId: r.accountId,
@@ -1115,7 +1187,9 @@
       if (!r.active) return;
       vencimientos(r, hoy).forEach(function (v) {
         var mov = movimientoDe(r, v.fecha, v.extra);
-        if (r.confirmar) {
+        /* Sin importe fijo no hay nada que apuntar todavía: se pregunta
+           siempre, aunque no se haya marcado «preguntarme el importe». */
+        if (r.confirmar || esAbierto(r)) {
           state.pendientes.push(mov);
           encolados++;
         } else {
@@ -1162,9 +1236,10 @@
     hoy.setHours(0, 0, 0, 0);
 
     if (esSemanal(r)) {
+      var dias = diasDe(r);
       var d = new Date(hoy);
       var guard = 0;
-      while (dowMon(d) !== (r.weekday || 0) && guard++ < 8) d.setDate(d.getDate() + 1);
+      while (dias.indexOf(dowMon(d)) < 0 && guard++ < 8) d.setDate(d.getDate() + 1);
       return d;
     }
 
@@ -1191,9 +1266,27 @@
      junio no parezca de golpe un sueldazo y los demás una miseria. */
   function mensualizar(r) {
     var base = +r.amount || 0;
+
+    /* Sin importe fijo, `amount` es solo una estimación que el usuario
+       puede haber dejado a cero. Entonces se mira lo que de verdad se ha
+       cobrado por ese programado en los últimos meses: es la única cifra
+       honesta que hay. */
+    if (esAbierto(r) && base <= 0) base = mediaCobradaDe(r.id);
+
     if (esSemanal(r)) return base * 52 / 12;
     if (r.kind === "in" && +r.pagas === 14) return base * 14 / 12;
     return base;
+  }
+
+  /* Media por vencimiento de lo realmente apuntado desde un programado.
+     Con menos de dos apuntes no se inventa nada: se devuelve 0. */
+  function mediaCobradaDe(recId) {
+    var suyos = state.transactions.filter(function (t) {
+      return t.fromRecurring === recId;
+    });
+    if (suyos.length < 2) return 0;
+    var suma = suyos.reduce(function (a, t) { return a + t.amount; }, 0);
+    return Math.round((suma / suyos.length) * 100) / 100;
   }
 
   /* cuánto compromete al mes lo que está programado */
@@ -1644,7 +1737,8 @@
     deleteRecurring: deleteRecurring, toggleRecurring: toggleRecurring,
     runRecurring: runRecurring, nextDue: nextDue,
     upcomingRecurring: upcomingRecurring, recurringMonthly: recurringMonthly,
-    mensualizar: mensualizar,
+    mensualizar: mensualizar, diasDe: diasDe, esAbierto: esAbierto,
+    mediaCobradaDe: mediaCobradaDe,
 
     /* cola de confirmación */
     pendientes: pendientes,

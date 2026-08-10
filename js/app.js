@@ -1196,13 +1196,23 @@
       d = it
         ? { kind: it.kind, note: it.note, amount: it.amount, day: it.day,
             freq: it.freq === "semanal" ? "semanal" : "mensual",
-            weekday: it.weekday == null ? 0 : it.weekday,
+            weekdays: S.diasDe(it),
             pagas: +it.pagas === 14 ? 14 : 12,
             confirmar: !!it.confirmar,
+            importeAbierto: !!it.importeAbierto,
+            /* El modo se guarda tal cual y no se deduce de la tarifa: al
+               elegir «Por horas» la tarifa todavía está vacía, y deducirlo
+               dejaba el formulario en el modo anterior. */
+            modo: it.tarifa > 0 ? "hora" : it.importeAbierto ? "varia" : "fijo",
+            tarifa: it.tarifa == null ? "" : it.tarifa,
+            hora: it.hora || "09:00",
+            avisar: !!it.avisar,
             categoryId: it.categoryId, accountId: it.accountId,
             toAccountId: it.toAccountId || (accs[1] || accs[0]).id }
         : { kind: "out", note: "", amount: "", day: 1,
-            freq: "mensual", weekday: 0, pagas: 12, confirmar: false,
+            freq: "mensual", weekdays: [0], pagas: 12, confirmar: false,
+            importeAbierto: false, modo: "fijo", tarifa: "",
+            hora: "09:00", avisar: false,
             categoryId: "hogar",
             accountId: accs[0].id, toAccountId: (accs[1] || accs[0]).id };
     }
@@ -1244,11 +1254,22 @@
   var DIAS_LARGO = ["Lunes", "Martes", "Miércoles", "Jueves",
                     "Viernes", "Sábado", "Domingo"];
 
+  /* «Cada lunes», «Lunes y jueves», «Lunes, miércoles y viernes». Con los
+     siete puestos no se enumeran: se dice que es todos los días. */
+  function listaDias(dias) {
+    if (dias.length === 7) return "Todos los días";
+    var nombres = dias.map(function (i) { return DIAS_LARGO[i].toLowerCase(); });
+    if (nombres.length === 1) {
+      return "Cada " + nombres[0];
+    }
+    var ultimo = nombres.pop();
+    var txt = nombres.join(", ") + " y " + ultimo;
+    return txt.charAt(0).toUpperCase() + txt.slice(1);
+  }
+
   /* Cómo se lee el ritmo de un programado en una línea. */
   function ritmoDe(r) {
-    if (r.freq === "semanal") {
-      return "Cada " + DIAS_LARGO[r.weekday || 0].toLowerCase();
-    }
+    if (r.freq === "semanal") return listaDias(S.diasDe(r));
     if (r.kind === "in" && +r.pagas === 14) return "14 pagas, día " + r.day;
     return "Cada día " + r.day;
   }
@@ -1457,6 +1478,7 @@
       });
       var mismaCuenta = d.kind === "transfer" && d.accountId === d.toAccountId;
       var esSem = d.freq === "semanal";
+      var modoImporte = d.kind === "in" ? (d.modo || "fijo") : "fijo";
 
       html =
         '<div class="segmented" id="fSeg" role="tablist">' +
@@ -1477,9 +1499,42 @@
                  'value="' + esc(d.note) + '">' +
         '</div>' +
 
-        '<div class="field" style="margin-top:var(--sp-5)">' +
-          numField("fAmount", "Importe", d.amount, 5) +
-        '</div>' +
+        /* Un trabajo por horas no tiene un importe: tiene una tarifa. Y
+           hay quien ni eso sabe hasta que cobra. Tres formas de decirlo,
+           y solo se enseña el campo de la que se elija. */
+        (d.kind === "in"
+          ? '<div class="field" style="margin-top:var(--sp-5)">' +
+              '<span class="field__label">Cuánto cobras</span>' +
+              '<div class="segmented" id="fModoSeg" role="tablist">' +
+                '<span class="segmented__thumb" id="fModoThumb" aria-hidden="true"></span>' +
+                '<button type="button" class="segmented__btn" role="tab" data-fmodo="fijo" ' +
+                        'aria-selected="' + (modoImporte === "fijo") + '">Siempre igual</button>' +
+                '<button type="button" class="segmented__btn" role="tab" data-fmodo="hora" ' +
+                        'aria-selected="' + (modoImporte === "hora") + '">Por horas</button>' +
+                '<button type="button" class="segmented__btn" role="tab" data-fmodo="varia" ' +
+                        'aria-selected="' + (modoImporte === "varia") + '">Varía</button>' +
+              '</div>' +
+            '</div>'
+          : "") +
+
+        (modoImporte === "hora"
+          ? '<div class="field" style="margin-top:var(--sp-5)">' +
+              numField("fTarifa", "Lo que cobras por hora", d.tarifa, 0.5) +
+              '<p class="field__hint">Cada vez que toque, la app te pregunta ' +
+                'cuántas horas has echado y hace la cuenta.</p>' +
+            '</div>'
+
+          : modoImporte === "varia"
+            ? '<div class="field" style="margin-top:var(--sp-5)">' +
+                numField("fAmount", "Más o menos (opcional)", d.amount, 5) +
+                '<p class="field__hint">Solo para hacerse una idea del mes. ' +
+                  'Cada vez que toque se te preguntará la cifra de verdad, y ' +
+                  'puedes dejar esto vacío.</p>' +
+              '</div>'
+
+            : '<div class="field" style="margin-top:var(--sp-5)">' +
+                numField("fAmount", "Importe", d.amount, 5) +
+              '</div>') +
 
         /* Con qué ritmo se repite. Dos opciones y ya: nadie quiere una
            pantalla de reglas de calendario para apuntar el alquiler. */
@@ -1499,14 +1554,15 @@
         (esSem
           ? '<div class="field" style="margin-top:var(--sp-5)">' +
               '<span class="field__label">Qué día</span>' +
-              '<div class="chips chips--dias" role="group" aria-label="Día de la semana">' +
+              '<div class="chips chips--dias" role="group" aria-label="Días de la semana">' +
                 DIAS_LARGO.map(function (nombre, i) {
                   return '<button type="button" class="chip chip--dia" data-fweekday="' + i + '" ' +
-                         'aria-pressed="' + (d.weekday === i) + '" ' +
+                         'aria-pressed="' + (d.weekdays.indexOf(i) >= 0) + '" ' +
                          'aria-label="' + esc(nombre) + '">' +
                          esc(S.DOW_SHORT[i]) + '</button>';
                 }).join("") +
               '</div>' +
+              '<p class="field__hint">Puedes marcar varios.</p>' +
             '</div>'
           : '<div class="field" style="margin-top:var(--sp-5)">' +
               '<label class="field__label" for="fDay">Día del mes</label>' +
@@ -1532,11 +1588,32 @@
         /* El sueldo casi nunca cae clavado: horas de más, un mes con
            menos días trabajados... Con esto la app pregunta en vez de
            apuntar una cifra que luego hay que corregir a mano. */
-        switchRow("fConfirmar", "Preguntarme el importe",
-          d.kind === "in"
-            ? "Antes de apuntarlo te enseña la cifra por si cobras algo más o menos"
-            : "Antes de apuntarlo te deja ajustar la cifra",
-          d.confirmar) +
+        /* Con «Por horas» o «Varía» ya se pregunta siempre: ofrecer el
+           interruptor sería ofrecer algo que no se puede apagar. */
+        (modoImporte === "fijo"
+          ? switchRow("fConfirmar", "Preguntarme el importe",
+              d.kind === "in"
+                ? "Antes de apuntarlo te enseña la cifra por si cobras algo más o menos"
+                : "Antes de apuntarlo te deja ajustar la cifra",
+              d.confirmar)
+          : '<p class="field__hint" style="margin-top:var(--sp-4)">' +
+              icon("check", 12) + ' Se te preguntará cada vez, que para eso ' +
+              'no hay una cifra fija.</p>') +
+
+        /* A qué hora avisa. Un aviso a las nueve de la mañana de algo que
+           se cobra al salir del turno no sirve de nada. */
+        '<div class="field__row" style="margin-top:var(--sp-5)">' +
+          '<div>' +
+            '<label class="field__label" for="fHora">A qué hora</label>' +
+            '<input type="time" class="field__input" id="fHora" data-f="Hora" ' +
+                   'value="' + esc(d.hora || "09:00") + '">' +
+          '</div>' +
+          '<div></div>' +
+        '</div>' +
+
+        switchRow("fAvisar", "Avisarme en el móvil",
+          "Una notificación el día que toque, a esa hora",
+          d.avisar) +
 
         (d.kind === "transfer"
           ? '<div class="field__row" style="margin-top:var(--sp-5)">' +
@@ -1570,10 +1647,10 @@
           (mismaCuenta
             ? icon("warning", 12) + " Elige dos cuentas distintas."
             : esSem
-              ? "Se apunta solo cada " + DIAS_LARGO[d.weekday || 0].toLowerCase() + "."
+              ? listaDias(d.weekdays) + "."
               : (d.kind === "in" && +d.pagas === 14
-                  ? "Se apunta solo cada mes, con paga extra en junio y en diciembre. Máximo día 28."
-                  : "Se apunta solo cada mes. Máximo día 28.")) +
+                  ? "Cada mes, con paga extra en junio y en diciembre. Máximo día 28."
+                  : "Cada mes. Máximo día 28.")) +
         '</p>';
     }
 
@@ -1603,6 +1680,10 @@
       var segF = $("#fFreqSeg", body);
       if (segF) U.slideIndicator(segF, $("#fFreqThumb", body),
         $('[data-ffreq="' + (d.freq === "semanal" ? "semanal" : "mensual") + '"]', segF));
+
+      var segM = $("#fModoSeg", body);
+      if (segM) U.slideIndicator(segM, $("#fModoThumb", body),
+        $('[data-fmodo="' + modoImporte + '"]', segM));
 
       var segP = $("#fPagasSeg", body);
       if (segP) U.slideIndicator(segP, $("#fPagasThumb", body),
@@ -1703,13 +1784,26 @@
       if (!String(d.note).trim()) {
         U.toast("Ponle un concepto", { icon: "warning" }); return;
       }
-      if (!(parseFloat(d.amount) > 0)) {
+      var modoG = d.kind === "in" ? (d.modo || "fijo") : "fijo";
+      if (modoG === "hora") {
+        if (!(parseFloat(d.tarifa) > 0)) {
+          U.toast("Pon lo que cobras por hora", { icon: "warning" }); return;
+        }
+      } else if (modoG === "varia") {
+        /* el importe es opcional: se preguntará cada vez */
+      } else if (!(parseFloat(d.amount) > 0)) {
         U.toast("El importe tiene que ser mayor que cero", { icon: "warning" }); return;
       }
       var data = {
         kind: d.kind, note: d.note, amount: d.amount, day: d.day,
         freq: d.freq === "semanal" ? "semanal" : "mensual",
-        weekday: d.weekday || 0,
+        weekdays: d.weekdays,
+        /* Un gasto no tiene modos: siempre lleva su importe. */
+        importeAbierto: d.kind === "in" && d.modo !== "fijo",
+        tarifa: (d.kind === "in" && d.modo === "hora" && parseFloat(d.tarifa) > 0)
+          ? parseFloat(d.tarifa) : null,
+        hora: d.hora,
+        avisar: !!d.avisar,
         /* las catorce pagas solo existen en un cobro mensual */
         pagas: (d.kind === "in" && d.freq !== "semanal" && +d.pagas === 14) ? 14 : 12,
         confirmar: !!d.confirmar,
@@ -1723,6 +1817,7 @@
 
     sheets.form.close();
     S.runRecurring();
+    sincronizarAvisos();
     renderAll();
 
     /* Si el programado que se acaba de guardar ya tocaba y pide que le
@@ -1765,6 +1860,7 @@
     if (t === "recurring") {
       if (!confirm("¿Eliminar este programado? Los movimientos ya apuntados se quedan.")) return;
       S.deleteRecurring(id);
+      sincronizarAvisos();
       U.toast("Programado eliminado", { icon: "check" });
     }
 
@@ -2924,6 +3020,7 @@
       if ((node = e.target.closest("[data-rec-toggle]"))) {
         var r = S.toggleRecurring(node.getAttribute("data-rec-toggle"));
         S.runRecurring();
+        sincronizarAvisos();
         renderAll(); U.haptic("light");
         U.toast(r && r.active ? "Programado reanudado" : "Programado en pausa",
                 { icon: r && r.active ? "play" : "pause" });
@@ -3063,8 +3160,21 @@
       if (!p) { sheets.cobro.close(); return; }
 
       if (e.target.closest("#cobroOk")) {
-        var campo = $("#cobroAmount", cobroBody);
-        var importe = campo ? parseFloat(campo.value) : NaN;
+        var importe;
+        var horas = $("#cobroHoras", cobroBody);
+
+        if (horas) {
+          var h = parseFloat(horas.value);
+          if (!(h > 0)) {
+            U.toast("Pon cuántas horas has echado", { icon: "warning" });
+            return;
+          }
+          importe = Math.round(h * (+p.tarifa) * 100) / 100;
+        } else {
+          var campo = $("#cobroAmount", cobroBody);
+          importe = campo ? parseFloat(campo.value) : NaN;
+        }
+
         if (!(importe > 0)) {
           U.toast("El importe tiene que ser mayor que cero", { icon: "warning" });
           return;
@@ -3083,6 +3193,20 @@
       }
     });
 
+    /* El total se recalcula mientras se teclean las horas, para que se
+       vea lo que va a entrar antes de aceptarlo. */
+    cobroBody.addEventListener("input", function (e) {
+      if (e.target.id !== "cobroHoras") return;
+      var p = S.pendientes()[0];
+      var total = $("#cobroTotal", cobroBody);
+      if (!p || !total) return;
+      var h = parseFloat(e.target.value);
+      var eur = h > 0 ? Math.round(h * (+p.tarifa) * 100) / 100 : 0;
+      total.textContent = money(eur);
+      var caja = $("#cobroCalculo", cobroBody);
+      if (caja) caja.setAttribute("data-dif", eur > 0 ? "in" : "cero");
+    });
+
     /* Cerrar la hoja no descarta nada: lo que quede sigue en la cola y
        vuelve a preguntarse la próxima vez que se abra la app. */
 
@@ -3099,6 +3223,8 @@
       Monthly: function (v) { form.d.monthly = v; },
       Amount: function (v) { form.d.amount = v; },
       Real: function (v) { form.d.real = v; },
+      Tarifa: function (v) { form.d.tarifa = v; },
+      Hora: function (v) { form.d.hora = v; },
       Day: function (v) { form.d.day = v; },
       Cat: function (v) { form.d.categoryId = v; }
     };
@@ -3143,6 +3269,15 @@
         U.haptic("light");
         return;
       }
+      if ((node = e.target.closest("[data-fmodo]"))) {
+        form.d.modo = node.getAttribute("data-fmodo");
+        if (form.d.modo !== "hora") form.d.tarifa = "";
+        form.d.importeAbierto = form.d.modo !== "fijo";
+        if (form.d.importeAbierto) form.d.confirmar = true;
+        renderForm();
+        U.haptic("light");
+        return;
+      }
       if ((node = e.target.closest("[data-ffreq]"))) {
         form.d.freq = node.getAttribute("data-ffreq");
         renderForm();
@@ -3156,15 +3291,23 @@
         return;
       }
       if ((node = e.target.closest("[data-fweekday]"))) {
-        form.d.weekday = +node.getAttribute("data-fweekday");
-        $$("[data-fweekday]", formBody).forEach(function (b) {
-          b.setAttribute("aria-pressed", String(b === node));
-        });
-        var pista = $(".field__hint", formBody);
-        if (pista) {
-          pista.textContent = "Se apunta solo cada " +
-            DIAS_LARGO[form.d.weekday].toLowerCase() + ".";
+        var dia = +node.getAttribute("data-fweekday");
+        var i = form.d.weekdays.indexOf(dia);
+        if (i >= 0) {
+          /* tiene que quedar al menos uno: un semanal sin días no toca nunca */
+          if (form.d.weekdays.length > 1) form.d.weekdays.splice(i, 1);
+        } else {
+          form.d.weekdays.push(dia);
         }
+        form.d.weekdays.sort(function (a, b) { return a - b; });
+        renderForm();
+        U.haptic("light");
+        return;
+      }
+      if (e.target.closest("#fAvisar")) {
+        var sw = e.target.closest("#fAvisar");
+        form.d.avisar = sw.getAttribute("aria-checked") !== "true";
+        sw.setAttribute("aria-checked", String(form.d.avisar));
         U.haptic("light");
         return;
       }
@@ -3629,8 +3772,11 @@
 
     var esIn = p.kind === "in";
     var body = $("#sheetCobroBody");
+    var tarifa = +p.tarifa > 0 ? +p.tarifa : 0;
 
-    $("#sheetCobroTitle").textContent = esIn ? "¿Cuánto has cobrado?" : "¿Cuánto ha sido?";
+    $("#sheetCobroTitle").textContent = tarifa
+      ? "¿Cuántas horas has echado?"
+      : esIn ? "¿Cuánto has cobrado?" : "¿Cuánto ha sido?";
 
     body.innerHTML =
       (cola.length > 1
@@ -3644,16 +3790,37 @@
           esc(S.relDayLabel(p.date)) + ' · ' + esc(accName(p.accountId)) + '</p>' +
       '</div>' +
 
-      '<div class="field">' +
-        '<label class="field__label" for="cobroAmount">Importe</label>' +
-        '<div class="input-affix">' +
-          '<input type="number" class="field__input field__input--big" id="cobroAmount" ' +
-                 'min="0" step="0.01" inputmode="decimal" value="' + esc(p.amount) + '">' +
-          '<span class="input-affix__suffix">€</span>' +
-        '</div>' +
-        '<p class="field__hint">Lo previsto eran ' + esc(money(p.amount)) +
-          '. Cámbialo si este mes ha sido otra cifra.</p>' +
-      '</div>' +
+      (tarifa
+        /* Por horas: se piden horas, no euros. Pedir euros obligaría a
+           hacer la multiplicación de cabeza cada vez. */
+        ? '<div class="field">' +
+            '<label class="field__label" for="cobroHoras">Horas</label>' +
+            '<div class="input-affix">' +
+              '<input type="number" class="field__input field__input--big" id="cobroHoras" ' +
+                     'min="0" step="0.25" inputmode="decimal" value="">' +
+              '<span class="input-affix__suffix">h</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="ajuste" id="cobroCalculo" data-dif="cero">' +
+            '<span class="ajuste__txt">A ' + esc(money(tarifa)) + ' la hora</span>' +
+            '<span class="ajuste__eur" id="cobroTotal">' + esc(money(0)) + '</span>' +
+          '</div>'
+
+        : '<div class="field">' +
+            '<label class="field__label" for="cobroAmount">Importe</label>' +
+            '<div class="input-affix">' +
+              '<input type="number" class="field__input field__input--big" id="cobroAmount" ' +
+                     'min="0" step="0.01" inputmode="decimal" value="' +
+                     (p.amount > 0 ? esc(p.amount) : "") + '">' +
+              '<span class="input-affix__suffix">€</span>' +
+            '</div>' +
+            '<p class="field__hint">' +
+              (p.amount > 0
+                ? "Lo previsto eran " + esc(money(p.amount)) +
+                  ". Cámbialo si esta vez ha sido otra cifra."
+                : "No hay una cifra prevista: pon la que te haya quedado.") +
+            '</p>' +
+          '</div>') +
 
       '<div class="field" style="margin-top:var(--sp-6)">' +
         '<button type="button" class="btn btn--primary" id="cobroOk">' +
@@ -3679,6 +3846,29 @@
     renderCobro();
     sheets.cobro.show();
     /* el teclado tapa media pantalla: mejor que no salte solo */
+  }
+
+  /* Vuelve a poner las alarmas con lo que haya ahora. Si es el primer
+     programado que pide aviso, se pide el permiso: hacerlo antes, sin que
+     nadie lo haya pedido, es de las cosas que hacen desinstalar una app. */
+  function sincronizarAvisos() {
+    if (!window.Avisos || !window.Avisos.hay()) return;
+
+    var quiereAvisos = (S.state.recurring || []).some(function (r) {
+      return r.active && r.avisar;
+    });
+
+    if (!quiereAvisos) { window.Avisos.sincronizar(S); return; }
+
+    window.Avisos.permitido().then(function (ok) {
+      if (ok) return window.Avisos.sincronizar(S);
+      return window.Avisos.pedirPermiso().then(function (dado) {
+        if (dado) return window.Avisos.sincronizar(S);
+        U.toast("Sin permiso de notificaciones no puedo avisarte. " +
+                "Se puede dar en los ajustes del móvil.",
+                { icon: "warning", duration: 6000 });
+      });
+    });
   }
 
   /* ============================================================
@@ -3724,6 +3914,10 @@
 
     /* apunta lo programado que haya vencido desde la última visita */
     var posted = S.runRecurring();
+
+    /* Las alarmas del sistema no sobreviven a un reinicio del teléfono,
+       así que se vuelven a poner en cada arranque. */
+    if (window.Avisos && window.Avisos.hay()) window.Avisos.sincronizar(S);
 
     sheets.add = new U.Sheet($("#sheetAdd"), $("#scrim"));
     sheets.detail = new U.Sheet($("#sheetDetail"), $("#scrim"));

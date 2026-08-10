@@ -324,6 +324,13 @@
     document.addEventListener("focusin", function (e) {
       var el = e.target;
       if (!el.matches || !el.matches("input, textarea, select")) return;
+      /* Al tocar un campo, Android selecciona el contenido y saca dos
+         agarraderas debajo. El cursor al final y sin selección deja como
+         mucho la de insertar, que además va oculta por el tema. */
+      if (el.setSelectionRange && /^(text|search|url|tel|password)$/i.test(el.type || "")) {
+        try { el.setSelectionRange(el.value.length, el.value.length); } catch (e) {}
+      }
+
       /* 260 ms: lo que tarda el teclado en subir y en reajustarse el alto
          visible. Antes de eso, desplazar no sirve de nada. */
       setTimeout(function () {

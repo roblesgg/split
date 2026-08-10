@@ -46,6 +46,7 @@ public class MainActivity extends BridgeActivity {
         /* Antes de super.onCreate, que es cuando Capacitor carga la página:
            un plugin registrado después no lo vería el lado web. */
         registerPlugin(ActualizadorPlugin.class);
+        registerPlugin(RecordatorioPlugin.class);
 
         super.onCreate(savedInstanceState);
 

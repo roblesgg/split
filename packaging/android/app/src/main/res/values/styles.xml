@@ -5,6 +5,11 @@
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
+
+        <!-- Sin agarraderas de selección: ver handle_invisible.xml -->
+        <item name="android:textSelectHandle">@drawable/handle_invisible</item>
+        <item name="android:textSelectHandleLeft">@drawable/handle_invisible</item>
+        <item name="android:textSelectHandleRight">@drawable/handle_invisible</item>
     </style>
 
     <!-- La barra de estado y la de navegación toman el color de página de
@@ -18,6 +23,11 @@
         <item name="android:navigationBarColor">@color/splitPage</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowLightNavigationBar">true</item>
+
+        <!-- Sin agarraderas de selección: ver handle_invisible.xml -->
+        <item name="android:textSelectHandle">@drawable/handle_invisible</item>
+        <item name="android:textSelectHandleLeft">@drawable/handle_invisible</item>
+        <item name="android:textSelectHandleRight">@drawable/handle_invisible</item>
     </style>
 
     <style name="AppTheme.NoActionBarLaunch" parent="Theme.SplashScreen">
