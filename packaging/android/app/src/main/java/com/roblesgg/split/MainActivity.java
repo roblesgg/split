@@ -1,6 +1,7 @@
 package com.roblesgg.split;
 
 import android.os.Bundle;
+import android.view.ActionMode;
 import android.view.View;
 import android.webkit.WebView;
 
@@ -58,6 +59,8 @@ public class MainActivity extends BridgeActivity {
             }
         });
 
+        quitarSeleccionDeTexto();
+
         final View root = findViewById(android.R.id.content);
 
         ViewCompat.setOnApplyWindowInsetsListener(root, (view, windowInsets) -> {
@@ -81,6 +84,40 @@ public class MainActivity extends BridgeActivity {
         /* Si el teclado tapa un campo, el WebView se redimensiona solo:
            pedimos que nos vuelvan a pasar los insets al cambiar. */
         ViewCompat.requestApplyInsets(root);
+    }
+
+    /**
+     * El WebView es un visor de páginas, y una página se puede seleccionar:
+     * al mantener pulsado cualquier sitio salían los agarraderos azules, la
+     * lupa y el menú de copiar. En una app eso no pinta nada.
+     *
+     * El CSS ya lo apaga con user-select, pero conviene cortarlo también
+     * aquí: el WebView de Android no siempre le hace caso —depende de la
+     * versión de System WebView que lleve el móvil— y el gesto largo lo
+     * atiende la vista nativa antes de que el CSS tenga nada que decir.
+     *
+     * Esto no afecta a la pulsación larga de la app (mantener pulsada una
+     * categoría para editarla), que la lleva el JavaScript con sus propios
+     * eventos de toque y no con el long click de Android.
+     */
+    private void quitarSeleccionDeTexto() {
+        if (getBridge() == null) return;
+        final WebView web = getBridge().getWebView();
+        if (web == null) return;
+
+        web.setLongClickable(false);
+        web.setHapticFeedbackEnabled(false);
+        web.setOnLongClickListener(v -> true);   // consumido: no llega a nadie
+    }
+
+    /**
+     * Y si aun así algo consiguiera arrancar una selección, aquí se corta la
+     * barra flotante de Copiar / Compartir / Buscar antes de que aparezca.
+     */
+    @Override
+    public void onActionModeStarted(ActionMode mode) {
+        if (mode != null) mode.finish();
+        super.onActionModeStarted(mode);
     }
 
     private void pasarHuecoAlWeb() {
