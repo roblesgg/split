@@ -57,7 +57,9 @@
     check:    '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
     warning:  '<path d="M12 4.2 2.8 20h18.4Z"/><path d="M12 10v4.4"/><circle cx="12" cy="17.3" r="1" fill="currentColor" stroke="none"/>',
     filter:   '<path d="M3.5 5.5h17l-6.6 7.6v5.6l-3.8 1.8v-7.4Z"/>',
-    calendar: '<path d="M4 6.5h16V20H4Z"/><path d="M4 10.5h16"/><path d="M8.5 3.5v3M15.5 3.5v3"/>'
+    calendar: '<path d="M4 6.5h16V20H4Z"/><path d="M4 10.5h16"/><path d="M8.5 3.5v3M15.5 3.5v3"/>',
+    lock:     '<path d="M5 10.5h14V20H5Z"/><path d="M8.2 10.5V7.8a3.8 3.8 0 0 1 7.6 0v2.7"/><circle cx="12" cy="15" r="1.2" fill="currentColor" stroke="none"/>',
+    briefcase:'<path d="M3 8.5h18V19H3Z"/><path d="M9 8.5V6.8A1.8 1.8 0 0 1 10.8 5h2.4A1.8 1.8 0 0 1 15 6.8v1.7"/><path d="M3 13h18"/>'
   };
 
   function icon(name, size, strokeWidth) {

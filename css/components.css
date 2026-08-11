@@ -2050,6 +2050,113 @@ select.field__input { appearance: none; cursor: pointer; padding-right: var(--sp
 
 .onboard__extra { margin-top: var(--sp-5); text-align: left; }
 
+/* --- el cuestionario de bienvenida --- */
+
+.ob-lista { display: flex; flex-direction: column; gap: var(--sp-4); }
+
+.ob-lista__item {
+  display: flex;
+  gap: var(--sp-4);
+  align-items: flex-start;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+.ob-lista__item b { color: var(--text-primary); font-weight: var(--w-semibold); }
+
+.ob-lista__icono {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  margin-top: 1px;
+  border-radius: var(--r-full);
+  background: var(--accent-wash);
+  color: var(--accent);
+}
+
+.ob-filas { display: flex; flex-direction: column; gap: var(--sp-3); }
+
+/* nombre elástico, dinero fijo: los importes quedan alineados en columna
+   aunque las cuentas se llamen muy distinto */
+.ob-fila { display: flex; gap: var(--sp-3); align-items: center; }
+.ob-fila__dinero { flex: none; width: 108px; }
+.ob-fila__hueco { flex: none; width: 30px; }
+
+.ob-fila__x {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-full);
+  color: var(--text-muted);
+  background: var(--surface-2);
+}
+.ob-fila__x:active { background: var(--surface-3); }
+
+.ob-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  width: 100%;
+  margin-top: var(--sp-4);
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  border: 1.5px dashed var(--border);
+  font-size: 14px;
+  font-weight: var(--w-medium);
+  color: var(--text-secondary);
+}
+.ob-add:active { background: var(--surface-2); }
+
+.ob-item {
+  display: flex;
+  gap: var(--sp-3);
+  align-items: center;
+  padding: var(--sp-4);
+  margin-bottom: var(--sp-3);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.ob-item__icono {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-full);
+  background: var(--surface-raised);
+  color: var(--accent);
+}
+
+.ob-item__texto { flex: 1; min-width: 0; }
+.ob-item__nombre {
+  display: block;
+  font-size: 14.5px;
+  font-weight: var(--w-semibold);
+}
+.ob-item__sub {
+  display: block;
+  font-size: 12.5px;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ob-form {
+  margin-top: var(--sp-4);
+  padding: var(--sp-5);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+}
+.ob-form .field { margin-top: var(--sp-5); }
+.ob-form .field:first-child { margin-top: 0; }
+
 .onboard__dots {
   display: flex;
   justify-content: center;
