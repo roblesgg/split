@@ -23,6 +23,7 @@
     editingId: null,
     cuentaReturn: null,      /* a qué cuenta volver al salir de su edición */
     opcionesRec: false,      /* «Más opciones» del formulario de programado */
+    catAbierta: null,        /* madre desplegada en el selector de categoría */
     detallesAbiertos: false, /* «Más detalles» de la hoja de apuntar */
     update: null            /* { version, name, url } si hay una release nueva */
   };
@@ -528,7 +529,8 @@
         catFace(cat, 18, "avatar-letter") +
         '<span class="row__body">' +
           '<span class="row__title">' + esc(t.note) + '</span>' +
-          '<span class="row__meta">' + esc(cat.name) + ' · ' + esc(S.relDayLabel(t.date)) + '</span>' +
+          '<span class="row__meta">' + esc(S.nombreLargo(t.categoryId) || cat.name) +
+            ' · ' + esc(S.relDayLabel(t.date)) + '</span>' +
         '</span>' +
         '<span class="row__amount" data-kind="' + (isIn ? "in" : "out") + '">' +
           (isIn ? "+" : "−") + esc(money(t.amount)) +
@@ -1182,9 +1184,13 @@
       var cuenta = S.state.accounts.find(function (x) { return x.id === id; });
       d = { accountId: id, real: cuenta ? S.accountBalance(id) : 0 };
     } else if (type === "category") {
-      d = it ? { name: it.name, emoji: it.emoji, color: it.color, kind: it.kind }
-             : { name: "", emoji: "🏷️", color: 1,
-                 kind: (opts && opts.kind === "in") ? "in" : "out" };
+      d = it
+        ? { name: it.name, emoji: it.emoji, color: it.color, kind: it.kind,
+            parentId: it.parentId || "" }
+        : { name: "", emoji: "🏷️", color: 1,
+            kind: (opts && opts.kind === "in") ? "in" : "out",
+            /* al crear desde dentro de una madre, ya viene puesta */
+            parentId: (opts && opts.parentId) || "" };
     } else if (type === "account") {
       d = it
         ? { name: it.name, type: it.type, opening: it.opening,
@@ -1209,12 +1215,13 @@
             tarifa: it.tarifa == null ? "" : it.tarifa,
             hora: it.hora || "09:00",
             avisar: !!it.avisar,
+            cuotas: it.cuotas == null ? "" : it.cuotas,
             categoryId: it.categoryId, accountId: it.accountId,
             toAccountId: it.toAccountId || (accs[1] || accs[0]).id }
         : { kind: "out", note: "", amount: "", day: 1,
             freq: "mensual", weekdays: [0], pagas: 12, confirmar: false,
             importeAbierto: false, modo: "fijo", tarifa: "",
-            hora: "09:00", avisar: false,
+            hora: "09:00", avisar: false, cuotas: "",
             categoryId: "hogar",
             accountId: accs[0].id, toAccountId: (accs[1] || accs[0]).id };
     }
@@ -1274,6 +1281,12 @@
   function ritmoDe(r) {
     if (r.freq === "semanal") return listaDias(S.diasDe(r));
     if (r.kind === "in" && +r.pagas === 14) return "14 pagas, día " + r.day;
+    var quedan = S.cuotasQueQuedan(r);
+    if (quedan != null) {
+      return "Día " + r.day + " · " +
+             (quedan === 0 ? "pagado del todo"
+                           : "quedan " + quedan + (quedan === 1 ? " cuota" : " cuotas"));
+    }
     return "Cada día " + r.day;
   }
 
@@ -1311,6 +1324,11 @@
       var colores = [];
       for (var ci = 1; ci <= S.CAT_COLORS; ci++) colores.push(ci);
 
+      /* Una que ya tiene hijas no puede meterse dentro de nadie. */
+      var tieneHijas = form.id && S.hijasDe(form.id).length > 0;
+      var madresPosibles = tieneHijas ? [] : S.categoriasMadre(d.kind)
+        .filter(function (c) { return c.id !== form.id && !c.sistema; });
+
       html =
         (form.id
           ? ""
@@ -1338,6 +1356,25 @@
           '<input type="text" class="field__input" id="fName" data-f="Name" maxlength="24" ' +
                  'placeholder="Gasolina" value="' + esc(d.name) + '">' +
         '</div>' +
+
+        /* Meterla dentro de otra. Solo se ofrecen las de primer nivel del
+           mismo tipo, y solo si esta no tiene ya hijas: un nivel y no más,
+           que dos ya obligan a pensar dónde va cada cosa. */
+        (madresPosibles.length
+          ? '<div class="field">' +
+              '<span class="field__label">Dentro de</span>' +
+              pickField("fMadre", d.parentId || "",
+                        d.parentId ? catOf(d.parentId).name : "Nada, va suelta") +
+              '<p class="field__hint">' +
+                (d.parentId
+                  ? "En los gráficos sumará dentro de «" +
+                    esc(catOf(d.parentId).name) + "», pero en la lista de " +
+                    "movimientos se distingue."
+                  : "Puedes meterla dentro de otra, por ejemplo «Deuda coche» " +
+                    "dentro de «Deudas».") +
+              '</p>' +
+            '</div>'
+          : "") +
 
         '<div class="field">' +
           '<label class="field__label" for="fEmoji">Emoji</label>' +
@@ -1481,6 +1518,9 @@
       /* Un traspaso necesita sus dos cuentas sí o sí, así que ahí las
          opciones se abren de entrada. */
       var opcionesAbiertas = ui.opcionesRec || d.kind === "transfer";
+      var cuotasHechas = form.id
+        ? ((S.state.recurring.find(function (x) { return x.id === form.id; }) || {}).pagadas || 0)
+        : 0;
 
       html =
         '<div class="segmented" id="fSeg" role="tablist">' +
@@ -1629,6 +1669,24 @@
               switchRow("fAvisar", "Avisarme en el móvil",
                 "Una notificación el día que toque, a esa hora",
                 d.avisar) +
+
+              /* Un préstamo tiene final. Sin esto había que acordarse de
+                 apagarlo a mano el mes que se termina de pagar. */
+              (d.kind === "out"
+                ? '<div class="field" style="margin-top:var(--sp-5)">' +
+                    numField("fCuotas", "Cuántas veces en total", d.cuotas, 1, "veces") +
+                    '<p class="field__hint">' +
+                      (parseFloat(d.cuotas) > 0
+                        ? (form.id && cuotasHechas
+                            ? "Llevas " + cuotasHechas + " de " + parseInt(d.cuotas, 10) +
+                              ". Cuando se paguen todas se apagará solo."
+                            : "Se apagará solo cuando se hayan pagado las " +
+                              parseInt(d.cuotas, 10) + ".")
+                        : "Déjalo vacío si no se acaba nunca, como el alquiler. " +
+                          "Ponlo si es un préstamo: 12, 24, las que sean.") +
+                    '</p>' +
+                  '</div>'
+                : "") +
 
               (d.kind === "transfer"
                 ? '<div class="field__row" style="margin-top:var(--sp-5)">' +
@@ -1816,6 +1874,8 @@
           ? parseFloat(d.tarifa) : null,
         hora: d.hora,
         avisar: !!d.avisar,
+        cuotas: (d.kind === "out" && parseFloat(d.cuotas) > 0)
+          ? parseInt(d.cuotas, 10) : null,
         /* las catorce pagas solo existen en un cobro mensual */
         pagas: (d.kind === "in" && d.freq !== "semanal" && +d.pagas === 14) ? 14 : 12,
         confirmar: !!d.confirmar,
@@ -2375,6 +2435,7 @@
     /* Cada vez que se abre, los detalles vuelven a estar recogidos: el
        plegable se abre solo si el movimiento ya trae algo dentro. */
     ui.detallesAbiertos = false;
+    ui.catAbierta = null;
     var accs = S.state.accounts;
     ui.draft = t
       ? { kind: t.kind, amount: String(Math.round(t.amount * 100)), categoryId: t.categoryId,
@@ -2605,6 +2666,14 @@
           })
       };
     }
+    if (id === "fMadre") {
+      var lista = [{ value: "", label: "Nada, va suelta" }];
+      S.categoriasMadre(form.d.kind).forEach(function (c) {
+        if (c.id === form.id || c.sistema) return;
+        lista.push({ value: c.id, label: c.name, emoji: c.emoji, color: c.color });
+      });
+      return { titulo: "¿Dentro de cuál?", lista: lista };
+    }
     if (id === "fType") {
       return {
         titulo: "¿Qué tipo de cuenta?",
@@ -2638,6 +2707,11 @@
       form.d.toAccountId = valor; renderForm();
     } else if (id === "fCat") {
       form.d.categoryId = valor; renderForm();
+    } else if (id === "fMadre") {
+      form.d.parentId = valor;
+      /* hereda el color de la madre, como hace el store al guardar */
+      if (valor) form.d.color = catOf(valor).color;
+      renderForm();
     } else if (id === "fType") {
       form.d.type = valor; renderForm();
     } else if (id === "incMonths") {
@@ -2652,7 +2726,14 @@
   function renderAddSheet() {
     var d = ui.draft;
     var body = $("#sheetAddBody");
-    var cats = S.CATEGORIES.filter(function (c) { return c.kind === d.kind; });
+    /* En la cuadrícula solo van las de primer nivel. Las que estén dentro
+       de otra salen en una fila aparte al tocar su madre, y así no se
+       mezclan doce categorías con sus veinte hijas. */
+    var cats = S.categoriasMadre(d.kind);
+    var elegida = catOf(d.categoryId);
+    /* si lo elegido es una hija, su madre aparece abierta */
+    var abierta = elegida && elegida.parentId ? elegida.parentId : ui.catAbierta;
+    var hijas = abierta ? S.hijasDe(abierta) : [];
     var v = draftValue();
 
     body.innerHTML =
@@ -2704,8 +2785,10 @@
             '<span class="field__label">Categoría</span>' +
             '<div class="cat-grid">' +
               cats.map(function (c) {
+                var conHijas = S.hijasDe(c.id).length > 0;
                 return '<button type="button" class="cat-pick" data-cat="' + c.id + '" ' +
-                         'aria-pressed="' + (c.id === d.categoryId) + '">' +
+                         'aria-pressed="' + (c.id === d.categoryId) + '"' +
+                         (conHijas ? ' data-con-hijas="1"' : '') + '>' +
                     catFace(c, 20, "cat-pick__icon") +
                     '<span class="cat-pick__name">' + esc(c.name) + '</span>' +
                   '</button>';
@@ -2716,6 +2799,23 @@
                 '<span class="cat-pick__name">Nueva</span>' +
               '</button>' +
             '</div>' +
+
+            /* Las de dentro, cuando hay una madre abierta. Se puede quedar
+               en la madre sin más: elegir «Deudas» a secas es válido. */
+            (abierta
+              ? '<div class="chips" style="margin-top:var(--sp-3)">' +
+                  hijas.map(function (h) {
+                    return '<button type="button" class="chip" data-cat="' + h.id + '" ' +
+                             'aria-pressed="' + (h.id === d.categoryId) + '">' +
+                           esc(h.emoji || "") + ' ' + esc(h.name) + '</button>';
+                  }).join("") +
+                  '<button type="button" class="chip chip--add" ' +
+                          'data-cat-new-hija="' + esc(abierta) + '">' +
+                    icon("plus", 12) + 'Nueva dentro' +
+                  '</button>' +
+                '</div>'
+              : "") +
+
             '<p class="field__hint">Mantén pulsada una categoría para editarla.</p>' +
           '</div>') +
 
@@ -3432,6 +3532,7 @@
       Real: function (v) { form.d.real = v; },
       Tarifa: function (v) { form.d.tarifa = v; },
       Hora: function (v) { form.d.hora = v; },
+      Cuotas: function (v) { form.d.cuotas = v; },
       Day: function (v) { form.d.day = v; },
       Cat: function (v) { form.d.categoryId = v; }
     };
@@ -3612,8 +3713,25 @@
         openForm("category", null, { kind: node.getAttribute("data-cat-new") });
         return;
       }
+      if ((node = e.target.closest("[data-cat-new-hija]"))) {
+        ui.catReturnToAdd = true;
+        var madre = node.getAttribute("data-cat-new-hija");
+        sheets.add.close();
+        openForm("category", null, { kind: ui.draft.kind, parentId: madre });
+        return;
+      }
       if ((node = e.target.closest("[data-cat]"))) {
-        ui.draft.categoryId = node.getAttribute("data-cat");
+        var elegido = node.getAttribute("data-cat");
+        ui.draft.categoryId = elegido;
+
+        /* Tocar una que tiene otras dentro la elige Y las enseña: quedarse
+           en la madre es una respuesta válida, y afinar es un toque más. */
+        if (node.hasAttribute("data-con-hijas")) {
+          ui.catAbierta = ui.catAbierta === elegido ? null : elegido;
+          renderAddSheet(); U.haptic("light");
+          return;
+        }
+
         $$("[data-cat]", addBody).forEach(function (b) {
           b.setAttribute("aria-pressed", String(b === node));
         });

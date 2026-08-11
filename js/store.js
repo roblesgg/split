@@ -160,12 +160,55 @@
 
   function catById(id) { return catsById()[id] || CAT_FALLBACK; }
 
+  /* Como catById pero sin red: devuelve null si no existe. La jerarquía la
+     necesita así, porque el respaldo tiene id «otros» y kind «out», y con
+     él las comprobaciones de madre válida darían que sí a cualquier cosa. */
+  function catExacta(id) {
+    var c = catsById()[id];
+    return c || null;
+  }
+
   function categories() {
     return (state && state.categories) ? state.categories : DEFAULT_CATEGORIES;
   }
 
   function categoriesOf(kind) {
     return categories().filter(function (c) { return c.kind === kind; });
+  }
+
+  /* ---------- categorías dentro de categorías ----------
+     Un solo nivel: «Deudas» puede tener dentro «Deuda casa» y «Deuda
+     coche», pero una hija no puede tener nietas. Dos niveles ya obligan a
+     pensar dónde va cada cosa, y eso es justo lo que se quería evitar. */
+
+  function esHija(c) { return !!(c && c.parentId); }
+
+  function hijasDe(id) {
+    return categories().filter(function (c) { return c.parentId === id; });
+  }
+
+  /* Las de primer nivel de un tipo: las que salen en el selector. */
+  function categoriasMadre(kind) {
+    return categoriesOf(kind).filter(function (c) { return !c.parentId; });
+  }
+
+  /* Para sumar: el gasto de «Deuda coche» cuenta como «Deudas». */
+  function raizDe(catId) {
+    var c = catExacta(catId);
+    if (c && c.parentId) {
+      var m = catExacta(c.parentId);
+      if (m) return m;
+    }
+    return c;
+  }
+
+  /* Nombre completo, para cuando hace falta saber de cuál se habla. */
+  function nombreLargo(catId) {
+    var c = catExacta(catId);
+    if (!c) return "";
+    if (!c.parentId) return c.name;
+    var m = catExacta(c.parentId);
+    return m ? m.name + " · " + c.name : c.name;
   }
 
   function catColorVar(cat) {
@@ -322,7 +365,7 @@
   function defaultState() {
     var today = ymd(new Date());
     return {
-      version: 10,
+      version: 11,
       createdAt: today,
       categories: cloneCategories(),
       tags: [],
@@ -363,7 +406,7 @@
   function freshState() {
     var today = ymd(new Date());
     return {
-      version: 10,
+      version: 11,
       createdAt: today,
       categories: cloneCategories(),
       tags: [],
@@ -559,6 +602,16 @@
         if (r.tarifa === undefined) r.tarifa = null;
       });
       s.version = 10;
+    }
+
+    if (s.version < 11) {
+      /* v11: préstamos con un número de cuotas. Lo que ya existe no las
+         tiene, así que sigue siendo indefinido, que es lo que era. */
+      (s.recurring || []).forEach(function (r) {
+        if (r.cuotas === undefined) r.cuotas = null;
+        if (r.pagadas === undefined) r.pagadas = 0;
+      });
+      s.version = 11;
     }
 
     invalidateCats();
@@ -807,6 +860,18 @@
     return (n >= 1 && n <= CAT_COLORS) ? n : 16;
   }
 
+  /* Devuelve un id de madre bueno, o null. Se rechaza lo que rompería el
+     único nivel permitido, lo de otro tipo, y ser madre de sí misma. */
+  function madreValida(parentId, kind, propioId) {
+    if (!parentId) return null;
+    if (parentId === propioId) return null;
+    var m = catExacta(parentId);
+    if (!m || m.kind !== kind || m.parentId) return null;
+    /* si ya tiene hijas, no puede meterse dentro de otra */
+    if (propioId && hijasDe(propioId).length) return null;
+    return m.id;
+  }
+
   function addCategory(data) {
     var kind = data.kind === "in" ? "in" : "out";
     var c = {
@@ -814,8 +879,15 @@
       name: (data.name || "Categoría").trim(),
       emoji: firstGrapheme(data.emoji) || "📦",
       color: normalizeColor(data.color),
-      kind: kind
+      kind: kind,
+      parentId: madreValida(data.parentId, kind, null)
     };
+    /* Una hija hereda el color de su madre: así en un gráfico las tres
+       deudas se ven como la misma familia y no como tres cosas sueltas. */
+    if (c.parentId) {
+      var madre = catExacta(c.parentId);
+      if (madre) c.color = madre.color;
+    }
     state.categories.push(c);
     /* una de gasto nace en el reparto al 0 %: no cambia los presupuestos
        de nadie hasta que se le asigne algo a mano */
@@ -831,6 +903,18 @@
     if (patch.name != null) c.name = String(patch.name).trim() || c.name;
     if (patch.emoji != null) c.emoji = firstGrapheme(patch.emoji) || c.emoji;
     if (patch.color != null) c.color = normalizeColor(patch.color);
+    if (patch.parentId !== undefined) {
+      c.parentId = madreValida(patch.parentId, c.kind, c.id);
+      if (c.parentId) {
+        var madre = catExacta(c.parentId);
+        if (madre) c.color = madre.color;
+      }
+    }
+    /* Cambiar el color de una madre lo cambia en sus hijas: son la misma
+       familia y verlas de distinto color en un gráfico despista. */
+    if (patch.color != null && !c.parentId) {
+      hijasDe(c.id).forEach(function (h) { h.color = c.color; });
+    }
     invalidateCats();
     save();
     return c;
@@ -857,6 +941,16 @@
       return {
         ok: false,
         reason: "Esta la usa la app al corregir un saldo, así que no se puede borrar."
+      };
+    }
+
+    var dentro = hijasDe(id);
+    if (dentro.length) {
+      return {
+        ok: false,
+        reason: "Tiene " + dentro.length + (dentro.length === 1
+                  ? " categoría dentro" : " categorías dentro") +
+                ". Sácalas o bórralas antes."
       };
     }
 
@@ -998,6 +1092,14 @@
       hora: normalizeTime(data.hora) || "09:00",
       avisar: !!data.avisar,
 
+      /* Un préstamo no es para siempre: son doce letras y se acabó. Con
+         `cuotas` puestas, el programado se apaga solo al llegar y deja de
+         contar en lo que compromete al mes. `pagadas` lleva la cuenta. */
+      cuotas: data.cuotas != null && +data.cuotas > 0
+        ? Math.min(600, Math.round(+data.cuotas)) : null,
+      pagadas: 0,
+
+
       active: data.active !== false,
       /* Mensual arranca en el mes anterior, para que el de este mes se
          apunte en cuanto llegue su día. Semanal arranca hoy, para que la
@@ -1051,6 +1153,11 @@
     }
     if (patch.hora != null) r.hora = normalizeTime(patch.hora) || r.hora || "09:00";
     if (patch.avisar != null) r.avisar = !!patch.avisar;
+    if (patch.cuotas !== undefined) {
+      r.cuotas = patch.cuotas != null && +patch.cuotas > 0
+        ? Math.min(600, Math.round(+patch.cuotas)) : null;
+      if (r.cuotas == null) r.pagadas = 0;
+    }
     if (patch.active != null) r.active = !!patch.active;
     save();
     return r;
@@ -1190,6 +1297,14 @@
     state.recurring.forEach(function (r) {
       if (!r.active) return;
       vencimientos(r, hoy).forEach(function (v) {
+        /* Con las cuotas contadas, al llegar a la última se apaga y no se
+           apunta ninguna más. Se apaga en vez de borrarse: el histórico y
+           lo ya apuntado siguen ahí, y se puede reactivar. */
+        if (r.cuotas && (r.pagadas || 0) >= r.cuotas) {
+          r.active = false;
+          return;
+        }
+
         var mov = movimientoDe(r, v.fecha, v.extra);
         /* Sin importe fijo no hay nada que apuntar todavía: se pregunta
            siempre, aunque no se haya marcado «preguntarme el importe». */
@@ -1200,8 +1315,12 @@
           state.transactions.push(mov);
           puestos++;
         }
+        if (r.cuotas) r.pagadas = (r.pagadas || 0) + 1;
         anotarUltimo(r, v.fecha);
       });
+
+      /* si esa era la última, se apaga ya y no espera al mes que viene */
+      if (r.cuotas && (r.pagadas || 0) >= r.cuotas) r.active = false;
     });
 
     if (puestos || encolados) { sortTx(); save(); }
@@ -1268,6 +1387,12 @@
      se quedan cortos; se reparte 52/12.
      Catorce pagas: las dos extras también se reparten, para que el mes de
      junio no parezca de golpe un sueldazo y los demás una miseria. */
+  /* Cuántas letras faltan. null si no es de cuotas contadas. */
+  function cuotasQueQuedan(r) {
+    if (!r.cuotas) return null;
+    return Math.max(0, r.cuotas - (r.pagadas || 0));
+  }
+
   function mensualizar(r) {
     var base = +r.amount || 0;
 
@@ -1531,12 +1656,18 @@
   }
 
   /* gasto por categoría en un mes, ordenado de mayor a menor */
+  /* Los totales por categoría suman las hijas dentro de su madre: si
+     «Deudas» tiene dentro la del coche y la de la casa, en el gráfico se
+     ve «Deudas» con lo de las dos. Para verlas por separado está la lista
+     de movimientos, que sí distingue. */
   function byCategory(key, kind) {
     var want = kind || "out";
     var sums = {};
     txOfMonth(key).forEach(function (t) {
       if (t.kind !== want) return;
-      sums[t.categoryId] = (sums[t.categoryId] || 0) + t.amount;
+      var raiz = raizDe(t.categoryId);
+      var id = raiz ? raiz.id : t.categoryId;
+      sums[id] = (sums[id] || 0) + t.amount;
     });
     return Object.keys(sums).map(function (id) {
       var c = catById(id);
@@ -1711,7 +1842,7 @@
 
     /* categorías: ya no son una lista fija, viven en el estado */
     get CATEGORIES() { return categories(); },
-    catById: catById,
+    catById: catById, catExacta: catExacta,
     categoriesOf: categoriesOf,
     catColorVar: catColorVar,
     CAT_COLORS: CAT_COLORS,
@@ -1733,6 +1864,10 @@
     /* etiquetas */
     addTag: addTag, tagById: tagById, deleteTag: deleteTag, tagUsage: tagUsage,
 
+    /* categorías dentro de categorías */
+    esHija: esHija, hijasDe: hijasDe, categoriasMadre: categoriasMadre,
+    raizDe: raizDe, nombreLargo: nombreLargo,
+
     /* metas */
     addGoal: addGoal, updateGoal: updateGoal, deleteGoal: deleteGoal,
 
@@ -1742,6 +1877,7 @@
     runRecurring: runRecurring, nextDue: nextDue,
     upcomingRecurring: upcomingRecurring, recurringMonthly: recurringMonthly,
     mensualizar: mensualizar, diasDe: diasDe, esAbierto: esAbierto,
+    cuotasQueQuedan: cuotasQueQuedan,
     mediaCobradaDe: mediaCobradaDe,
 
     /* cola de confirmación */
