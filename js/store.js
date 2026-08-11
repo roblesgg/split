@@ -1002,9 +1002,13 @@
       /* Mensual arranca en el mes anterior, para que el de este mes se
          apunte en cuanto llegue su día. Semanal arranca hoy, para que la
          primera vez sea el próximo día de la semana elegido y no se
-         apunten de golpe semanas ya pasadas. */
-      lastPosted: addMonths(currentMonthKey(), -1),
-      lastDate: ymd(new Date())
+         apunten de golpe semanas ya pasadas.
+
+         `yaHecho` es para cuando el programado nace de un movimiento que
+         se acaba de apuntar: el de este periodo ya está puesto, así que
+         se marca como hecho y el siguiente será el que toque. */
+      lastPosted: data.yaHecho ? currentMonthKey() : addMonths(currentMonthKey(), -1),
+      lastDate: ymd(data.desde ? parseYmd(data.desde) : new Date())
     };
     state.recurring.push(r);
     save();

@@ -2389,7 +2389,9 @@
           tags: [], attachments: [],
           /* reparto de un ingreso entre varias cuentas: apagado por
              defecto, y `trozos` guarda cuánto va a cada una */
-          reparto: false, trozos: {} };
+          reparto: false, trozos: {},
+          /* que el movimiento se repita a partir de ahora */
+          repetir: false, repFreq: "mensual" };
 
     /* en un traspaso el destino tiene que ser otra cuenta */
     if (!t) {
@@ -2465,6 +2467,38 @@
         icon("plus", 18) +
       '</button>';
     mountIcons(box);
+  }
+
+  /* «Que se repita»: apagado no ocupa casi nada, y encendido enseña solo
+     cada cuánto y qué día. Todo lo demás —categoría, cuenta, importe— ya
+     lo tiene el movimiento que se está apuntando. */
+  function repetirHtml(d) {
+    var fecha = S.parseYmd(d.date);
+    var diaMes = Math.min(28, fecha.getDate());
+    var diaSem = (fecha.getDay() + 6) % 7;
+
+    if (!d.repetir) {
+      return switchRow("addRepetir", "Que se repita",
+        "Y lo apunto yo solo cada vez que toque", false);
+    }
+
+    return switchRow("addRepetir", "Que se repita",
+        "Y lo apunto yo solo cada vez que toque", true) +
+
+      '<div class="field" style="margin-top:var(--sp-3)">' +
+        '<div class="segmented" id="addRepSeg" role="tablist">' +
+          '<span class="segmented__thumb" id="addRepThumb" aria-hidden="true"></span>' +
+          '<button type="button" class="segmented__btn" role="tab" data-repfreq="mensual" ' +
+                  'aria-selected="' + (d.repFreq !== "semanal") + '">Cada mes</button>' +
+          '<button type="button" class="segmented__btn" role="tab" data-repfreq="semanal" ' +
+                  'aria-selected="' + (d.repFreq === "semanal") + '">Cada semana</button>' +
+        '</div>' +
+        '<p class="field__hint">' +
+          (d.repFreq === "semanal"
+            ? "Todos los " + DIAS_LARGO[diaSem].toLowerCase() + ", como hoy."
+            : "El día " + diaMes + " de cada mes, como hoy.") +
+          ' Luego se puede afinar en Mi dinero.</p>' +
+      '</div>';
   }
 
   /* Lo que no hace falta ver para apuntar un gasto normal. Se abre solo
@@ -2705,6 +2739,12 @@
           '</button>'
         : "") +
 
+      /* Programar desde aquí. Antes había que apuntar el traspaso y luego
+         irse a otra pantalla a crear el programado con los mismos datos.
+         Repetir un pago, un cobro o un traspaso es lo mismo, así que se
+         ofrece igual en los tres. */
+      (ui.editingId ? "" : repetirHtml(d)) +
+
       /* Y el resto, cerrado. Apuntar un café son dos toques: importe y
          categoría. Tener delante título, fecha, hora, etiquetas, notas y
          adjuntos convertía eso en un formulario que hay que atravesar con
@@ -2736,6 +2776,10 @@
     requestAnimationFrame(function () {
       var seg = $("#addSeg", body);
       if (seg) U.slideIndicator(seg, $("#addThumb", body), $('[data-dkind="' + d.kind + '"]', seg));
+
+      var segR = $("#addRepSeg", body);
+      if (segR) U.slideIndicator(segR, $("#addRepThumb", body),
+        $('[data-repfreq="' + (d.repFreq === "semanal" ? "semanal" : "mensual") + '"]', segR));
     });
   }
 
@@ -2899,12 +2943,45 @@
       U.toast("Movimiento actualizado", { icon: "check" });
     } else {
       S.addTx(payload);
-      U.toast((d.kind === "in" ? "Ingreso" : d.kind === "transfer" ? "Traspaso" : "Gasto") +
-              " de " + money(v) + " guardado", { icon: "check" });
+
+      var queEs = d.kind === "in" ? "Ingreso" : d.kind === "transfer" ? "Traspaso" : "Gasto";
+
+      if (d.repetir) {
+        programarDesde(d, v);
+        U.toast(queEs + " de " + money(v) + " guardado, y se repetirá",
+                { icon: "repeat", duration: 4500 });
+      } else {
+        U.toast(queEs + " de " + money(v) + " guardado", { icon: "check" });
+      }
     }
     U.haptic("success");
     sheets.add.close();
     renderAll();
+  }
+
+  /* Crea el programado a partir del movimiento que se acaba de apuntar.
+     Se marca como ya hecho en este periodo: si no, al recargar la app
+     volvería a apuntar el de hoy y saldría dos veces. */
+  function programarDesde(d, importe) {
+    var fecha = S.parseYmd(d.date);
+    var semanal = d.repFreq === "semanal";
+
+    S.addRecurring({
+      kind: d.kind,
+      note: String(d.note).trim() || catOf(d.categoryId).name,
+      amount: importe,
+      categoryId: d.kind === "transfer" ? "otros" : d.categoryId,
+      accountId: d.accountId,
+      toAccountId: d.kind === "transfer" ? d.toAccountId : null,
+      freq: semanal ? "semanal" : "mensual",
+      weekdays: [(fecha.getDay() + 6) % 7],
+      day: Math.min(28, fecha.getDate()),
+      hora: d.time || "09:00",
+      yaHecho: !semanal,
+      desde: d.date
+    });
+
+    sincronizarAvisos();
   }
 
   /* ============================================================
@@ -3500,6 +3577,14 @@
         if (ui.draft.kind === "in") ui.draft.categoryId = "nomina";
         else if (ui.draft.kind === "out") ui.draft.categoryId = "comida";
         else ui.draft.categoryId = "otros";
+        renderAddSheet(); U.haptic("light"); return;
+      }
+      if (e.target.closest("#addRepetir")) {
+        ui.draft.repetir = !ui.draft.repetir;
+        renderAddSheet(); U.haptic("light"); return;
+      }
+      if ((node = e.target.closest("[data-repfreq]"))) {
+        ui.draft.repFreq = node.getAttribute("data-repfreq");
         renderAddSheet(); U.haptic("light"); return;
       }
       if (e.target.closest("#addDetalles")) {
