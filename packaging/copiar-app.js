@@ -1,5 +1,5 @@
-/* Copia la app (index.html, css/, js/) a packaging/www, que es lo que
-   Capacitor mete dentro del APK.
+/* Copia la app (index.html, css/, js/, fonts/) a packaging/www, que es lo
+   que Capacitor mete dentro del APK.
 
    La app vive un nivel más arriba y no sabe nada de esto: sigue siendo
    HTML/CSS/JS que se abre con doble clic. Este script solo la duplica. */
@@ -10,7 +10,7 @@ const path = require("path");
 const APP = path.resolve(__dirname, "..");
 const WWW = path.join(__dirname, "www");
 
-const INCLUIR = ["index.html", "css", "js"];
+const INCLUIR = ["index.html", "css", "js", "fonts"];
 
 function copiar(src, dst) {
   const stat = fs.statSync(src);

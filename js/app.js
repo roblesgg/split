@@ -2254,6 +2254,21 @@
           '<h2 class="card__title">Apariencia</h2>' +
         '</div>' +
         settingRow("sun", "Tema", themeLabel(theme), "theme", themeShort(theme)) +
+        settingRow("sparkle", "Emojis", emojiHint(S.getEmojiSet()), "emojis",
+                   emojiCorto(S.getEmojiSet())) +
+        /* Twemoji es CC-BY: dejar el crédito a la vista mientras se usa no
+           es un detalle bonito, es la condición de la licencia. */
+        (S.getEmojiSet() === "twemoji"
+          ? '<p class="card__sub card__pad--tight" style="padding-bottom:var(--sp-4)">' +
+              'Emojis de <a href="https://github.com/twitter/twemoji" ' +
+                'target="_blank" rel="noopener">Twemoji</a>, con licencia ' +
+              'CC-BY 4.0.</p>'
+          : S.getEmojiSet() === "noto"
+          ? '<p class="card__sub card__pad--tight" style="padding-bottom:var(--sp-4)">' +
+              'Emojis de <a href="https://github.com/googlefonts/noto-emoji" ' +
+                'target="_blank" rel="noopener">Noto Emoji</a>, con licencia ' +
+              'SIL OFL 1.1.</p>'
+          : "") +
       '</section>' +
 
       '<section class="card card--flush">' +
@@ -2359,6 +2374,20 @@
   function themeShort(t) {
     return t === "dark" ? "Oscuro" : t === "light" ? "Claro" : "Automático";
   }
+
+  /* Los emojis de Apple, Samsung y Xiaomi son fuentes propietarias: no se
+     pueden meter dentro de la app. Quien los quiera los tiene ya con
+     «Sistema», que es justo lo que le pinta su móvil. Lo que se puede
+     traer son los dos de licencia abierta. */
+  var EMOJI_NOMBRE = {
+    sistema: "Los de tu móvil",
+    noto: "Noto, los de Google",
+    twemoji: "Twemoji, planos"
+  };
+  var EMOJI_CORTO = { sistema: "Tu móvil", noto: "Noto", twemoji: "Twemoji" };
+
+  function emojiHint(v) { return EMOJI_NOMBRE[v] || EMOJI_NOMBRE.sistema; }
+  function emojiCorto(v) { return EMOJI_CORTO[v] || EMOJI_CORTO.sistema; }
 
   function settingRow(ic, label, hint, action, value) {
     return '<button type="button" class="setting" data-setting="' + action + '">' +
@@ -2489,6 +2518,24 @@
     /* La guía se puede repetir cuando se quiera: no borra nada, arranca
        con las cuentas que ya hay y solo añade lo que se escriba. */
     if (action === "guia") { startOnboarding(); return; }
+
+    if (action === "emojis") {
+      pick("Juego de emojis", [
+        { value: "sistema", label: EMOJI_NOMBRE.sistema,
+          sub: "Los que te pinta tu teléfono", muestra: "sistema" },
+        { value: "noto", label: EMOJI_NOMBRE.noto,
+          sub: "Los de un Android sin capa encima", muestra: "noto" },
+        { value: "twemoji", label: EMOJI_NOMBRE.twemoji,
+          sub: "Sin sombras ni brillos, como el resto de la app",
+          muestra: "twemoji" }
+      ], S.getEmojiSet()).then(function (v) {
+        if (v == null) return;
+        S.setEmojiSet(v);
+        renderAll();
+        U.toast("Emojis: " + emojiCorto(v).toLowerCase(), { icon: "sparkle" });
+      });
+      return;
+    }
 
     if (action === "export") {
       var blob = new Blob([S.exportJson()], { type: "application/json" });
@@ -4475,6 +4522,11 @@
             '<span class="pick__texto">' +
               '<span class="pick__nombre">' + esc(o.label) + '</span>' +
               (o.sub ? '<span class="pick__sub">' + esc(o.sub) + '</span>' : "") +
+              /* algunas opciones se ven mejor que se explican */
+              (o.muestra
+                ? '<span class="emoji-muestra" data-set="' + esc(o.muestra) + '">' +
+                    "🍽️🏠☕🚗💰" + '</span>'
+                : "") +
             '</span>' +
             (elegida
               ? '<span class="pick__tick" data-icon="check" data-icon-size="16"></span>'
@@ -4783,6 +4835,7 @@
     var firstRun = !S.hasSavedState();
     S.load();
     S.applyTheme(S.getTheme());
+    S.applyEmojiSet(S.getEmojiSet());
 
     /* apunta lo programado que haya vencido desde la última visita */
     var posted = S.runRecurring();

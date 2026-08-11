@@ -8,6 +8,7 @@
 
   var KEY = "split.state.v1";
   var THEME_KEY = "split.theme";
+  var EMOJI_KEY = "split.emoji";
 
   /* ---------- formato ---------- */
 
@@ -1895,6 +1896,33 @@
     else root.setAttribute("data-theme", t);
   }
 
+  /* ---------- juego de emojis ----------
+     Va al lado del tema y por el mismo motivo: es cómo se ve la app, no
+     qué dinero tienes. Fuera del estado, así una copia de seguridad
+     llevada a otro móvil no le impone a nadie unos emojis que allí a lo
+     mejor ni pegan. */
+
+  var EMOJI_SETS = ["sistema", "noto", "twemoji"];
+
+  function getEmojiSet() {
+    var v;
+    try { v = localStorage.getItem(EMOJI_KEY); } catch (e) { v = null; }
+    return EMOJI_SETS.indexOf(v) >= 0 ? v : "sistema";
+  }
+
+  function setEmojiSet(v) {
+    var elegido = EMOJI_SETS.indexOf(v) >= 0 ? v : "sistema";
+    try { localStorage.setItem(EMOJI_KEY, elegido); } catch (e) {}
+    applyEmojiSet(elegido);
+    return elegido;
+  }
+
+  function applyEmojiSet(v) {
+    var root = document.documentElement;
+    if (v === "sistema") root.removeAttribute("data-emoji");
+    else root.setAttribute("data-emoji", v);
+  }
+
   /* ---------- exportar / importar ---------- */
 
   function exportJson() {
@@ -2009,6 +2037,8 @@
 
     /* tema */
     getTheme: getTheme, setTheme: setTheme, applyTheme: applyTheme,
+    getEmojiSet: getEmojiSet, setEmojiSet: setEmojiSet,
+    applyEmojiSet: applyEmojiSet, EMOJI_SETS: EMOJI_SETS,
 
     /* datos */
     exportJson: exportJson, importJson: importJson

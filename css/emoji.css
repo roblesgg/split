@@ -1,0 +1,69 @@
+/* ============================================================
+   split — juegos de emojis
+
+   Los emojis de Apple, Samsung y Xiaomi son fuentes propietarias y no se
+   pueden meter dentro de otra app. Lo que sí se puede es traer los de
+   licencia abierta y dejar elegir; quien quiera los de su marca los tiene
+   ya, eligiendo «Sistema».
+
+   Ninguna de las dos fuentes se descarga si no se usa: el navegador solo
+   va a por el archivo cuando algún carácter en pantalla cae en esa
+   familia, y con «Sistema» nadie la nombra. El que las elige paga el
+   arranque una vez y ya está en caché.
+
+   Las licencias y de dónde sale cada archivo: fonts/LICENCIAS.md
+   ============================================================ */
+
+/* Las dos fuentes traen también el espacio, la almohadilla, el asterisco,
+   los dígitos del 0 al 9 y © ®. Los llevan para poder montar los emojis de
+   tecla (1️⃣), pero el navegador no sabe eso: elige la fuente carácter a
+   carácter, y como la de emojis va primero, TODOS los números de la app se
+   pintarían con ella. En la práctica desaparecen: los saldos se quedan en
+   blanco y el espacio de Noto descoloca cada línea de texto.
+
+   `unicode-range` lo corta de raíz: la fuente solo se mira para lo que hay
+   de U+203C para arriba. Se pierden los emojis de tecla, que ya no pueden
+   formarse sin sus dígitos; a cambio los números se ven. */
+
+/* Noto (Google) — SIL OFL 1.1.
+   Se dibuja más grande que el resto: 1,245 em de avance frente al 1,0 de
+   los demás, que en una línea de texto se nota como huecos enormes
+   alrededor de cada emoji. `size-adjust: 80 %` lo deja clavado al tamaño
+   del sistema sin tocar ni el archivo ni el CSS de alrededor. */
+@font-face {
+  font-family: "SplitNoto";
+  src: url("../fonts/noto-emoji.woff2") format("woff2");
+  size-adjust: 80%;
+  font-display: swap;
+  unicode-range: U+200D, U+203C-3299, U+FE0F, U+1F000-1FAFF, U+E0020-E007F;
+}
+
+/* Twemoji (Twitter, empaquetado por Mozilla) — dibujo CC-BY 4.0.
+   Ya viene con avance de 1 em, así que no hace falta ajustarlo. */
+@font-face {
+  font-family: "SplitTwemoji";
+  src: url("../fonts/twemoji.woff2") format("woff2");
+  font-display: swap;
+  unicode-range: U+200D, U+203C-3299, U+FE0F, U+1F000-1FAFF, U+E0020-E007F;
+}
+
+:root[data-emoji="noto"]    { --emoji: "SplitNoto"; }
+:root[data-emoji="twemoji"] { --emoji: "SplitTwemoji"; }
+
+/* El emoji de una categoría vive en su propia cajita y no hereda la pila
+   de --font, así que se le pone aquí la misma regla. */
+.cat-face {
+  font-family: var(--emoji), "Apple Color Emoji", "Segoe UI Emoji",
+               "Noto Color Emoji", sans-serif;
+}
+
+/* La muestra que se ve al elegir, para comparar antes de decidir. */
+.emoji-muestra {
+  display: flex;
+  gap: var(--sp-2);
+  margin-top: 2px;
+  font-size: 20px;
+  line-height: 1;
+}
+.emoji-muestra[data-set="noto"]    { font-family: "SplitNoto", sans-serif; }
+.emoji-muestra[data-set="twemoji"] { font-family: "SplitTwemoji", sans-serif; }

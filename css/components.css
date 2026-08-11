@@ -1501,11 +1501,11 @@ select.field__input { appearance: none; cursor: pointer; padding-right: var(--sp
    color de la categoría; si el navegador no entiende color-mix se queda
    en el gris de siempre, que sigue siendo legible. */
 
+/* la familia la pone css/emoji.css, que es quien sabe cuál se ha elegido */
 .cat-face {
   display: grid;
   place-items: center;
   line-height: 1;
-  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
   background: var(--surface-2);
   background: color-mix(in srgb, var(--cat-color) 20%, var(--surface-2));
   color: var(--text-primary);

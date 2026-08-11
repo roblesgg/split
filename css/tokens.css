@@ -153,9 +153,21 @@
   --sp-8: 40px;
   --sp-9: 56px;
 
-  /* --- tipografía --- */
-  --font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
-          "Segoe UI Variable Display", "Segoe UI", system-ui, Roboto, Inter, sans-serif;
+  /* --- tipografía ---
+
+     La familia de emojis va DELANTE de todo a propósito. Una fuente de
+     emojis solo lleva emojis, así que las letras normales caen solas en la
+     siguiente de la lista; ponerla al final no serviría de nada, porque
+     `sans-serif` ya resuelve los emojis con los del sistema y no se
+     llegaría a mirar más allá.
+
+     Con «Sistema» apunta a una familia que no existe a propósito: la lista
+     sigue siendo válida y cada carácter acaba donde acababa siempre. */
+  --emoji: "SplitEmojiDelSistema";
+
+  --font: var(--emoji), -apple-system, BlinkMacSystemFont, "SF Pro Display",
+          "SF Pro Text", "Segoe UI Variable Display", "Segoe UI", system-ui,
+          Roboto, Inter, sans-serif;
 
   --w-normal: 500;
   --w-medium: 600;
