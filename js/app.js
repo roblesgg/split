@@ -18,6 +18,7 @@
     movsKind: "all",
     movsQuery: "",
     movsAccount: null,       /* si se llega desde una cuenta, solo la suya */
+    movsCat: null,           /* y si se llega desde una categoría, solo la suya */
     movsMonthOffset: 0,
     draft: null,
     editingId: null,
@@ -303,17 +304,33 @@
         '</button>'
       : "";
 
-    /* --- tiles: en qué se está yendo el mes --- */
-    var topCats = S.byCategory(curKey, "out").slice(0, 4);
+    /* --- en qué se está yendo el mes ---
+       Esto NO es la lista de categorías: es en qué se ha gastado este mes,
+       de más a menos. Llamarlo «Categorías» hacía que la gente entrara a
+       buscar dónde se crean y se encontrara una sola chapa, porque aquí
+       solo sale lo que tiene gasto. Se gestionan en Ajustes.
+
+       Y tocar una abre esa categoría, no la pantalla de estadísticas: si
+       toco «Hogar» quiero ver mis gastos de hogar. */
+    var todasCats = S.byCategory(curKey, "out");
+    var topCats = todasCats.slice(0, 4);
     var cardTiles = topCats.length
       ? '<section>' +
           '<div class="card__head" style="margin-bottom:var(--sp-3)">' +
-            '<h2 class="card__title">Categorías</h2>' +
-            '<button type="button" class="card__link" data-goto="analisis">Ver todas</button>' +
+            '<div>' +
+              '<h2 class="card__title">En qué se te va</h2>' +
+              '<p class="card__sub">' + esc(monthName(curKey)) +
+                (todasCats.length > topCats.length
+                  ? " · " + todasCats.length + " categorías"
+                  : "") + '</p>' +
+            '</div>' +
+            '<button type="button" class="card__link" data-goto="analisis">' +
+              'Ver el detalle</button>' +
           '</div>' +
           '<div class="tiles">' +
             topCats.map(function (c) {
-              return '<button type="button" class="tile" data-goto="analisis">' +
+              return '<button type="button" class="tile" data-cat-movs="' +
+                       esc(c.id) + '">' +
                   catFace(c, 24, "tile__icon") +
                   '<span>' +
                     '<span class="tile__name">' + esc(c.name) + '</span>' +
@@ -588,6 +605,18 @@
       });
     }
 
+    /* Igual que la cuenta: si se ha entrado desde una categoría, se ve
+       solo la suya con su chapa para quitarla. Una madre arrastra a sus
+       hijas, que es como se suman en el resto de la app. */
+    var catFiltro = ui.movsCat ? S.catExacta(ui.movsCat) : null;
+    if (!catFiltro) ui.movsCat = null;
+    if (catFiltro) {
+      list = list.filter(function (t) {
+        var r = S.raizDe(t.categoryId);
+        return t.categoryId === ui.movsCat || (r && r.id === ui.movsCat);
+      });
+    }
+
     if (ui.movsKind !== "all") {
       list = list.filter(function (t) { return t.kind === ui.movsKind; });
     }
@@ -642,13 +671,23 @@
                       'aria-selected="' + (ui.movsKind === "out") + '">Gastos</button>' +
             '</div>' +
 
-            (cuentaFiltro
+            (cuentaFiltro || catFiltro
               ? '<div class="chips">' +
-                  '<button type="button" class="chip" id="movsAccClear" ' +
-                          'aria-pressed="true">' +
-                    esc(cuentaFiltro.name) +
-                    '<span data-icon="close" data-icon-size="11"></span>' +
-                  '</button>' +
+                  (cuentaFiltro
+                    ? '<button type="button" class="chip" id="movsAccClear" ' +
+                              'aria-pressed="true">' +
+                        esc(cuentaFiltro.name) +
+                        '<span data-icon="close" data-icon-size="11"></span>' +
+                      '</button>'
+                    : "") +
+                  (catFiltro
+                    ? '<button type="button" class="chip" id="movsCatClear" ' +
+                              'aria-pressed="true">' +
+                        esc(catFiltro.emoji ? catFiltro.emoji + " " : "") +
+                        esc(catFiltro.name) +
+                        '<span data-icon="close" data-icon-size="11"></span>' +
+                      '</button>'
+                    : "") +
                 '</div>'
               : "") +
           '</div>' +
@@ -3536,9 +3575,24 @@
         U.haptic("light");
         return;
       }
+      /* tocar una categoría del Resumen abre sus movimientos, con la
+         chapa puesta para que se vea por qué se está viendo solo eso */
+      if ((node = e.target.closest("[data-cat-movs]"))) {
+        ui.movsCat = node.getAttribute("data-cat-movs");
+        ui.movsAccount = null;
+        ui.movsKind = "all";
+        ui.movsQuery = "";
+        ui.movsMonthOffset = ui.monthOffset;
+        goTo("movs");
+        U.haptic("light");
+        return;
+      }
       if (e.target.closest("#movsClear")) { ui.movsQuery = ""; renderMovs(); return; }
       if (e.target.closest("#movsAccClear")) {
         ui.movsAccount = null; renderMovs(); U.haptic("light"); return;
+      }
+      if (e.target.closest("#movsCatClear")) {
+        ui.movsCat = null; renderMovs(); U.haptic("light"); return;
       }
 
       if (e.target.closest("#updateNow")) { descargarActualizacion(); return; }

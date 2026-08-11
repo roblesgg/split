@@ -615,6 +615,12 @@
       s.version = 11;
     }
 
+    /* Red de seguridad, al margen de la versión: casi todo el código tira
+       de las categorías por defecto cuando la lista no está, pero crear
+       una necesita el array de verdad. Un estado importado a mano, o
+       guardado a medias, se quedaba sin él y reventaba al añadir. */
+    if (!Array.isArray(s.categories)) s.categories = DEFAULT_CATEGORIES.slice();
+
     invalidateCats();
     return s;
   }
