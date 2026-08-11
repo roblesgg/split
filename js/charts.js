@@ -113,14 +113,19 @@
   var gradSeq = 0;
 
   /* degradado vertical del color de la serie a transparente */
-  function areaGradient(svg, color) {
+  /* El degradado va de arriba abajo de TODO el svg, no del área, así que
+     donde el área se corta —en la línea del cero— la opacidad todavía no
+     ha llegado a cero y se ve un canto recto. Con la rejilla puesta pasa
+     desapercibido; sin ella, ese canto es lo primero que se ve y parece
+     una losa gris. En modo limpio se arranca mucho más bajo. */
+  function areaGradient(svg, color, suave) {
     var id = "split-grad-" + (++gradSeq);
     var defs = svgEl("defs");
     var lg = svgEl("linearGradient", {
       id: id, x1: "0", y1: "0", x2: "0", y2: "1"
     });
     lg.appendChild(svgEl("stop", {
-      offset: "0%", style: "stop-color:" + color + ";stop-opacity:0.24"
+      offset: "0%", style: "stop-color:" + color + ";stop-opacity:" + (suave ? "0.11" : "0.24")
     }));
     lg.appendChild(svgEl("stop", {
       offset: "100%", style: "stop-color:" + color + ";stop-opacity:0"
@@ -184,7 +189,15 @@
     container.innerHTML = "";
 
     var W = widthOf(container);
-    var padL = 40, padR = 46, padT = 16, padB = 26;
+
+    /* Modo limpio: la curva y poco más. Sin rejilla, sin eje vertical y
+       sin números a la izquierda. Lo que se quiere saber de un vistazo es
+       la forma —si sube o baja—, no cuánto vale la tercera raya. La cifra
+       exacta se lee tocando, y la del último punto va siempre escrita. */
+    var limpio = opts.limpio === true;
+
+    var padL = limpio ? 10 : 40;
+    var padR = 46, padT = 16, padB = 26;
     var plotH = opts.height || 150;
     var H = plotH + padT + padB;              /* la banda del eje va dentro */
     var innerW = W - padL - padR;
@@ -221,13 +234,20 @@
       "aria-label": opts.ariaLabel || "Gráfico de líneas"
     });
 
-    /* rejilla + ticks del eje y; la línea del cero se marca como eje */
+    /* Rejilla y números del eje. En modo limpio solo se deja la línea del
+       cero cuando hay valores negativos, porque ahí sí importa saber por
+       dónde se cruza. */
     ticks.forEach(function (t) {
       var y = py(t);
+      var esCero = t === 0 && lo < 0;
+      if (limpio && !esCero) return;
+
       svg.appendChild(svgEl("line", {
-        class: (t === 0 && lo < 0) ? "axis-line" : "grid-line",
+        class: esCero ? "axis-line" : "grid-line",
         x1: padL, y1: y, x2: padL + innerW, y2: y
       }));
+
+      if (limpio) return;
       var lbl = svgEl("text", { class: "tick-label", x: padL - 8, y: y + 3.5, "text-anchor": "end" });
       lbl.textContent = fmtTick(t);
       svg.appendChild(lbl);
@@ -259,7 +279,7 @@
         var dArea = dLine + " L" + pts[pts.length - 1][0].toFixed(1) + "," + baseY.toFixed(1) +
                     " L" + pts[0][0].toFixed(1) + "," + baseY.toFixed(1) + " Z";
         var fill = opts.gradient
-          ? areaGradient(svg, colorOf(s))
+          ? areaGradient(svg, colorOf(s), limpio)
           : colorOf(s);
         svg.appendChild(svgEl("path", {
           class: "series-area fade-in" + (opts.gradient ? " series-area--grad" : ""),
@@ -610,6 +630,94 @@
   }
 
   /* ============================================================
+     3 bis) Rosco de reparto
+
+     Un anillo con un trozo por categoría y el total en el centro. Dice de
+     un vistazo dos cosas a la vez: cuánto en total, y en qué proporciones
+     se ha ido. Una lista de doce cifras no hace ni lo uno ni lo otro.
+
+     Los trozos van separados por un hueco para que se distingan sin
+     depender solo del color, que en escala de grises o con daltonismo se
+     pierde. Y solo se dibujan los que se ven: por debajo del 1,5 % un
+     trozo es una raya que ensucia y no se puede tocar.
+     ============================================================ */
+
+  function donut(container, items, opts) {
+    opts = opts || {};
+    if (!container) return;
+
+    var total = items.reduce(function (a, it) { return a + (it.value || 0); }, 0);
+    if (total <= 0) return;
+
+    var size = opts.size || 190;
+    var stroke = opts.stroke || 26;
+    var hueco = 0.012;                    /* separación entre trozos, en vueltas */
+    var r = (size - stroke) / 2;
+    var cx = size / 2, cy = size / 2;
+    var circ = 2 * Math.PI * r;
+
+    container.classList.add("chart");
+    container.innerHTML = "";
+
+    var svg = svgEl("svg", {
+      class: "donut__svg",
+      viewBox: "0 0 " + size + " " + size,
+      width: size, height: size,
+      role: "img",
+      "aria-label": opts.ariaLabel || "Reparto por categoría"
+    });
+
+    /* canal de fondo, para que el anillo se lea aunque falten trozos */
+    svg.appendChild(svgEl("circle", {
+      class: "donut__pista", cx: cx, cy: cy, r: r,
+      fill: "none", "stroke-width": stroke
+    }));
+
+    var visibles = items.filter(function (it) {
+      return (it.value || 0) / total >= 0.015;
+    });
+    var sumaVis = visibles.reduce(function (a, it) { return a + it.value; }, 0);
+
+    var acumulado = 0;
+    visibles.forEach(function (it, i) {
+      var frac = it.value / sumaVis;
+      var largo = Math.max(0, frac - hueco) * circ;
+
+      var arco = svgEl("circle", {
+        class: "donut__trozo fade-in",
+        cx: cx, cy: cy, r: r,
+        fill: "none",
+        stroke: catColor(it),
+        "stroke-width": stroke,
+        "stroke-linecap": "butt",
+        "stroke-dasharray": largo.toFixed(2) + " " + (circ - largo).toFixed(2),
+        "stroke-dashoffset": (-acumulado * circ).toFixed(2),
+        /* el dash empieza a las tres en punto; se gira para empezar arriba */
+        transform: "rotate(-90 " + cx + " " + cy + ")",
+        style: "--i:" + i
+      });
+      var titulo = svgEl("title");
+      titulo.textContent = it.name + " · " + (opts.format ? opts.format(it.value) : it.value);
+      arco.appendChild(titulo);
+      svg.appendChild(arco);
+
+      acumulado += frac;
+    });
+
+    container.appendChild(svg);
+
+    /* El centro es HTML y no SVG: así hereda la tipografía y los tamaños
+       del resto de la app sin repetirlos aquí. */
+    var centro = document.createElement("div");
+    centro.className = "donut__centro";
+    centro.innerHTML =
+      '<span class="donut__label">' + (opts.label || "Total") + '</span>' +
+      '<span class="donut__valor">' +
+        (opts.format ? opts.format(total) : total) + '</span>';
+    container.appendChild(centro);
+  }
+
+  /* ============================================================
      4) Anillo de progreso
      ============================================================ */
 
@@ -844,6 +952,7 @@
     divergingColumns: divergingColumns,
     sparkline: sparkline,
     progressRing: progressRing,
+    donut: donut,
     heatmap: heatmap,
     stackedBreakdown: stackedBreakdown,
     seriesColor: seriesColor,

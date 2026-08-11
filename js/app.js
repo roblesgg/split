@@ -755,6 +755,9 @@
             '<p class="card__sub">' + esc(S.monthLabel(key)) + '</p>' +
           '</div>' +
         '</div>' +
+        /* El rosco dice el total y las proporciones a la vez; la lista de
+           debajo, la cifra exacta de cada una. Cada cosa hace lo suyo. */
+        '<div class="donut" id="donutCats"></div>' +
         '<div id="chartCats"></div>' +
         U.tableView("tblCats", ["Categoría", "Importe", "Peso"],
           cats.map(function (c) {
@@ -854,6 +857,9 @@
       format: money,
       smooth: true,
       gradient: true,
+      /* sin rejilla ni números al margen: la forma se lee sola y la
+         cifra exacta sale al tocar */
+      limpio: true,
       thick: 3,
       height: isDesktop() ? 190 : 155,
       ariaLabel: ui.anView === "gastos"
@@ -870,6 +876,12 @@
       ariaLabel: "Ahorro neto por mes"
     });
 
+    C.donut($("#donutCats", root), cats, {
+      format: S.moneyShort,
+      label: "Gastado",
+      size: isDesktop() ? 210 : 180,
+      ariaLabel: "Reparto del gasto por categoría"
+    });
     C.stackedBreakdown($("#chartCats", root), cats, { format: money });
     C.heatmap($("#chartHeat", root), days, { format: money });
 

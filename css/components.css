@@ -899,6 +899,58 @@
 
 .pick[aria-pressed="true"] .pick__nombre { font-weight: var(--w-semi); }
 
+/* ---------- rosco de reparto ---------- */
+
+.donut {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin-bottom: var(--sp-5);
+}
+
+.donut__svg { display: block; }
+
+.donut__pista { stroke: var(--surface-2); }
+
+.donut__trozo {
+  /* entran uno detrás de otro, no todos a la vez */
+  animation-delay: calc(var(--i, 0) * 60ms);
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+/* El centro va encima del svg, centrado sobre el agujero. */
+.donut__centro {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+
+.donut__label {
+  display: block;
+  font-size: 11px;
+  font-weight: var(--w-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.donut__valor {
+  display: block;
+  margin-top: 2px;
+  font-size: 22px;
+  font-weight: var(--w-bold);
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .donut__trozo { animation: none; }
+}
+
 /* ---------- filas del presupuesto ---------- */
 
 .pres-fila {
