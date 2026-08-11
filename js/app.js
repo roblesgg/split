@@ -22,6 +22,8 @@
     draft: null,
     editingId: null,
     cuentaReturn: null,      /* a qué cuenta volver al salir de su edición */
+    opcionesRec: false,      /* «Más opciones» del formulario de programado */
+    detallesAbiertos: false, /* «Más detalles» de la hoja de apuntar */
     update: null            /* { version, name, url } si hay una release nueva */
   };
 
@@ -1218,6 +1220,7 @@
     }
 
     form = { type: type, id: id || null, d: d };
+    ui.opcionesRec = false;
 
     $("#sheetFormTitle").textContent = {
       account: id ? "Editar cuenta" : "Nueva cuenta",
@@ -1371,12 +1374,8 @@
         '</div>' +
         '<div class="field__row" style="margin-top:var(--sp-5)">' +
           '<div>' +
-            '<label class="field__label" for="fType">Tipo</label>' +
-            '<select class="field__input" id="fType" data-f="Type">' +
-              ["Banco", "Ahorro", "Efectivo", "Tarjeta"].map(function (x) {
-                return '<option' + (d.type === x ? " selected" : "") + '>' + x + '</option>';
-              }).join("") +
-            '</select>' +
+            '<span class="field__label">Tipo</span>' +
+            pickField("fType", d.type, d.type) +
           '</div>' +
           numField("fOpening", "Saldo inicial", d.opening, 10) +
         '</div>' +
@@ -1479,6 +1478,9 @@
       var mismaCuenta = d.kind === "transfer" && d.accountId === d.toAccountId;
       var esSem = d.freq === "semanal";
       var modoImporte = d.kind === "in" ? (d.modo || "fijo") : "fijo";
+      /* Un traspaso necesita sus dos cuentas sí o sí, así que ahí las
+         opciones se abren de entrada. */
+      var opcionesAbiertas = ui.opcionesRec || d.kind === "transfer";
 
       html =
         '<div class="segmented" id="fSeg" role="tablist">' +
@@ -1600,48 +1602,58 @@
               icon("check", 12) + ' Se te preguntará cada vez, que para eso ' +
               'no hay una cifra fija.</p>') +
 
-        /* A qué hora avisa. Un aviso a las nueve de la mañana de algo que
-           se cobra al salir del turno no sirve de nada. */
-        '<div class="field__row" style="margin-top:var(--sp-5)">' +
-          '<div>' +
-            '<label class="field__label" for="fHora">A qué hora</label>' +
-            '<input type="time" class="field__input" id="fHora" data-f="Hora" ' +
-                   'value="' + esc(d.hora || "09:00") + '">' +
+        /* Hora, aviso, cuenta y categoría van recogidos. Con nueve
+           controles delante, crear una nómina normal daba pereza; lo de
+           arriba —concepto, importe, cada cuánto y qué día— es lo que casi
+           siempre basta. */
+        '<div class="field" style="margin-top:var(--sp-4)">' +
+          '<button type="button" class="fold-head fold-head--suelto" id="fOpciones" ' +
+                  'aria-expanded="' + opcionesAbiertas + '">' +
+            '<span class="card__title">Más opciones</span>' +
+            '<span class="fold-head__chev" data-icon="chevDown" data-icon-size="15"></span>' +
+          '</button>' +
+          '<div class="fold" data-open="' + opcionesAbiertas + '">' +
+            '<div class="fold__inner">' +
+
+              /* A qué hora. Un aviso a las nueve de la mañana de algo que
+                 se cobra al salir del turno no sirve de nada. */
+              '<div class="field__row">' +
+                '<div>' +
+                  '<label class="field__label" for="fHora">A qué hora</label>' +
+                  '<input type="time" class="field__input" id="fHora" data-f="Hora" ' +
+                         'value="' + esc(d.hora || "09:00") + '">' +
+                '</div>' +
+                '<div></div>' +
+              '</div>' +
+
+              switchRow("fAvisar", "Avisarme en el móvil",
+                "Una notificación el día que toque, a esa hora",
+                d.avisar) +
+
+              (d.kind === "transfer"
+                ? '<div class="field__row" style="margin-top:var(--sp-5)">' +
+                    '<div>' +
+                      '<span class="field__label">Desde</span>' +
+                      accountSelect("fAccount", d.accountId) +
+                    '</div>' +
+                    '<div>' +
+                      '<span class="field__label">Hacia</span>' +
+                      accountSelect("fToAccount", d.toAccountId) +
+                    '</div>' +
+                  '</div>'
+                : '<div class="field__row" style="margin-top:var(--sp-5)">' +
+                    '<div>' +
+                      '<span class="field__label">Categoría</span>' +
+                      pickField("fCat", d.categoryId, catOf(d.categoryId).name) +
+                    '</div>' +
+                    '<div>' +
+                      '<span class="field__label">Cuenta</span>' +
+                      accountSelect("fAccount", d.accountId) +
+                    '</div>' +
+                  '</div>') +
+            '</div>' +
           '</div>' +
-          '<div></div>' +
         '</div>' +
-
-        switchRow("fAvisar", "Avisarme en el móvil",
-          "Una notificación el día que toque, a esa hora",
-          d.avisar) +
-
-        (d.kind === "transfer"
-          ? '<div class="field__row" style="margin-top:var(--sp-5)">' +
-              '<div>' +
-                '<label class="field__label" for="fAccount">Desde</label>' +
-                accountSelect("fAccount", d.accountId) +
-              '</div>' +
-              '<div>' +
-                '<label class="field__label" for="fToAccount">Hacia</label>' +
-                accountSelect("fToAccount", d.toAccountId) +
-              '</div>' +
-            '</div>'
-          : '<div class="field__row" style="margin-top:var(--sp-5)">' +
-              '<div>' +
-                '<label class="field__label" for="fCat">Categoría</label>' +
-                '<select class="field__input" id="fCat" data-f="Cat">' +
-                  cats.map(function (c) {
-                    return '<option value="' + esc(c.id) + '"' +
-                           (d.categoryId === c.id ? " selected" : "") + '>' +
-                           esc(c.name) + '</option>';
-                  }).join("") +
-                '</select>' +
-              '</div>' +
-              '<div>' +
-                '<label class="field__label" for="fAccount">Cuenta</label>' +
-                accountSelect("fAccount", d.accountId) +
-              '</div>' +
-            '</div>') +
 
         '<p class="field__hint">' +
           (mismaCuenta
@@ -1931,13 +1943,8 @@
 
         (modo === "auto"
           ? '<div class="field">' +
-              '<label class="field__label" for="incMonths">Meses que promedia</label>' +
-              '<select class="field__input" id="incMonths">' +
-                [3, 6, 12].map(function (n) {
-                  return '<option value="' + n + '"' +
-                         (inc.months === n ? " selected" : "") + '>' + n + ' meses</option>';
-                }).join("") +
-              '</select>' +
+              '<span class="field__label">Meses que promedia</span>' +
+              pickField("incMonths", inc.months, inc.months + " meses") +
               '<p class="field__hint">Cuenta lo que te ha entrado de verdad. ' +
                 'Un mes con paga extra sube la media solo.</p>' +
             '</div>'
@@ -2231,12 +2238,6 @@
       }
     });
 
-    root.addEventListener("change", function (e) {
-      if (e.target.id !== "incMonths") return;
-      S.setIncome({ months: +e.target.value });
-      renderAjustes();
-    });
-
     root.addEventListener("click", function (e) {
       var node;
 
@@ -2348,6 +2349,9 @@
   function openAdd(kind, txId, opts) {
     var t = txId ? S.state.transactions.find(function (x) { return x.id === txId; }) : null;
     ui.editingId = txId || null;
+    /* Cada vez que se abre, los detalles vuelven a estar recogidos: el
+       plegable se abre solo si el movimiento ya trae algo dentro. */
+    ui.detallesAbiertos = false;
     var accs = S.state.accounts;
     ui.draft = t
       ? { kind: t.kind, amount: String(Math.round(t.amount * 100)), categoryId: t.categoryId,
@@ -2440,6 +2444,76 @@
     mountIcons(box);
   }
 
+  /* Lo que no hace falta ver para apuntar un gasto normal. Se abre solo
+     cuando el movimiento ya trae algo dentro: si estás editando una cena
+     con foto y notas y no las vieras, pensarías que se han perdido. */
+  function detallesHtml(d) {
+    var traeAlgo = !!(String(d.note).trim() || String(d.memo).trim() ||
+                      (d.tags && d.tags.length) ||
+                      (ui.draftAttachments && ui.draftAttachments.length) ||
+                      /* en un traspaso las dos cuentas están aquí dentro y
+                         son imprescindibles: no se puede empezar cerrado */
+                      d.kind === "transfer");
+    var abierto = ui.detallesAbiertos || traeAlgo;
+
+    return '<div class="field" style="margin-top:var(--sp-4)">' +
+        '<button type="button" class="fold-head fold-head--suelto" id="addDetalles" ' +
+                'aria-expanded="' + abierto + '">' +
+          '<span class="card__title">Más detalles</span>' +
+          '<span class="fold-head__chev" data-icon="chevDown" data-icon-size="15"></span>' +
+        '</button>' +
+
+        '<div class="fold" data-open="' + abierto + '">' +
+          '<div class="fold__inner">' +
+
+            '<div class="field">' +
+              '<label class="field__label" for="addNote">Título</label>' +
+              '<input type="text" class="field__input" id="addNote" maxlength="40" ' +
+                     'placeholder="' + esc(catOf(d.categoryId).name) + '" ' +
+                     'value="' + esc(d.note) + '">' +
+            '</div>' +
+
+            (d.kind === "transfer"
+              ? '<div class="field__row">' +
+                  '<div>' +
+                    '<span class="field__label">Desde</span>' +
+                    accountSelect("addAccount", d.accountId) +
+                  '</div>' +
+                  '<div>' +
+                    '<span class="field__label">Hacia</span>' +
+                    accountSelect("addToAccount", d.toAccountId) +
+                  '</div>' +
+                '</div>'
+              : "") +
+
+            '<div class="field__row">' +
+              '<div>' +
+                '<label class="field__label" for="addDate">Fecha</label>' +
+                '<input type="date" class="field__input" id="addDate" value="' +
+                       esc(d.date) + '" max="' + esc(S.ymd(new Date())) + '">' +
+              '</div>' +
+              '<div>' +
+                '<label class="field__label" for="addTime">Hora</label>' +
+                '<input type="time" class="field__input" id="addTime" value="' +
+                       esc(d.time) + '">' +
+              '</div>' +
+            '</div>' +
+
+            tagsFieldHtml(d) +
+
+            '<div class="field">' +
+              '<label class="field__label" for="addMemo">Notas</label>' +
+              '<textarea class="field__input field__input--area" id="addMemo" rows="3" ' +
+                        'maxlength="500" placeholder="Lo que quieras recordar de este ' +
+                        'movimiento">' + esc(d.memo) + '</textarea>' +
+            '</div>' +
+
+            attachFieldHtml() +
+          '</div>' +
+        '</div>' +
+      '</div>';
+  }
+
   function nowHHMM() {
     var d = new Date();
     var h = d.getHours(), m = d.getMinutes();
@@ -2447,12 +2521,71 @@
   }
 
   function accountSelect(id, selected) {
-    return '<select class="field__input" id="' + id + '">' +
-      S.state.accounts.map(function (a) {
-        return '<option value="' + esc(a.id) + '"' +
-               (a.id === selected ? " selected" : "") + '>' + esc(a.name) + '</option>';
-      }).join("") +
-    '</select>';
+    var a = S.state.accounts.find(function (x) { return x.id === selected; })
+            || S.state.accounts[0];
+    return pickField(id, a ? a.id : "", a ? a.name : "—");
+  }
+
+  /* Las opciones de cada desplegable, en un sitio: así el campo y la hoja
+     que abre no se pueden desincronizar. */
+  function opcionesDe(id) {
+    if (id === "addAccount" || id === "addToAccount" ||
+        id === "fAccount" || id === "fToAccount") {
+      return {
+        titulo: (id === "addToAccount" || id === "fToAccount") ? "¿Hacia dónde?" : "¿Qué cuenta?",
+        lista: S.state.accounts.map(function (a) {
+          return { value: a.id, label: a.name, sub: a.type, color: a.color || 1 };
+        })
+      };
+    }
+    if (id === "fCat") {
+      var kind = form.d.kind === "in" ? "in" : "out";
+      return {
+        titulo: "¿Qué categoría?",
+        lista: S.CATEGORIES.filter(function (c) { return c.kind === kind; })
+          .map(function (c) {
+            return { value: c.id, label: c.name, emoji: c.emoji, color: c.color };
+          })
+      };
+    }
+    if (id === "fType") {
+      return {
+        titulo: "¿Qué tipo de cuenta?",
+        lista: ["Banco", "Ahorro", "Efectivo", "Tarjeta"].map(function (x) {
+          return { value: x, label: x };
+        })
+      };
+    }
+    if (id === "incMonths") {
+      return {
+        titulo: "¿Cuántos meses promedia?",
+        lista: [3, 6, 12].map(function (n) {
+          return { value: n, label: n + " meses" };
+        })
+      };
+    }
+    return null;
+  }
+
+  /* Qué hacer con lo elegido. Cada campo sabe lo suyo. */
+  function aplicarPick(id, valor) {
+    if (id === "addAccount") {
+      ui.draft.accountId = valor;
+      renderAddSheet();
+    } else if (id === "addToAccount") {
+      ui.draft.toAccountId = valor;
+      renderAddSheet();
+    } else if (id === "fAccount") {
+      form.d.accountId = valor; renderForm();
+    } else if (id === "fToAccount") {
+      form.d.toAccountId = valor; renderForm();
+    } else if (id === "fCat") {
+      form.d.categoryId = valor; renderForm();
+    } else if (id === "fType") {
+      form.d.type = valor; renderForm();
+    } else if (id === "incMonths") {
+      S.setIncome({ months: +valor }); renderAjustes();
+    }
   }
 
   function draftValue() {
@@ -2529,71 +2662,36 @@
             '<p class="field__hint">Mantén pulsada una categoría para editarla.</p>' +
           '</div>') +
 
-      '<div class="field">' +
-        '<label class="field__label" for="addNote">Título</label>' +
-        '<input type="text" class="field__input" id="addNote" maxlength="40" ' +
-               'placeholder="' + esc(catOf(d.categoryId).name) + '" value="' + esc(d.note) + '">' +
-      '</div>' +
-
+      /* Solo en un traspaso hacen falta las dos cuentas delante. */
       (d.kind === "transfer"
-        ? '<div class="field__row">' +
-            '<div>' +
-              '<label class="field__label" for="addDate">Fecha</label>' +
-              '<input type="date" class="field__input" id="addDate" value="' + esc(d.date) + '" ' +
-                     'max="' + esc(S.ymd(new Date())) + '">' +
-            '</div>' +
-            '<div>' +
-              '<label class="field__label" for="addTime">Hora</label>' +
-              '<input type="time" class="field__input" id="addTime" value="' + esc(d.time) + '">' +
-            '</div>' +
-          '</div>'
-        : (d.reparto
-            ? repartoHtml(d, v)
-            : '<div class="field__row" style="margin-top:var(--sp-4)">' +
-                '<div>' +
-                  '<label class="field__label" for="addAccount">Cuenta</label>' +
-                  accountSelect("addAccount", d.accountId) +
-                '</div>' +
-                '<div>' +
-                  '<label class="field__label" for="addDate">Fecha</label>' +
-                  '<input type="date" class="field__input" id="addDate" value="' +
-                         esc(d.date) + '" max="' + esc(S.ymd(new Date())) + '">' +
-                '</div>' +
-              '</div>') +
+        ? ""
+        : d.reparto
+          ? repartoHtml(d, v)
+          : '<div class="field" style="margin-top:var(--sp-4)">' +
+              '<span class="field__label">Cuenta</span>' +
+              accountSelect("addAccount", d.accountId) +
+            '</div>') +
 
-          /* Solo tiene sentido en un ingreso nuevo y con más de una cuenta:
-             editar uno ya guardado es editar ese, no repartir de nuevo. */
-          (d.kind === "in" && !ui.editingId && S.state.accounts.length > 1
-            ? '<button type="button" class="btn btn--ghost" id="addReparto" ' +
-                      'style="width:100%;margin-top:var(--sp-3)">' +
-                icon(d.reparto ? "close" : "swap", 15) +
-                (d.reparto ? "Ingresar todo en una cuenta" : "Repartir entre varias cuentas") +
-              '</button>'
-            : "") +
+      /* Solo tiene sentido en un ingreso nuevo y con más de una cuenta:
+         editar uno ya guardado es editar ese, no repartir de nuevo. */
+      (d.kind === "in" && !ui.editingId && S.state.accounts.length > 1
+        ? '<button type="button" class="btn btn--ghost" id="addReparto" ' +
+                  'style="width:100%;margin-top:var(--sp-3)">' +
+            icon(d.reparto ? "close" : "swap", 15) +
+            (d.reparto ? "Ingresar todo en una cuenta" : "Repartir entre varias cuentas") +
+          '</button>'
+        : "") +
 
-          (d.reparto
-            ? '<div class="field">' +
-                '<label class="field__label" for="addDate">Fecha</label>' +
-                '<input type="date" class="field__input" id="addDate" value="' +
-                       esc(d.date) + '" max="' + esc(S.ymd(new Date())) + '">' +
-              '</div>'
-            : "") +
+      /* Y el resto, cerrado. Apuntar un café son dos toques: importe y
+         categoría. Tener delante título, fecha, hora, etiquetas, notas y
+         adjuntos convertía eso en un formulario que hay que atravesar con
+         la vista cada vez.
 
-          '<div class="field">' +
-            '<label class="field__label" for="addTime">Hora</label>' +
-            '<input type="time" class="field__input" id="addTime" value="' + esc(d.time) + '">' +
-          '</div>') +
-
-      tagsFieldHtml(d) +
-
-      '<div class="field">' +
-        '<label class="field__label" for="addMemo">Notas</label>' +
-        '<textarea class="field__input field__input--area" id="addMemo" rows="3" ' +
-                  'maxlength="500" placeholder="Lo que quieras recordar de este ' +
-                  'movimiento">' + esc(d.memo) + '</textarea>' +
-      '</div>' +
-
-      attachFieldHtml() +
+         No se pierde nada: lo que no se rellena tiene un valor sensato
+         —el título es el nombre de la categoría, la fecha hoy, la hora
+         ahora—. Y si el movimiento que se edita ya trae detalles, se abre
+         solo, que si no parecería que se han borrado. */
+      detallesHtml(d) +
 
       '<div class="field" style="margin-top:var(--sp-5)">' +
         '<button type="button" class="btn btn--primary" id="addSave"' +
@@ -3151,6 +3249,15 @@
       }
     });
 
+    /* Los desplegables propios salen en las vistas y también dentro de
+       varias hojas, así que se escuchan una sola vez en el documento en
+       vez de repetir el mismo enganche en cada sitio. */
+    document.addEventListener("click", function (e) {
+      var node = e.target.closest("[data-pick-open]");
+      if (!node) return;
+      abrirPick(node.getAttribute("data-pick-open"), node.getAttribute("data-value"));
+    });
+
     /* --- confirmar un programado --- */
     var cobroBody = $("#sheetCobroBody");
 
@@ -3232,8 +3339,6 @@
     function readField(el) {
       var key = el.getAttribute("data-f");
       if (key && FIELD_MAP[key]) { FIELD_MAP[key](el.value); return true; }
-      if (el.id === "fAccount") { form.d.accountId = el.value; return true; }
-      if (el.id === "fToAccount") { form.d.toAccountId = el.value; return true; }
       return false;
     }
 
@@ -3246,15 +3351,7 @@
       if (form.type === "saldo") refreshAjuste();
     });
 
-    formBody.addEventListener("change", function (e) {
-      if (!readField(e.target)) return;
-      /* elegir cuenta en un traspaso puede dejar origen y destino iguales:
-         hay que repintar para mostrar el aviso y bloquear el guardado */
-      if (form.type === "recurring" && form.d.kind === "transfer" &&
-          (e.target.id === "fAccount" || e.target.id === "fToAccount")) {
-        renderForm();
-      }
-    });
+    formBody.addEventListener("change", function (e) { readField(e.target); });
 
     formBody.addEventListener("click", function (e) {
       var node;
@@ -3303,6 +3400,10 @@
         renderForm();
         U.haptic("light");
         return;
+      }
+      if (e.target.closest("#fOpciones")) {
+        ui.opcionesRec = !ui.opcionesRec;
+        renderForm(); U.haptic("light"); return;
       }
       if (e.target.closest("#fAvisar")) {
         var sw = e.target.closest("#fAvisar");
@@ -3376,6 +3477,10 @@
         if (ui.draft.kind === "in") ui.draft.categoryId = "nomina";
         else if (ui.draft.kind === "out") ui.draft.categoryId = "comida";
         else ui.draft.categoryId = "otros";
+        renderAddSheet(); U.haptic("light"); return;
+      }
+      if (e.target.closest("#addDetalles")) {
+        ui.detallesAbiertos = !ui.detallesAbiertos;
         renderAddSheet(); U.haptic("light"); return;
       }
       if (e.target.closest("#addReparto")) {
@@ -3460,14 +3565,6 @@
     });
 
     addBody.addEventListener("change", function (e) {
-      if (e.target.id === "addAccount") {
-        ui.draft.accountId = e.target.value;
-        if (ui.draft.kind === "transfer") renderAddSheet();
-      }
-      if (e.target.id === "addToAccount") {
-        ui.draft.toAccountId = e.target.value;
-        renderAddSheet();
-      }
       if (e.target.id === "addDate") ui.draft.date = e.target.value;
       if (e.target.id === "addTime") ui.draft.time = e.target.value;
     });
@@ -3634,6 +3731,73 @@
 
   function skipOnboarding() {
     closeOnboarding();
+  }
+
+  /* ============================================================
+     Elegir de una lista
+
+     Los <select> abren el menú del sistema: una lista gris, con su propia
+     tipografía y sus propias esquinas, que no se parece a nada de lo que
+     hay alrededor. En una pantalla cuidada canta más que cualquier otra
+     cosa.
+
+     Esto es lo mismo pero en una hoja de la app: cada opción una fila
+     tocable, con su emoji o su color si lo tiene, y la elegida marcada.
+     De paso se toca mejor con el pulgar que una lista de sistema.
+     ============================================================ */
+
+  var pickPendiente = null;   /* { resolver } */
+
+  /* opciones: [{ value, label, sub, emoji, color }] */
+  function pick(titulo, opciones, valor) {
+    return new Promise(function (resolver) {
+      pickPendiente = { resolver: resolver };
+
+      $("#sheetPickTitle").textContent = titulo;
+      $("#sheetPickBody").innerHTML = opciones.map(function (o) {
+        var elegida = String(o.value) === String(valor);
+        return '<button type="button" class="pick" data-pick="' + esc(o.value) + '" ' +
+                 'aria-pressed="' + elegida + '">' +
+            (o.emoji
+              ? '<span class="pick__cara cat-face"' +
+                  (o.color ? ' style="--cat-color:var(--cat-' + o.color + ')"' : '') +
+                  '>' + esc(o.emoji) + '</span>'
+              : o.color
+                ? '<span class="pick__punto" style="background:var(--cat-' +
+                    o.color + ')"></span>'
+                : '') +
+            '<span class="pick__texto">' +
+              '<span class="pick__nombre">' + esc(o.label) + '</span>' +
+              (o.sub ? '<span class="pick__sub">' + esc(o.sub) + '</span>' : "") +
+            '</span>' +
+            (elegida
+              ? '<span class="pick__tick" data-icon="check" data-icon-size="16"></span>'
+              : '') +
+          '</button>';
+      }).join("");
+
+      mountIcons($("#sheetPickBody"));
+      sheets.pick.show();
+    });
+  }
+
+  function abrirPick(id, valorActual) {
+    var cfg = opcionesDe(id);
+    if (!cfg) return;
+    pick(cfg.titulo, cfg.lista, valorActual).then(function (v) {
+      if (v == null) return;
+      aplicarPick(id, v);
+    });
+  }
+
+  /* Un campo que parece un desplegable pero abre la hoja de arriba. */
+  function pickField(id, valor, texto) {
+    return '<button type="button" class="field__input field__select" ' +
+             'id="' + id + '" data-pick-open="' + esc(id) + '" ' +
+             'data-value="' + esc(valor) + '">' +
+        '<span class="field__select-txt">' + esc(texto) + '</span>' +
+        '<span class="field__select-chev" data-icon="chevDown" data-icon-size="15"></span>' +
+      '</button>';
   }
 
   /* ============================================================
@@ -3924,6 +4088,26 @@
     sheets.form = new U.Sheet($("#sheetForm"), $("#scrim"));
     sheets.cobro = new U.Sheet($("#sheetCobro"), $("#scrim"));
     sheets.cuenta = new U.Sheet($("#sheetCuenta"), $("#scrim"));
+    sheets.pick = new U.Sheet($("#sheetPick"), $("#scrim"));
+
+    /* Cerrar sin elegir resuelve a null: quien la abrió deja las cosas
+       como estaban en vez de quedarse esperando para siempre. */
+    sheets.pick.onClose = function () {
+      if (!pickPendiente) return;
+      var r = pickPendiente.resolver;
+      pickPendiente = null;
+      r(null);
+    };
+
+    $("#sheetPickBody").addEventListener("click", function (e) {
+      var node = e.target.closest("[data-pick]");
+      if (!node || !pickPendiente) return;
+      var r = pickPendiente.resolver;
+      pickPendiente = null;
+      sheets.pick.close();
+      U.haptic("light");
+      r(node.getAttribute("data-pick"));
+    });
 
     /* Al formulario de categoría se llega a veces desde un movimiento a
        medio escribir. Salir de ahí de cualquier manera —la X, el botón
