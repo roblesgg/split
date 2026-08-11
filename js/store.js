@@ -1435,6 +1435,89 @@
     };
   }
 
+  /* ---------- las tres cifras del Resumen ----------
+     Ingresos, gastos y ahorro son «del mes y de todas las cuentas» por
+     defecto, que es lo que quiere ver casi todo el mundo casi siempre.
+     Pero no todo el mundo: hay quien lleva una cuenta de gastos comunes
+     aparte y no quiere que le ensucie sus números, y hay quien mira el
+     año, no el mes.
+
+     Se guarda en el estado, no en memoria: si lo cambias es porque así lo
+     quieres ver, no solo esta vez. */
+
+  var RESUMEN_POR_DEFECTO = { cuentas: null, periodo: "mes", dias: 30 };
+
+  function resumenCfg() {
+    var c = state.resumen || {};
+
+    /* null = todas. Se quitan las que ya no existan, y si al quitarlas no
+       queda ninguna se vuelve a «todas»: una lista vacía dejaría las tres
+       cifras a cero sin que nadie entienda por qué. */
+    var elegidas = Array.isArray(c.cuentas)
+      ? c.cuentas.filter(function (id) {
+          return state.accounts.some(function (a) { return a.id === id; });
+        })
+      : null;
+
+    return {
+      cuentas: elegidas && elegidas.length ? elegidas : null,
+      periodo: ["mes", "ano", "dias", "todo"].indexOf(c.periodo) >= 0 ? c.periodo : "mes",
+      dias: Math.min(3650, Math.max(1, parseInt(c.dias, 10) || 30))
+    };
+  }
+
+  function setResumen(patch) {
+    state.resumen = Object.assign({}, resumenCfg(), patch);
+    save();
+  }
+
+  /* Desde qué fecha cuenta. null = desde siempre. */
+  function desdeDelResumen(cfg) {
+    var hoy = new Date();
+    if (cfg.periodo === "todo") return null;
+    if (cfg.periodo === "ano") return ymd(new Date(hoy.getFullYear(), 0, 1));
+    if (cfg.periodo === "dias") {
+      var d = new Date(hoy);
+      d.setDate(d.getDate() - (cfg.dias - 1));
+      return ymd(d);
+    }
+    return ymd(new Date(hoy.getFullYear(), hoy.getMonth(), 1));
+  }
+
+  function txDelResumen() {
+    var cfg = resumenCfg();
+    var desde = desdeDelResumen(cfg);
+    var hasta = ymd(new Date());
+
+    return state.transactions.filter(function (t) {
+      if (desde && (t.date < desde || t.date > hasta)) return false;
+      if (!cfg.cuentas) return true;
+      /* de un traspaso solo cuenta la punta que esté dentro del filtro, y
+         como los traspasos no son ni ingreso ni gasto, da igual: totals()
+         ya los ignora */
+      return cfg.cuentas.indexOf(t.accountId) >= 0 ||
+             (t.toAccountId && cfg.cuentas.indexOf(t.toAccountId) >= 0);
+    });
+  }
+
+  function totalesResumen() { return totals(txDelResumen()); }
+
+  /* Cómo se lee el filtro puesto, para escribirlo debajo de las cifras. */
+  function etiquetaResumen() {
+    var cfg = resumenCfg();
+    var cuando = cfg.periodo === "ano" ? "Este año"
+               : cfg.periodo === "todo" ? "Desde el principio"
+               : cfg.periodo === "dias" ? "Últimos " + cfg.dias + " días"
+               : "Este mes";
+
+    if (!cfg.cuentas) return cuando;
+    if (cfg.cuentas.length === 1) {
+      var a = state.accounts.find(function (x) { return x.id === cfg.cuentas[0]; });
+      return cuando + " · " + (a ? a.name : "una cuenta");
+    }
+    return cuando + " · " + cfg.cuentas.length + " cuentas";
+  }
+
   /* ---------- corregir el saldo ----------
      A todos se nos escapa algún gasto: pagas un café en efectivo, no lo
      apuntas, y al cabo del mes la app dice una cifra y el banco otra. En
@@ -1887,6 +1970,11 @@
 
     /* ingresos y reparto */
     corregirSaldo: corregirSaldo,
+
+    /* las tres cifras del Resumen */
+    resumenCfg: resumenCfg, setResumen: setResumen,
+    totalesResumen: totalesResumen, etiquetaResumen: etiquetaResumen,
+    RESUMEN_POR_DEFECTO: RESUMEN_POR_DEFECTO,
 
     plannedIncome: plannedIncome, setIncome: setIncome,
     averageIncome: averageIncome, declaredIncome: declaredIncome,

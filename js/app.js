@@ -70,11 +70,22 @@
   }
   function isDesktop() { return window.matchMedia("(min-width: 900px)").matches; }
 
-  function seriesEnding(endKey, n) {
+  /* «cuentas» limita la serie a unas cuantas; null son todas. Lo usa el
+     Resumen para que la rayita de debajo de cada cifra hable de lo mismo
+     que la cifra: una línea de todas las cuentas bajo un número de una
+     sola sería una mentira pequeña pero mentira. */
+  function seriesEnding(endKey, n, cuentas) {
     var out = [];
     for (var i = n - 1; i >= 0; i--) {
       var key = S.addMonths(endKey, -i);
-      var t = S.totals(S.txOfMonth(key));
+      var mes = S.txOfMonth(key);
+      if (cuentas) {
+        mes = mes.filter(function (t) {
+          return cuentas.indexOf(t.accountId) >= 0 ||
+                 (t.toAccountId && cuentas.indexOf(t.toAccountId) >= 0);
+        });
+      }
+      var t = S.totals(mes);
       out.push({
         key: key,
         label: S.monthLabel(key, "short"),
@@ -184,11 +195,10 @@
   function renderInicio() {
     var root = $("#view-inicio");
     var curKey = S.currentMonthKey();
-    var prevKey = S.addMonths(curKey, -1);
     var cur = S.totals(S.txOfMonth(curKey));
-    var prev = S.totals(S.txOfMonth(prevKey));
     var bal = S.balance();
-    var series = seriesEnding(curKey, 12);
+    var cfgRes = S.resumenCfg();
+    var series = seriesEnding(curKey, 12, cfgRes.cuentas);
     var planned = S.plannedIncome();
     var rows = budgetRows(curKey).sort(function (a, b) { return b.ratio - a.ratio; });
     var recent = S.state.transactions.slice(0, 6);
@@ -243,15 +253,34 @@
         '</div>' +
       '</div>';
 
+    /* Las tres cifras respetan lo que se haya elegido al mantenerlas
+       pulsadas: qué cuentas cuentan y de qué periodo.
+
+       El «tanto por ciento respecto al anterior» solo se enseña cuando se
+       mira el mes, que es el único periodo con un anterior evidente; en
+       «este año» o «desde el principio» un porcentaje ahí no significaría
+       nada. Los dos meses salen de la serie, que ya viene filtrada por las
+       mismas cuentas, así que la comparación cuadra con la cifra. */
+    var res = S.totalesResumen();
+    var comparable = cfgRes.periodo === "mes";
+    var mesAnt = series[series.length - 2] || { income: 0, expense: 0, net: 0 };
+    var delta = function (ahora, antes) {
+      return comparable ? deltaPct(ahora, antes) : null;
+    };
+
     var cardKpis =
-      '<div class="kpi-row">' +
-        statTile("Ingresos", cur.income, deltaPct(cur.income, prev.income), "up-good",
+      '<div class="kpi-row" id="kpiRow">' +
+        statTile("Ingresos", res.income, delta(res.income, mesAnt.income), "up-good",
                  series.map(function (m) { return m.income; })) +
-        statTile("Gastos", cur.expense, deltaPct(cur.expense, prev.expense), "up-bad",
+        statTile("Gastos", res.expense, delta(res.expense, mesAnt.expense), "up-bad",
                  series.map(function (m) { return m.expense; })) +
-        statTile("Ahorro", cur.net, deltaPct(cur.net, prev.net), "up-good",
+        statTile("Ahorro", res.net, delta(res.net, mesAnt.net), "up-good",
                  series.map(function (m) { return m.net; })) +
-      '</div>';
+      '</div>' +
+      '<button type="button" class="kpi-filtro" id="kpiFiltro">' +
+        esc(S.etiquetaResumen()) +
+        '<span data-icon="chevDown" data-icon-size="13"></span>' +
+      '</button>';
 
     /* Sin presupuesto puesto no se enseña ninguna de las dos tarjetas: un
        «0 € de 0 €» y unas barras vacías no dicen nada, y encima dan la
@@ -1190,7 +1219,17 @@
     var accs = S.state.accounts;
     var d;
 
-    if (type === "saldo") {
+    if (type === "resumen") {
+      var cfg = S.resumenCfg();
+      d = {
+        periodo: cfg.periodo,
+        dias: cfg.dias,
+        /* null en el estado significa «todas»; aquí se materializa la
+           lista para poder ir marcando y desmarcando */
+        cuentas: cfg.cuentas ? cfg.cuentas.slice()
+                             : S.state.accounts.map(function (a) { return a.id; })
+      };
+    } else if (type === "saldo") {
       /* No se edita nada de la cuenta: solo se dice cuánto hay de verdad
          y la app apunta la diferencia. */
       var cuenta = S.state.accounts.find(function (x) { return x.id === id; });
@@ -1246,6 +1285,7 @@
       goal: id ? "Editar meta" : "Nueva meta",
       recurring: id ? "Editar programado" : "Nuevo programado",
       saldo: "Corregir el saldo",
+      resumen: "Qué cuentan estas cifras",
       category: id ? "Editar categoría" : "Nueva categoría"
     }[type] || "Editar";
 
@@ -1254,7 +1294,7 @@
   }
 
   function findFor(type, id) {
-    if (type === "saldo") return null;   /* no edita una ficha, ajusta una cifra */
+    if (type === "saldo" || type === "resumen") return null;   /* no editan una ficha */
     if (type === "category") return S.state.categories.find(function (x) { return x.id === id; });
     if (type === "account") return S.state.accounts.find(function (x) { return x.id === id; });
     if (type === "goal") return S.state.goals.find(function (x) { return x.id === id; });
@@ -1478,6 +1518,57 @@
         '<div class="field">' +
           numField("fMonthly", "Aportación mensual", d.monthly, 10) +
           ''+
+        '</div>';
+    }
+
+    if (t === "resumen") {
+      var todas = d.cuentas.length === S.state.accounts.length;
+
+      html =
+        '<div class="field">' +
+          '<span class="field__label">De cuándo</span>' +
+          '<div class="chips">' +
+            [["mes", "Este mes"], ["ano", "Este año"],
+             ["dias", "Últimos días"], ["todo", "Desde el principio"]].map(function (o) {
+              return '<button type="button" class="chip" data-fperiodo="' + o[0] + '" ' +
+                       'aria-pressed="' + (d.periodo === o[0]) + '">' + o[1] + '</button>';
+            }).join("") +
+          '</div>' +
+        '</div>' +
+
+        (d.periodo === "dias"
+          ? '<div class="field">' +
+              numField("fDias", "Cuántos días", d.dias, 1, "días") +
+              '<p class="field__hint">Por ejemplo 7 para la semana, o 90 para el ' +
+                'trimestre.</p>' +
+            '</div>'
+          : "") +
+
+        '<div class="field" style="margin-top:var(--sp-6)">' +
+          '<div class="card__head" style="margin-bottom:var(--sp-3)">' +
+            '<span class="field__label" style="margin:0">De qué cuentas</span>' +
+            '<button type="button" class="card__link" id="fTodasCuentas">' +
+              (todas ? "Ninguna" : "Todas") + '</button>' +
+          '</div>' +
+          S.state.accounts.map(function (a) {
+            var puesta = d.cuentas.indexOf(a.id) >= 0;
+            return '<button type="button" class="pick" data-fcuenta="' + esc(a.id) + '" ' +
+                     'aria-pressed="' + puesta + '">' +
+                '<span class="pick__punto" style="background:' +
+                  S.catColorVar(a) + '"></span>' +
+                '<span class="pick__texto">' +
+                  '<span class="pick__nombre">' + esc(a.name) + '</span>' +
+                  '<span class="pick__sub">' + esc(a.type) + '</span>' +
+                '</span>' +
+                (puesta
+                  ? '<span class="pick__tick" data-icon="check" data-icon-size="16"></span>'
+                  : '') +
+              '</button>';
+          }).join("") +
+          (d.cuentas.length
+            ? ""
+            : '<p class="field__hint">' + icon("warning", 12) +
+              ' Marca al menos una, o no habrá nada que contar.</p>') +
         '</div>';
     }
 
@@ -1744,9 +1835,11 @@
         '<button type="button" class="btn btn--primary" id="fSave"' +
           (bloqueado ? " disabled" : "") + '>' +
           icon("check", 17) +
-          (t === "saldo" ? "Corregir" : form.id ? "Guardar cambios" : "Crear") + '</button>' +
+          (t === "saldo" ? "Corregir"
+           : t === "resumen" ? "Aplicar"
+           : form.id ? "Guardar cambios" : "Crear") + '</button>' +
       '</div>' +
-      (form.id && t !== "saldo"
+      (form.id && t !== "saldo" && t !== "resumen"
         ? '<div class="field">' +
             '<button type="button" class="btn btn--danger" id="fDelete" style="width:100%">' +
               icon("trash", 16) + 'Eliminar</button>' +
@@ -1828,6 +1921,20 @@
         sheets.add.show();
         return;
       }
+    }
+
+    if (t === "resumen") {
+      if (!d.cuentas.length) {
+        U.toast("Marca al menos una cuenta", { icon: "warning" }); return;
+      }
+      S.setResumen({
+        periodo: d.periodo,
+        dias: parseInt(d.dias, 10) || 30,
+        /* todas marcadas se guarda como «todas», no como la lista: así
+           una cuenta nueva entra sola en vez de quedarse fuera */
+        cuentas: d.cuentas.length === S.state.accounts.length ? null : d.cuentas
+      });
+      U.toast("Hecho", { icon: "check" });
     }
 
     if (t === "saldo") {
@@ -3326,6 +3433,7 @@
         openForm(node.getAttribute("data-form"), node.getAttribute("data-form-id"));
         return;
       }
+      if (e.target.closest("#kpiFiltro")) { openForm("resumen"); return; }
       if (e.target.closest("#colaAbrir")) { abrirCobros(); return; }
       if ((node = e.target.closest("[data-rec-toggle]"))) {
         var r = S.toggleRecurring(node.getAttribute("data-rec-toggle"));
@@ -3545,6 +3653,7 @@
       Tarifa: function (v) { form.d.tarifa = v; },
       Hora: function (v) { form.d.hora = v; },
       Cuotas: function (v) { form.d.cuotas = v; },
+      Dias: function (v) { form.d.dias = v; },
       Day: function (v) { form.d.day = v; },
       Cat: function (v) { form.d.categoryId = v; }
     };
@@ -3578,6 +3687,22 @@
         renderForm();
         U.haptic("light");
         return;
+      }
+      if ((node = e.target.closest("[data-fperiodo]"))) {
+        form.d.periodo = node.getAttribute("data-fperiodo");
+        renderForm(); U.haptic("light"); return;
+      }
+      if ((node = e.target.closest("[data-fcuenta]"))) {
+        var idC = node.getAttribute("data-fcuenta");
+        var iC = form.d.cuentas.indexOf(idC);
+        if (iC >= 0) form.d.cuentas.splice(iC, 1); else form.d.cuentas.push(idC);
+        renderForm(); U.haptic("light"); return;
+      }
+      if (e.target.closest("#fTodasCuentas")) {
+        form.d.cuentas = form.d.cuentas.length === S.state.accounts.length
+          ? []
+          : S.state.accounts.map(function (a) { return a.id; });
+        renderForm(); U.haptic("light"); return;
       }
       if ((node = e.target.closest("[data-fmodo]"))) {
         form.d.modo = node.getAttribute("data-fmodo");
@@ -3667,6 +3792,13 @@
 
     /* --- sheet de añadir --- */
     var addBody = $("#sheetAddBody");
+
+    /* Mantener pulsada cualquiera de las tres cifras del Resumen abre sus
+       ajustes. El botón de debajo hace lo mismo y es lo que la gente va a
+       encontrar; la pulsación larga es para quien ya lo sabe. */
+    U.longPress($("#scrollArea"), "#kpiRow .stat", function () {
+      openForm("resumen");
+    });
 
     /* Mantener pulsada una categoría la abre para editar, en vez de
        seleccionarla. El clic que viene detrás se traga solo. */
