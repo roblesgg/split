@@ -2136,6 +2136,15 @@
         settingRow("download", "Versión",
                    ui.update ? "Hay una actualización disponible" : "Toca para buscar actualizaciones",
                    "update", Up.VERSION) +
+
+        /* Salida de emergencia: si la comprobación falla —GitHub caído, la
+           red de un momento, el límite de consultas— siempre queda bajarla
+           a mano. Es un enlace de verdad, no un botón, para que lo abra el
+           navegador del sistema pase lo que pase dentro de la app. */
+        '<div class="card__pad" style="padding-top:0">' +
+          '<a class="update-card__link" href="' + esc(Up.RELEASES_URL) + '" ' +
+             'target="_blank" rel="noopener">¿No la encuentra? Descargarla a mano</a>' +
+        '</div>' +
       '</section>' +
 
       '<section class="card">' +
@@ -2332,7 +2341,21 @@
           renderAll();
           U.toast("split " + res.version + " disponible", { icon: "download", duration: 4500 });
         } else if (res.status === "offline") {
-          U.toast("No se ha podido comprobar. ¿Tienes conexión?", { icon: "warning", duration: 4500 });
+          /* Se dice QUÉ ha fallado y qué hacer. «¿Tienes conexión?» cuando
+             la tienes es de las cosas que dejan a uno sin saber por dónde
+             seguir. */
+          var m = {
+            limite: "GitHub ha cortado por muchas consultas seguidas. " +
+                    "Prueba dentro de un rato.",
+            tardanza: "GitHub ha tardado demasiado. Prueba otra vez.",
+            red: "No se ha podido llegar a GitHub. ¿Tienes conexión?",
+            http: res.motivo + ".",
+            respuesta: "GitHub ha contestado algo raro. Prueba otra vez.",
+            navegador: "Aquí no se puede comprobar."
+          }[res.clase] || "No se ha podido comprobar.";
+
+          U.toast(m + " Puedes bajarla a mano desde el enlace de abajo.",
+                  { icon: "warning", duration: 7000 });
         } else {
           U.toast("Ya tienes la última versión", { icon: "check" });
         }

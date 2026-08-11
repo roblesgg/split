@@ -14,7 +14,7 @@
   /* Versión de ESTA copia de la app. Al publicar una release nueva hay
      que subirla aquí y etiquetar la release igual (vX.Y.Z), porque la
      comparación es entre este número y el tag de la última release. */
-  var VERSION = "1.11.0";
+  var VERSION = "1.11.1";
 
   var REPO = "roblesgg/split";
   var API = "https://api.github.com/repos/" + REPO + "/releases/latest";
@@ -27,7 +27,11 @@
      muchas veces al día y no hace falta llamar a GitHub en cada una. La
      comprobación manual desde Ajustes se salta este límite. */
   var AUTO_EVERY_MS = 6 * 60 * 60 * 1000;
-  var TIMEOUT_MS = 8000;
+
+  /* Ocho segundos se quedaban cortos con datos móviles flojos: la petición
+     se cortaba sola y la app decía que no había conexión cuando sí la
+     había, solo que lenta. */
+  var TIMEOUT_MS = 15000;
 
   /* ---------- comparación de versiones ---------- */
 
@@ -69,11 +73,26 @@
 
   /* ---------- consulta a GitHub ---------- */
 
-  function fetchLatest() {
-    if (typeof fetch !== "function") return Promise.reject(new Error("sin fetch"));
+  /* Un fallo con nombre. Antes cualquier problema —tardanza, un 403 de
+     GitHub, la red caída— acababa en el mismo «¿tienes conexión?», que no
+     ayuda a nadie a arreglar nada. */
+  function fallo(clase, detalle) {
+    var e = new Error(detalle || clase);
+    e.clase = clase;
+    return e;
+  }
+
+  function unIntento() {
+    if (typeof fetch !== "function") {
+      return Promise.reject(fallo("navegador", "este navegador no sabe hacer la consulta"));
+    }
 
     var ctrl = typeof AbortController !== "undefined" ? new AbortController() : null;
-    var timer = ctrl ? setTimeout(function () { ctrl.abort(); }, TIMEOUT_MS) : null;
+    var cortado = false;
+    var timer = ctrl ? setTimeout(function () {
+      cortado = true;
+      ctrl.abort();
+    }, TIMEOUT_MS) : null;
 
     return fetch(API, {
       headers: { "Accept": "application/vnd.github+json" },
@@ -81,11 +100,33 @@
       cache: "no-store"
     }).then(function (res) {
       if (timer) clearTimeout(timer);
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      return res.json();
+
+      if (res.status === 403 || res.status === 429) {
+        /* GitHub deja 60 consultas por hora sin identificarse. Se pasa
+           antes de lo que parece si se comprueba a mano varias veces. */
+        throw fallo("limite", "GitHub ha cortado por exceso de consultas");
+      }
+      if (!res.ok) throw fallo("http", "GitHub ha respondido " + res.status);
+
+      return res.json().catch(function () {
+        throw fallo("respuesta", "la respuesta de GitHub no se entiende");
+      });
     }, function (err) {
       if (timer) clearTimeout(timer);
-      throw err;
+      if (err && err.clase) throw err;
+      if (cortado) throw fallo("tardanza", "GitHub ha tardado más de 15 segundos");
+      throw fallo("red", "no se ha podido llegar a GitHub");
+    });
+  }
+
+  /* Un segundo intento tras dos segundos. La mayoría de los fallos de red
+     en un móvil son de un momento —el wifi que cambia a datos, un túnel—
+     y reintentar sale gratis. No se reintenta si GitHub ha cortado por
+     exceso: insistir solo empeoraría eso. */
+  function fetchLatest() {
+    return unIntento().catch(function (err) {
+      if (err.clase === "limite") throw err;
+      return new Promise(function (res) { setTimeout(res, 2000); }).then(unIntento);
     });
   }
 
@@ -133,9 +174,14 @@
         /* la página de la release, para el enlace de rescate de la tarjeta */
         page: (release && release.html_url) || RELEASES_URL
       };
-    }, function () {
-      /* sin cobertura, en avión o GitHub caído: la app sigue igual */
-      return { status: "offline" };
+    }, function (err) {
+      /* sin cobertura, en avión o GitHub caído: la app sigue igual, pero
+         ahora se sabe por qué y se le puede decir al usuario */
+      return {
+        status: "offline",
+        clase: (err && err.clase) || "red",
+        motivo: (err && err.message) || "no se ha podido llegar a GitHub"
+      };
     });
   }
 
