@@ -293,7 +293,7 @@
           '<div class="tiles">' +
             topCats.map(function (c) {
               return '<button type="button" class="tile" data-goto="analisis">' +
-                  catFace(c, 19, "tile__icon") +
+                  catFace(c, 24, "tile__icon") +
                   '<span>' +
                     '<span class="tile__name">' + esc(c.name) + '</span>' +
                     '<span class="tile__value">' + esc(S.moneyShort(c.value)) + '</span>' +
@@ -316,7 +316,7 @@
                     'data-form-id="' + esc(r.id) + '" style="width:100%;text-align:left">' +
                 (r.kind === "transfer"
                   ? '<span class="account__badge" data-icon="swap" data-icon-size="17"></span>'
-                  : catFace(catOf(r.categoryId), 17, "account__badge")) +
+                  : catFace(catOf(r.categoryId), 21, "account__badge")) +
                 '<span class="account__body">' +
                   '<span class="account__name">' + esc(r.note) + '</span>' +
                   '<span class="account__type">' +
@@ -526,7 +526,7 @@
        color; el nombre de la categoría sigue leyéndose en la línea de abajo */
     return '' +
       '<button type="button" class="row" data-tx="' + esc(t.id) + '">' +
-        catFace(cat, 18, "avatar-letter") +
+        catFace(cat, 22, "avatar-letter") +
         '<span class="row__body">' +
           '<span class="row__title">' + esc(t.note) + '</span>' +
           '<span class="row__meta">' + esc(S.nombreLargo(t.categoryId) || cat.name) +
@@ -1103,7 +1103,7 @@
               return '<div class="account"' + (r.active ? "" : ' style="opacity:.5"') + '>' +
                   (r.kind === "transfer"
                     ? '<span class="account__badge" data-icon="swap" data-icon-size="17"></span>'
-                    : catFace(catOf(r.categoryId), 17, "account__badge")) +
+                    : catFace(catOf(r.categoryId), 21, "account__badge")) +
                   '<button type="button" class="account__body" data-form="recurring" ' +
                           'data-form-id="' + esc(r.id) + '" style="text-align:left">' +
                     '<span class="account__name">' + esc(r.note) + '</span>' +
@@ -2100,7 +2100,7 @@
               '<div id="allocRows">' +
                 presupuestadas.map(function (c) {
                   return '<div class="pres-fila">' +
-                      catFace(c, 18, "pres-fila__cara") +
+                      catFace(c, 22, "pres-fila__cara") +
                       '<span class="pres-fila__texto">' +
                         '<span class="pres-fila__nombre">' + esc(c.name) + '</span>' +
                         '<span class="pres-fila__pct" data-alloc-pct="' + c.id + '">' +
@@ -2185,7 +2185,7 @@
                 var use = S.categoryUsage(c.id);
                 return '<button type="button" class="cat-list__item" ' +
                         'data-form="category" data-form-id="' + esc(c.id) + '">' +
-                    catFace(c, 17, "cat-list__face") +
+                    catFace(c, 21, "cat-list__face") +
                     '<span class="cat-list__body">' +
                       '<span class="cat-list__name">' + esc(c.name) + '</span>' +
                       '<span class="cat-list__meta">' +
@@ -2801,7 +2801,7 @@
                 return '<button type="button" class="cat-pick" data-cat="' + c.id + '" ' +
                          'aria-pressed="' + (c.id === d.categoryId) + '"' +
                          (conHijas ? ' data-con-hijas="1"' : '') + '>' +
-                    catFace(c, 20, "cat-pick__icon") +
+                    catFace(c, 26, "cat-pick__icon") +
                     '<span class="cat-pick__name">' + esc(c.name) + '</span>' +
                   '</button>';
               }).join("") +

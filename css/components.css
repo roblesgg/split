@@ -12,7 +12,7 @@
   background: var(--surface-1);
   border: 1px solid var(--hairline);
   box-shadow: var(--card-shadow);
-  padding: var(--sp-5);
+  padding: var(--sp-6);
 }
 
 .card--flush { padding: 0; overflow: hidden; }
@@ -29,18 +29,18 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--sp-3);
-  margin-bottom: var(--sp-4);
+  margin-bottom: var(--sp-5);
 }
 
 .card__title {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: var(--w-semi);
   letter-spacing: -0.026em;
 }
 
 .card__sub {
-  margin-top: 3px;
-  font-size: 13px;
+  margin-top: 4px;
+  font-size: 14px;
   font-weight: var(--w-normal);
   color: var(--text-secondary);
   letter-spacing: -0.01em;
@@ -60,7 +60,9 @@
 .card__pad { padding: var(--sp-5); }
 .card__pad--tight { padding: var(--sp-5) var(--sp-5) var(--sp-3); }
 
-.section-gap { margin-top: var(--sp-5); }
+/* Más aire entre bloques: es lo que más hace que una pantalla con mucho
+   dentro se lea como si tuviera poco. */
+.section-gap { margin-top: var(--sp-7); }
 .divider { height: 1px; background: var(--hairline); }
 
 /* ============================================================
@@ -347,10 +349,10 @@
   flex: none;
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
+  width: 48px;
+  height: 48px;
   border-radius: var(--r-full);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: var(--w-bold);
   letter-spacing: -0.02em;
   background: var(--surface-2);
@@ -482,7 +484,16 @@
   line-height: 1.12;
 }
 
-.stat--compact .stat__value { font-size: 16.5px; letter-spacing: -0.035em; }
+/* Tres cifras en una fila de móvil: si la cifra parte en dos líneas, las
+   tres tarjetas quedan de altos distintos y se lee peor que si fuera una
+   pizca más pequeña. Con nowrap y un ajuste de tamaño caben las tres. */
+.stat--compact .stat__value {
+  font-size: 16px;
+  letter-spacing: -0.04em;
+  white-space: nowrap;
+}
+
+.stat--compact { padding: var(--sp-3) var(--sp-3); }
 
 .stat__delta {
   display: inline-flex;
@@ -606,9 +617,9 @@
 .row {
   display: flex;
   align-items: center;
-  gap: var(--sp-3);
+  gap: var(--sp-4);
   width: 100%;
-  padding: var(--sp-3) var(--sp-5);
+  padding: var(--sp-4) var(--sp-5);
   text-align: left;
   transition: background var(--dur-fast) var(--ease-out);
 }
@@ -620,7 +631,7 @@
 
 .row__title {
   display: block;
-  font-size: 14.5px;
+  font-size: 16px;
   font-weight: var(--w-semi);
   letter-spacing: -0.02em;
   white-space: nowrap;
@@ -630,8 +641,8 @@
 
 .row__meta {
   display: block;
-  margin-top: 1px;
-  font-size: 12px;
+  margin-top: 3px;
+  font-size: 13px;
   font-weight: var(--w-normal);
   color: var(--text-secondary);
   white-space: nowrap;
@@ -641,7 +652,7 @@
 
 .row__amount {
   flex: none;
-  font-size: 15px;
+  font-size: 16.5px;
   font-weight: var(--w-bold);
   letter-spacing: -0.032em;
   font-variant-numeric: tabular-nums;
@@ -678,16 +689,16 @@
 .meter__head {
   display: flex;
   align-items: center;
-  gap: var(--sp-2);
-  margin-bottom: 8px;
+  gap: var(--sp-3);
+  margin-bottom: 10px;
 }
 
-.meter__dot { flex: none; width: 9px; height: 9px; border-radius: 3px; }
+.meter__dot { flex: none; width: 11px; height: 11px; border-radius: 4px; }
 
 .meter__label {
   flex: 1;
   min-width: 0;
-  font-size: 13.5px;
+  font-size: 15px;
   font-weight: var(--w-semi);
   letter-spacing: -0.018em;
   white-space: nowrap;
@@ -697,16 +708,17 @@
 
 .meter__value {
   flex: none;
-  font-size: 12.5px;
+  font-size: 14px;
   font-weight: var(--w-semi);
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
 }
 
-/* la pista va hundida en el material */
+/* La pista va hundida en el material. Gorda a propósito: una barra fina
+   se lee como un adorno y hay que fijarse para ver cuánto lleva. */
 .meter__track {
   position: relative;
-  height: 10px;
+  height: 16px;
   border-radius: var(--r-full);
   background: var(--surface-3);
   overflow: hidden;
@@ -727,13 +739,13 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-top: 7px;
-  font-size: 12px;
+  margin-top: 8px;
+  font-size: 13px;
   font-weight: var(--w-normal);
   color: var(--text-muted);
 }
 
-.meter + .meter { margin-top: var(--sp-4); }
+.meter + .meter { margin-top: var(--sp-6); }
 
 /* ---------- anillo ---------- */
 
@@ -1582,14 +1594,16 @@ select.field__input { appearance: none; cursor: pointer; padding-right: var(--sp
 
 /* ---------- rejilla de categorías del sheet ---------- */
 
-.cat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-3); }
+/* Cuatro columnas apretaban mucho para el tamaño de emoji que se quería.
+   Con tres, cada una respira y el nombre cabe entero en una línea. */
+.cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); }
 
 .cat-pick {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 7px;
-  padding: 11px 4px;
+  gap: 9px;
+  padding: 14px 4px;
   border-radius: var(--r-md);
   transition: box-shadow var(--dur-fast) var(--ease-out);
 }
@@ -1601,8 +1615,8 @@ select.field__input { appearance: none; cursor: pointer; padding-right: var(--sp
 .cat-pick__icon {
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
+  width: 54px;
+  height: 54px;
   border-radius: var(--r-full);
   background: var(--surface-2);
   color: var(--text-secondary);
@@ -1615,7 +1629,7 @@ select.field__input { appearance: none; cursor: pointer; padding-right: var(--sp
 .cat-pick[aria-pressed="true"] .cat-pick__icon { background: var(--surface-1); }
 
 .cat-pick__name {
-  font-size: 10.5px;
+  font-size: 12.5px;
   font-weight: var(--w-medium);
   color: var(--text-secondary);
   text-align: center;

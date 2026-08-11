@@ -286,10 +286,12 @@ svg { display: block; }
   align-items: start;
 }
 
+/* La separación entre tarjetas es lo que más se nota: con poco aire
+   todo parece un bloque, y con aire cada cosa se lee sola. */
 .dash__col {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-5);
+  gap: var(--sp-7);
   min-width: 0;
 }
 
