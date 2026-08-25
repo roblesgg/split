@@ -1,0 +1,362 @@
+/* ============================================================
+   split — tarjetas, cuentas y saldo
+
+   La tarjeta es la pieza base de la app y la de cuenta es la única que
+   lleva color: el de la propia cuenta, mezclado con tinta para que el
+   texto blanco pase de 4,5:1 sobre los dieciséis tonos.
+   ============================================================ */
+
+/* ---------- tarjeta ---------- */
+
+.card {
+  position: relative;
+  border-radius: var(--r-lg);
+  background: var(--surface-1);
+  border: 1px solid var(--hairline);
+  box-shadow: var(--card-shadow);
+  padding: var(--sp-6);
+}
+
+.card--flush { padding: 0; overflow: hidden; }
+
+/* variante hundida, para bloques secundarios dentro de una tarjeta */
+.card--quiet {
+  background: var(--surface-2);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-5);
+}
+
+.card__title {
+  font-size: 18px;
+  font-weight: var(--w-semi);
+  letter-spacing: -0.026em;
+}
+
+.card__sub {
+  margin-top: 4px;
+  font-size: 14px;
+  font-weight: var(--w-normal);
+  color: var(--text-secondary);
+  letter-spacing: -0.01em;
+}
+
+.card__link {
+  flex: none;
+  font-size: 13px;
+  font-weight: var(--w-semi);
+  color: var(--accent);
+  letter-spacing: -0.012em;
+  white-space: nowrap;
+}
+
+.card__link:hover { text-decoration: underline; }
+
+.card__pad { padding: var(--sp-5); }
+.card__pad--tight { padding: var(--sp-5) var(--sp-5) var(--sp-3); }
+
+/* Más aire entre bloques: es lo que más hace que una pantalla con mucho
+   dentro se lea como si tuviera poco. */
+.section-gap { margin-top: var(--sp-7); }
+.divider { height: 1px; background: var(--hairline); }
+
+/* ============================================================
+   Carrusel de tarjetas de cuenta
+   ============================================================ */
+
+.cards { position: relative; }
+
+.cards__track {
+  display: flex;
+  gap: var(--sp-4);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  /* margen para que la sombra neumórfica no se recorte */
+  padding: var(--sp-3) var(--sp-5) var(--sp-4);
+  margin-inline: calc(var(--sp-5) * -1);
+}
+
+.cards__track::-webkit-scrollbar { display: none; }
+
+/* Cada cuenta lleva su color, como una tarjeta de verdad. Antes la
+   principal usaba --btn-grad, que se invierte con el tema: en oscuro salía
+   una tarjeta blanca en medio de una pantalla negra.
+
+   El color va mezclado con tinta oscura (60% y 38%) porque encima va texto
+   blanco: así los 16 tonos de la paleta pasan de 4,5:1 en los dos extremos
+   del degradado, incluidos los claros como el amarillo. */
+.paycard {
+  position: relative;
+  flex: 0 0 84%;
+  scroll-snap-align: center;
+  overflow: hidden;
+  min-height: 178px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: var(--sp-5);
+  border-radius: var(--r-xl);
+  /* respaldo para navegadores sin color-mix: gris de tarjeta, nunca el
+     color a pelo, que con el amarillo dejaría el texto ilegible */
+  background: #1e2128;
+  background: linear-gradient(145deg,
+              color-mix(in srgb, var(--acc-color, var(--cat-16)) 60%, #101318) 0%,
+              color-mix(in srgb, var(--acc-color, var(--cat-16)) 38%, #101318) 100%);
+  box-shadow: var(--nm-out-lg);
+  color: #ffffff;
+  /* ahora son botones (tocar una tarjeta abre esa cuenta) y los botones
+     centran el texto por defecto */
+  text-align: left;
+}
+
+/* Fuera del carrusel (dentro de la hoja de una cuenta) no hay a qué
+   ajustarse: ocupa el ancho y baja un poco de altura. */
+.paycard--suelta {
+  flex: none;
+  width: 100%;
+  min-height: 150px;
+}
+
+/* La de crear cuenta no es una tarjeta de verdad: no lleva color ni
+   sombra, solo el hueco punteado de «aquí cabe otra». */
+.paycard--nueva {
+  align-items: center;
+  text-align: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  background: none;
+  border: 2px dashed var(--hairline-strong);
+  box-shadow: none;
+  color: var(--text-secondary);
+  transition: border-color var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+
+.paycard--nueva::after { content: none; }
+
+.paycard--nueva:active {
+  border-color: var(--accent);
+  color: var(--text-primary);
+}
+
+.paycard__plus {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--surface-1);
+  box-shadow: var(--nm-out-sm);
+  color: var(--accent);
+}
+
+.paycard__nueva-txt { font-size: 14.5px; font-weight: var(--w-semi); color: var(--text-primary); }
+.paycard__nueva-sub { font-size: 11.5px; color: var(--text-muted); }
+
+/* veladura diagonal, el único brillo de la pieza */
+.paycard::after {
+  content: "";
+  position: absolute;
+  inset: -60% 0 auto 0;
+  height: 200%;
+  background: radial-gradient(42% 38% at 20% 8%, rgba(255,255,255,0.14), transparent 72%);
+  pointer-events: none;
+}
+
+.paycard > * { position: relative; z-index: 1; }
+
+.paycard__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.paycard__dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: var(--w-semi);
+  letter-spacing: -0.01em;
+}
+
+.paycard__dots i {
+  width: 5px;
+  height: 5px;
+  border-radius: var(--r-full);
+  background: currentColor;
+  opacity: 0.5;
+  display: inline-block;
+}
+
+.paycard__type {
+  font-size: 10.5px;
+  font-weight: var(--w-semi);
+  letter-spacing: var(--eyebrow-track);
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.paycard__label { font-size: 11.5px; font-weight: var(--w-normal); opacity: 0.72; }
+
+.paycard__value {
+  margin-top: 3px;
+  font-size: 31px;
+  font-weight: var(--w-bold);
+  letter-spacing: -0.042em;
+  line-height: 1.05;
+}
+
+.paycard__value .cents { font-size: 0.5em; font-weight: var(--w-semi); opacity: 0.6; }
+
+.paycard__foot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.paycard__mark { display: flex; align-items: center; }
+
+.paycard__mark span {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--r-full);
+  background: currentColor;
+  opacity: 0.42;
+}
+
+.paycard__mark span + span { margin-left: -11px; opacity: 0.24; }
+
+.cards__dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: var(--sp-1);
+}
+
+.cards__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--r-full);
+  background: var(--surface-3);
+  transition: width var(--dur-base) var(--ease-out),
+              background var(--dur-base) var(--ease-out);
+}
+
+.cards__dot[data-on="true"] {
+  width: 22px;
+  background: var(--accent);
+  box-shadow: var(--glow-accent);
+}
+
+/* ---------- saldo (variante sin carrusel) ---------- */
+
+.balance {
+  position: relative;
+  overflow: hidden;
+  padding: var(--sp-6) var(--sp-5);
+  border-radius: var(--r-xl);
+  background: var(--btn-grad);
+  color: var(--btn-ink);
+  box-shadow: var(--nm-out-lg);
+}
+
+.balance__label {
+  font-size: var(--eyebrow-size);
+  font-weight: var(--w-semi);
+  letter-spacing: var(--eyebrow-track);
+  text-transform: uppercase;
+  opacity: 0.66;
+}
+
+.balance__value {
+  margin-top: var(--sp-2);
+  font-size: 42px;
+  font-weight: var(--w-bold);
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+}
+
+.balance__value .cents { font-size: 0.48em; font-weight: var(--w-semi); opacity: 0.62; }
+
+.balance__delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: var(--sp-3);
+  padding: 7px 13px;
+  border-radius: var(--r-full);
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  font-size: 12.5px;
+  font-weight: var(--w-medium);
+  letter-spacing: -0.01em;
+}
+
+.balance__delta strong { font-weight: var(--w-bold); font-variant-numeric: tabular-nums; }
+
+.balance__split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-4);
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-4);
+  border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+}
+
+.balance__cell-label { font-size: 12px; font-weight: var(--w-normal); opacity: 0.7; }
+
+.balance__cell-value {
+  margin-top: 4px;
+  font-size: 19px;
+  font-weight: var(--w-semi);
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- fila de acciones ---------- */
+
+.actions { display: flex; align-items: center; gap: var(--sp-3); }
+.actions .btn { flex: 1; width: auto; }
+
+.action-circle {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border-radius: var(--r-full);
+  background: var(--surface-1);
+  color: var(--text-primary);
+  box-shadow: var(--nm-out);
+  transition: box-shadow var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+
+.action-circle:hover { color: var(--accent); }
+.action-circle:active { box-shadow: var(--nm-in); }
+
+/* ---------- avatar circular de letra ---------- */
+
+.avatar-letter {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--r-full);
+  font-size: 16px;
+  font-weight: var(--w-bold);
+  letter-spacing: -0.02em;
+  background: var(--surface-2);
+  color: var(--text-secondary);
+}

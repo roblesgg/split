@@ -1,0 +1,288 @@
+/* ============================================================
+   split — elegir, rosco y reparto
+
+   El campo que abre la hoja de elegir, la hoja misma, el rosco del
+   reparto y las filas del presupuesto.
+   ============================================================ */
+
+/* ---------- campo que abre la hoja de elegir ----------
+   Se parece a un campo de texto para que se lea como parte del
+   formulario, pero es un botón. La flecha es la misma que llevaba el
+   <select>, para no cambiar lo que la gente ya sabe tocar. */
+
+.field__select {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+}
+
+.field__select-txt {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field__select-chev { flex: none; color: var(--text-muted); display: flex; }
+
+/* ---------- la hoja de elegir ---------- */
+
+.pick {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  padding: var(--sp-3) var(--sp-2);
+  border-radius: var(--r-lg);
+  text-align: left;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.pick + .pick { margin-top: 2px; }
+.pick:active { background: var(--surface-2); }
+
+.pick__cara { flex: none; }
+
+.pick__punto {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.pick__texto { flex: 1; min-width: 0; }
+
+.pick__nombre {
+  display: block;
+  font-size: 14.5px;
+  font-weight: var(--w-medium);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pick__sub { display: block; margin-top: 1px; font-size: 11.5px; color: var(--text-muted); }
+
+.pick__tick { flex: none; display: flex; color: var(--accent); }
+
+.pick[aria-pressed="true"] .pick__nombre { font-weight: var(--w-semi); }
+
+/* La chapa que dice qué están contando las tres cifras de arriba. Va
+   discreta: se lee cuando se busca y no compite con las cifras. */
+.kpi-filtro {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+  margin-top: var(--sp-3);
+  padding: var(--sp-2);
+  border-radius: var(--r-full);
+  font-size: 12.5px;
+  font-weight: var(--w-medium);
+  color: var(--text-muted);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.kpi-filtro:active { color: var(--text-primary); }
+.kpi-filtro span { display: flex; }
+
+/* ---------- rosco de reparto ---------- */
+
+.donut {
+  position: relative;
+  display: grid;
+  place-items: center;
+  margin-bottom: var(--sp-5);
+}
+
+.donut__svg { display: block; }
+
+.donut__pista { stroke: var(--surface-2); }
+
+.donut__trozo {
+  /* entran uno detrás de otro, no todos a la vez */
+  animation-delay: calc(var(--i, 0) * 60ms);
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+/* El centro va encima del svg, centrado sobre el agujero. */
+.donut__centro {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  text-align: center;
+  pointer-events: none;
+}
+
+.donut__label {
+  display: block;
+  font-size: 11px;
+  font-weight: var(--w-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.donut__valor {
+  display: block;
+  margin-top: 2px;
+  font-size: 22px;
+  font-weight: var(--w-bold);
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .donut__trozo { animation: none; }
+}
+
+/* ---------- filas del presupuesto ---------- */
+
+.pres-fila {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.pres-fila:last-child { border-bottom: 0; }
+
+.pres-fila__cara { flex: none; }
+.pres-fila__texto { flex: 1; min-width: 0; }
+
+.pres-fila__nombre {
+  display: block;
+  font-size: 13.5px;
+  font-weight: var(--w-semi);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pres-fila__pct {
+  display: block;
+  margin-top: 1px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.pres-fila__campo { display: block; flex: none; width: 108px; }
+.pres-fila__campo .field__input { height: 42px; text-align: right; }
+
+.pres-fila__quitar { flex: none; width: 30px; height: 30px; }
+
+/* ---------- repartir un ingreso entre cuentas ---------- */
+
+.reparto-fila {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) 0;
+}
+
+.reparto-fila__punto {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.reparto-fila__nombre {
+  flex: 1;
+  min-width: 0;
+  font-size: 13.5px;
+  font-weight: var(--w-medium);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ancho fijo para que las cifras queden en columna */
+/* es un <span>, así que sin esto el ancho no se aplica */
+.reparto-fila__campo { display: block; flex: none; width: 128px; }
+.reparto-fila__campo .field__input { height: 44px; text-align: right; }
+
+/* ---------- aviso de lo que va a apuntar el ajuste ---------- */
+
+.ajuste {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-top: var(--sp-4);
+  padding: var(--sp-4);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  box-shadow: var(--nm-in);
+}
+
+.ajuste__txt { font-size: 13px; color: var(--text-secondary); }
+
+.ajuste__eur {
+  font-size: 17px;
+  font-weight: var(--w-bold);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.ajuste[data-dif="in"]  .ajuste__eur { color: var(--money-in); }
+.ajuste[data-dif="out"] .ajuste__eur { color: var(--money-out); }
+.ajuste[data-dif="cero"] { justify-content: center; }
+
+/* ---------- lista breve de dos columnas ---------- */
+
+.mini-list { display: grid; gap: var(--sp-2); margin-top: var(--sp-4); }
+
+.mini-list__row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  width: 100%;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-lg);
+  background: var(--surface-1);
+  box-shadow: var(--nm-out-sm);
+  text-align: left;
+  transition: box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.mini-list__row:active { box-shadow: var(--nm-in); }
+
+.mini-list__text { flex: 1; min-width: 0; }
+
+.mini-list__name {
+  display: block;
+  font-size: 13.5px;
+  font-weight: var(--w-semi);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mini-list__meta {
+  display: block;
+  margin-top: 2px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.mini-list__value {
+  flex: none;
+  font-size: 14px;
+  font-weight: var(--w-bold);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}

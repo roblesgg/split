@@ -1,0 +1,238 @@
+/* ============================================================
+   split — filas, medidores, anillos y chips
+
+   La fila de un movimiento y las barras que dicen cuánto llevas gastado.
+   ============================================================ */
+
+/* ---------- fila de lista ---------- */
+
+.rows { display: flex; flex-direction: column; }
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  width: 100%;
+  padding: var(--sp-4) var(--sp-5);
+  text-align: left;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.row + .row { box-shadow: inset 0 1px 0 var(--hairline); }
+.row:hover { background: var(--surface-2); }
+
+.row__body { flex: 1; min-width: 0; }
+
+.row__title {
+  display: block;
+  font-size: 16px;
+  font-weight: var(--w-semi);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row__meta {
+  display: block;
+  margin-top: 3px;
+  font-size: 13px;
+  font-weight: var(--w-normal);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row__amount {
+  flex: none;
+  font-size: 16.5px;
+  font-weight: var(--w-bold);
+  letter-spacing: -0.032em;
+  font-variant-numeric: tabular-nums;
+}
+
+.row__amount[data-kind="in"]  { color: var(--money-in); }
+.row__amount[data-kind="out"] { color: var(--money-out); }
+
+.day-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-5) var(--sp-2);
+  font-size: var(--eyebrow-size);
+  font-weight: var(--w-semi);
+  letter-spacing: var(--eyebrow-track);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.day-head__sum {
+  font-variant-numeric: tabular-nums;
+  text-transform: none;
+  letter-spacing: -0.02em;
+  font-size: 12px;
+  font-weight: var(--w-semi);
+}
+
+/* ---------- meter ---------- */
+
+.meter { display: block; }
+
+.meter__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  margin-bottom: 10px;
+}
+
+.meter__dot { flex: none; width: 11px; height: 11px; border-radius: 4px; }
+
+.meter__label {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: var(--w-semi);
+  letter-spacing: -0.018em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meter__value {
+  flex: none;
+  font-size: 14px;
+  font-weight: var(--w-semi);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+/* La pista va hundida en el material. Gorda a propósito: una barra fina
+   se lee como un adorno y hay que fijarse para ver cuánto lleva. */
+.meter__track {
+  position: relative;
+  height: 16px;
+  border-radius: var(--r-full);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.meter__fill {
+  height: 100%;
+  border-radius: var(--r-full);
+  transform-origin: left center;
+  transform: scaleX(0);
+  animation: meter-grow var(--dur-slow) var(--ease-out) forwards;
+  animation-delay: var(--delay, 90ms);
+}
+
+@keyframes meter-grow { to { transform: scaleX(1); } }
+
+.meter__foot {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: var(--w-normal);
+  color: var(--text-muted);
+}
+
+.meter + .meter { margin-top: var(--sp-6); }
+
+/* ---------- anillo ---------- */
+
+.ring { flex: none; position: relative; }
+
+.ring__pct {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 12.5px;
+  font-weight: var(--w-bold);
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
+.ring__arc { transition: stroke-dashoffset var(--dur-slow) var(--ease-out); }
+
+.goal {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+}
+
+.goal + .goal { box-shadow: inset 0 1px 0 var(--hairline); }
+.goal__body { flex: 1; min-width: 0; }
+
+.goal__name { font-size: 14.5px; font-weight: var(--w-semi); letter-spacing: -0.024em; }
+
+.goal__amounts {
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: var(--w-normal);
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
+.goal__eta { margin-top: 3px; font-size: 12px; color: var(--text-muted); }
+
+/* ---------- chips y pastillas de rango ---------- */
+
+.chips { display: flex; gap: var(--sp-2); overflow-x: auto; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+
+.chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 15px;
+  border-radius: var(--r-full);
+  background: var(--surface-1);
+  box-shadow: var(--nm-out-sm);
+  font-size: 12.5px;
+  font-weight: var(--w-semi);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  transition: box-shadow var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+
+.chip:hover { color: var(--text-primary); }
+
+/* seleccionado = hundido, no relleno de color */
+.chip[aria-pressed="true"] {
+  background: var(--surface-2);
+  box-shadow: var(--nm-in);
+  color: var(--text-primary);
+}
+
+/* Los siete días reparten el ancho a partes iguales: en cualquier móvil
+   caben en una fila, y así ninguno queda más gordo que otro. */
+.chips--dias {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  overflow: visible;
+}
+
+.chip--dia {
+  justify-content: center;
+  width: auto;
+  min-width: 0;
+  padding: 0;
+  font-size: 12px;
+}
+
+/* El mismo encabezado plegable que las tarjetas, pero suelto dentro de
+   una hoja: sin la tarjeta alrededor y con una raya que lo separa de lo
+   de arriba. */
+.fold-head--suelto {
+  width: 100%;
+  padding: var(--sp-3) 0;
+  border-top: 1px solid var(--hairline);
+}

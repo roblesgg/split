@@ -201,22 +201,96 @@ la app seguirá avisando de una versión que ya tiene instalada.
 
 ## Estructura
 
+Un archivo, un trabajo. Nada por encima de unas 600 líneas: cuando algo se pasa,
+se parte por temas antes de seguir creciendo.
+
 ```
 index.html
 css/
   tokens.css        color, espaciado, radios, curvas y métricas de layout
   base.css          reset, carcasa responsive, barra lateral y tab bar
-  components.css    tarjetas, filas, medidores, hojas, teclado, toasts
+  components/       una pieza por archivo, en el orden en que cascadean
+    card.css        tarjetas, cuentas y saldo
+    data.css        cifra grande, anillo, KPI, tiles y tarjeta de límite
+    row.css         filas, medidores, anillos y chips
+    pick.css        elegir de una lista, rosco y filas del presupuesto
+    controls.css    interruptores, segmented y botones
+    sheet.css       la hoja y el teclado del importe
+    field.css       campos, emoji, notas, etiquetas y adjuntos
+    category.css    rejilla, formulario y lista de categorías
+    feedback.css    vacío, toasts, aviso de versión y tutorial
   charts.css        capa de gráficos: marcas, ejes, tooltips, tabla
   screens.css       piezas de cada pantalla y el editor de reparto
 js/
-  store.js          datos, localStorage, migraciones y selectores
+  core/             lo que no sabe nada de finanzas
+    base.js         el espacio común de la capa de datos (window.Datos)
+    format.js       euros, porcentajes y decimales en es-ES
+    dates.js        fechas, siempre en local
+  data/             un archivo por tema, todos cuelgan de window.Datos
+    catalog.js      categorías de fábrica, colores y búsqueda por id
+    demo.js         los datos de ejemplo, con semilla fija
+    state.js        con qué arranca, cómo se guarda y las migraciones
+    tx.js           movimientos
+    accounts.js     cuentas
+    categories.js   crear, renombrar y borrar categorías
+    tags.js         etiquetas
+    goals.js        metas de ahorro
+    recurring.js    pagos y cobros programados
+    pendientes.js   la cola de lo que hay que confirmar
+    budget.js       ingresos y reparto del sueldo
+    select.js       totales, series, proyección y tasa de ahorro
+    prefs.js        tema, emojis y exportar/importar
+  store.js          la fachada: window.Store, la API que ve la app
+  charts/           motor de gráficos en SVG, escrito a mano
+    espacio.js      el espacio común (window.Graficos)
+    base.js         nodos SVG, color, ticks, curvas y tooltip
+    line.js  columns.js  sparkline.js  donut.js
+    ring.js  heatmap.js  breakdown.js
+  charts.js         la fachada: window.Charts
   update.js         versión instalada y aviso de release nueva
   attach.js         adjuntos en IndexedDB, con reducción de la imagen
+  avisos.js         qué recordatorios hacen falta (los pone la capa Android)
   ui.js             iconos SVG, hojas arrastrables, toasts, háptica
-  charts.js         motor de gráficos en SVG, escrito a mano
-  app.js            render de pantallas, formularios y eventos
+  app/
+    base.js         window.App: estado de interfaz, hojas y ayudantes
+    parts.js        trozos que salen en más de una pantalla
+    shell.js        router, barra de arriba, botón atrás y tema
+    init.js         arranque: monta las hojas, engancha y pinta
+  screens/          una pantalla u hoja por archivo, con su cableado al lado
+    inicio.js  movs.js  analisis.js  planes.js  ajustes.js
+    form.js  form-render.js    hoja de cuentas, metas y programados
+    add.js   add-render.js     hoja de añadir movimiento
+    detail.js  pick.js  cuenta.js  cobro.js  onboard.js
 ```
+
+### Cómo encajan las piezas
+
+Sin build y sin módulos ES, porque la app tiene que abrirse con doble clic desde
+`file://`. Los scripts son clásicos y se cargan en orden, y cada capa tiene un
+espacio común donde sus archivos se leen entre ellos, más una fachada que es lo
+único que ve el resto:
+
+| Capa | Espacio común | Fachada |
+|---|---|---|
+| Datos | `window.Datos` | `window.Store` |
+| Gráficos | `window.Graficos` | `window.Charts` |
+| Interfaz | `window.App` | — |
+
+En la interfaz no hay fachada porque no hay nadie fuera: `window.App` es a la
+vez el espacio común y lo que la capa Android llama para el botón atrás
+(`App.atras()`).
+
+**Añadir una pantalla** son tres pasos: crear `js/screens/loquesea.js`, terminarlo
+con `A.screens["loquesea"] = renderLoquesea;` y añadir su `<script>`. El router no
+se toca.
+
+**Añadir cableado** es registrarlo con `A.wire(fn)` al final del archivo; el
+arranque los llama a todos en el orden en que están los `<script>`.
+
+Cuando un archivo necesita algo de otro, lo llama por un puente
+(`function goTo() { return A.goTo.apply(null, arguments); }`) que se resuelve en
+la llamada y no al cargar, así que el orden de los `<script>` solo importa para
+las constantes.
 
 ## El lenguaje visual
 
