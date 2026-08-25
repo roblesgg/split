@@ -92,8 +92,35 @@ nómina, y no todos los meses entra lo mismo.
 | **Resumen** | Tarjetas de cuenta deslizables, KPI del mes, categorías, lo que viene programado, el reparto del sueldo y el presupuesto |
 | **Movimientos** | Histórico por día, filtro ingresos/gastos, búsqueda, navegación por mes, detalle con editar y eliminar |
 | **Análisis** | Histórico con rango 3M/6M/12M, ahorro por mes, tasa de ahorro, reparto por categoría, mapa de calor y lecturas automáticas |
-| **Planes** | Cuentas, pagos programados y metas de ahorro, todo con crear, editar y borrar |
+| **Planes** | Cuentas con su objetivo de gasto, pagos programados y metas de ahorro, todo con crear, editar y borrar |
 | **Ajustes** | El día en que empieza tu mes, ingresos, reparto por porcentajes, tema y exportar/importar |
+
+## Objetivo de gasto por cuenta
+
+Cada cuenta puede llevar un **objetivo de gasto** que se vacía solo cuando
+empieza el ciclo siguiente. Se pone al crearla o editarla, y dejar el campo
+vacío es no tener ninguno.
+
+La cifra que manda es **el porcentaje que te queda**, no lo gastado: es lo que
+de verdad se quiere saber al mirar. Los euros van debajo, en pequeño, para
+quien quiera el detalle.
+
+- En el **Resumen**, la tarjeta de la cuenta lleva la barra llenándose y
+  «te queda el 72 % de 2000 €».
+- **Dentro de la cuenta**, el porcentaje va grande, con la barra y el detalle
+  en euros y los días que quedan de ciclo.
+- En **Planes**, la lista de cuentas dice cuáles tienen objetivo.
+
+Los escalones son los mismos que los del presupuesto por categorías, para que
+«al límite» signifique lo mismo en toda la app: a partir del **85 %** avisa, y
+pasado el 100 % lo dice en rojo. El color nunca va solo: cada escalón lleva su
+icono y su frase.
+
+**No es un tope duro: la app avisa, no bloquea.** Si te impidiera apuntar el
+gasto, lo apuntarías en otro sitio y entonces la app te estaría mintiendo.
+
+Solo cuenta lo que **sale de esa cuenta como gasto**. Un traspaso a tu propia
+hucha no es gastar, así que no suma, igual que no suma en ningún otro total.
 
 ## Categorías
 
@@ -253,6 +280,7 @@ js/
     dates.js        fechas en local y la matemática del ciclo (D.Ciclo)
   data/             un archivo por tema, todos cuelgan de window.Datos
     ciclo.js        el día de corte configurado, atado a la matemática
+    limites.js      el objetivo de gasto de una cuenta
     catalog.js      categorías de fábrica, colores y búsqueda por id
     demo.js         los datos de ejemplo, con semilla fija
     state.js        con qué arranca, cómo se guarda y las migraciones
@@ -317,6 +345,19 @@ Cuando un archivo necesita algo de otro, lo llama por un puente
 (`function goTo() { return A.goTo.apply(null, arguments); }`) que se resuelve en
 la llamada y no al cargar, así que el orden de los `<script>` solo importa para
 las constantes.
+
+## Las pruebas
+
+```
+node tests/run.js
+```
+
+Sin dependencias y sin navegador, igual que la app: los archivos son scripts
+clásicos, así que la prueba los lee y los evalúa como haría el navegador.
+
+Lo que hay ahí es **la aritmética**, que es lo que no se ve y lo que más duele
+cuando falla: los ciclos y los límites de cuenta. Lo que se ve en pantalla se
+comprueba abriendo la app, que para eso se abre con doble clic.
 
 ## El lenguaje visual
 

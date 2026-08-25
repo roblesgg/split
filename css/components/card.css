@@ -360,3 +360,35 @@
   background: var(--surface-2);
   color: var(--text-secondary);
 }
+
+/* ---------- el límite dentro de la tarjeta de cuenta ----------
+   Va sobre el color de la cuenta, así que la barra es blanca a dos
+   opacidades. La severidad la lleva el texto de al lado: una barra roja
+   sobre un fondo de color no se distingue de una que va bien. */
+
+.paycard__limite {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.paycard__limite-track {
+  height: 6px;
+  border-radius: var(--r-full);
+  background: rgba(255, 255, 255, 0.26);
+  overflow: hidden;
+}
+
+.paycard__limite-fill {
+  height: 100%;
+  border-radius: var(--r-full);
+  background: rgba(255, 255, 255, 0.92);
+  transform-origin: left center;
+  transform: scaleX(0);
+  animation: meter-grow var(--dur-slow) var(--ease-out) forwards;
+  animation-delay: 140ms;
+}
+
+/* el límite va en su propia fila, entre el saldo y el pie */
+.paycard__limite { margin-top: auto; padding-top: var(--sp-3); }

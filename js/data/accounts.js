@@ -45,6 +45,10 @@
         ? data.color : ((D.state.accounts.length * 5) % CAT_COLORS) + 1),
       opening: Math.round((+data.opening || 0) * 100) / 100
     };
+    /* El límite es opcional: una cuenta sin él es lo normal, y no tener
+       el campo se lee igual que no tener límite. */
+    var lim = parseFloat(data.limite);
+    if (isFinite(lim) && lim > 0) acc.limite = Math.round(lim * 100) / 100;
     D.state.accounts.push(acc);
     save();
     return acc;
@@ -58,6 +62,11 @@
     if (patch.icon != null) a.icon = patch.icon;
     if (patch.color != null) a.color = normalizeColor(patch.color);
     if (patch.opening != null) a.opening = Math.round((+patch.opening || 0) * 100) / 100;
+    if (patch.limite !== undefined) {
+      var lim = parseFloat(patch.limite);
+      if (isFinite(lim) && lim > 0) a.limite = Math.round(lim * 100) / 100;
+      else delete a.limite;
+    }
     save();
     return a;
   }

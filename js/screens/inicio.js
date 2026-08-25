@@ -19,6 +19,7 @@
   function foldCard() { return A.foldCard.apply(null, arguments); }
   function money() { return A.money.apply(null, arguments); }
   function nombreCiclo() { return A.nombreCiclo.apply(null, arguments); }
+  function limiteEnTarjeta() { return A.limiteEnTarjeta.apply(null, arguments); }
   function mountIcons() { return A.mountIcons.apply(null, arguments); }
   function seriesEnding() { return A.seriesEnding.apply(null, arguments); }
   function txRowHtml() { return A.txRowHtml.apply(null, arguments); }
@@ -60,6 +61,12 @@
                   '<p class="paycard__label">Saldo</p>' +
                   '<p class="paycard__value">' + bigAmount(S.accountBalance(a.id)) + '</p>' +
                 '</div>' +
+                /* si la cuenta tiene objetivo de gasto, la barra sustituye
+                   al pie de texto: es lo que se quiere mirar de un vistazo */
+                (function () {
+                  var lim = S.estadoDeLimite(a.id, curKey);
+                  return lim ? limiteEnTarjeta(lim) : "";
+                })() +
                 '<div class="paycard__foot">' +
                   '<span class="paycard__label">' +
                     (i === 0

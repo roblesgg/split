@@ -14,6 +14,7 @@
   function emptyHtml() { return A.emptyHtml.apply(null, arguments); }
   function goTo() { return A.goTo.apply(null, arguments); }
   function nombreCiclo() { return A.nombreCiclo.apply(null, arguments); }
+  function limiteHtml() { return A.limiteHtml.apply(null, arguments); }
   function mountIcons() { return A.mountIcons.apply(null, arguments); }
   function openAdd() { return A.openAdd.apply(null, arguments); }
   function openDetail() { return A.openDetail.apply(null, arguments); }
@@ -62,6 +63,7 @@
     });
 
     var ultimos = propios.slice(0, 5);
+    var lim = S.estadoDeLimite(a.id, curKey);
     var uso = S.accountUsage(a.id);
 
     $("#sheetCuentaTitle").textContent = a.name;
@@ -78,6 +80,19 @@
           '<p class="paycard__value">' + bigAmount(S.accountBalance(a.id)) + '</p>' +
         '</div>' +
       '</div>' +
+
+      /* Si hay objetivo de gasto, lo primero al abrir la cuenta es cuánto
+         te queda: es lo que se viene a mirar. */
+      (lim
+        ? '<div class="card" style="margin-top:var(--sp-5)">' +
+            '<div class="card__head">' +
+              '<h3 class="card__title">Tu objetivo de gasto</h3>' +
+              '<button type="button" class="card__link" data-form="account" ' +
+                'data-form-id="' + esc(a.id) + '">Cambiar</button>' +
+            '</div>' +
+            limiteHtml(lim, a) +
+          '</div>'
+        : "") +
 
       '<p class="field__label" style="margin-top:var(--sp-5)">En ' +
         esc(nombreCiclo(curKey)) + '</p>' +

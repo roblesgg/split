@@ -53,6 +53,9 @@
   var rangoDeCiclo = D.rangoDeCiclo, etiquetaCiclo = D.etiquetaCiclo, nombreCiclo = D.nombreCiclo;
   var diaDeCorte = D.diaDeCorte, setDiaDeCorte = D.setDiaDeCorte, esMesNatural = D.esMesNatural;
   var serieDeCiclos = D.serieDeCiclos, CICLO_DIA_MAX = D.Ciclo.DIA_MAX;
+  var limiteDe = D.limiteDe, setLimite = D.setLimite;
+  var gastoDeCuenta = D.gastoDeCuenta, estadoDeLimite = D.estadoDeLimite;
+  var cuentasConLimite = D.cuentasConLimite;
   var upcomingRecurring = D.upcomingRecurring, updateAccount = D.updateAccount;
   var updateCategory = D.updateCategory, updateGoal = D.updateGoal, updateRecurring = D.updateRecurring;
   var updateTx = D.updateTx, ymd = D.ymd;
@@ -87,6 +90,13 @@
     /* cuentas */
     addAccount: addAccount, updateAccount: updateAccount,
     deleteAccount: deleteAccount, accountUsage: accountUsage,
+
+    /* Objetivo de gasto por cuenta, que se vacía al cerrar el ciclo.
+       estadoDeLimite() trae de una vez todo lo que hay que pintar, o
+       null si esa cuenta no tiene ninguno. */
+    limiteDe: limiteDe, setLimite: setLimite,
+    gastoDeCuenta: gastoDeCuenta, estadoDeLimite: estadoDeLimite,
+    cuentasConLimite: cuentasConLimite,
 
     /* etiquetas */
     addTag: addTag, tagById: tagById, deleteTag: deleteTag, tagUsage: tagUsage,

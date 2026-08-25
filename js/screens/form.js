@@ -62,9 +62,11 @@
     } else if (type === "account") {
       d = it
         ? { name: it.name, type: it.type, opening: it.opening,
-            icon: it.icon || "wallet", color: it.color || 1 }
+            icon: it.icon || "wallet", color: it.color || 1,
+            /* vacío, no cero: el campo en blanco es «sin límite» */
+            limite: it.limite != null ? it.limite : "" }
         : { name: "", type: "Banco", opening: 0, icon: "wallet",
-            color: ((S.state.accounts.length * 5) % S.CAT_COLORS) + 1 };
+            color: ((S.state.accounts.length * 5) % S.CAT_COLORS) + 1, limite: "" };
     } else if (type === "goal") {
       d = it ? { name: it.name, target: it.target, saved: it.saved, monthly: it.monthly }
              : { name: "", target: "", saved: 0, monthly: "" };
@@ -390,6 +392,7 @@
       Emoji: function (v) { ui.form.d.emoji = v; },
       Type: function (v) { ui.form.d.type = v; },
       Opening: function (v) { ui.form.d.opening = v; },
+      Limite: function (v) { ui.form.d.limite = v; },
       Target: function (v) { ui.form.d.target = v; },
       Saved: function (v) { ui.form.d.saved = v; },
       Monthly: function (v) { ui.form.d.monthly = v; },

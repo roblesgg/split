@@ -21,6 +21,7 @@
   function mountIcons() { return A.mountIcons.apply(null, arguments); }
   function numField() { return A.numField.apply(null, arguments); }
   function pickField() { return A.pickField.apply(null, arguments); }
+  function periodo() { return A.periodo.apply(null, arguments); }
   function switchRow() { return A.switchRow.apply(null, arguments); }
 
   function renderForm() {
@@ -124,6 +125,18 @@
           '</div>' +
           numField("fOpening", "Saldo inicial", d.opening, 10) +
         '</div>' +
+        /* El objetivo de gasto va justo debajo del saldo porque es la otra
+           cifra que define la cuenta: cuánto hay y cuánto puedes gastar. */
+        '<div class="field">' +
+          numField("fLimite", "Objetivo de gasto por " + periodo(), d.limite, 10) +
+          '<p class="field__hint">' +
+            (parseFloat(d.limite) > 0
+              ? 'Se vacía solo cuando empieza el ' + esc(periodo()) + ' siguiente. ' +
+                'La app avisa cuando te acercas, pero no te bloquea.'
+              : 'Déjalo vacío si no quieres ponerte un tope en esta cuenta.') +
+          '</p>' +
+        '</div>' +
+
         '<div class="field">' +
           '<span class="field__label">Icono</span>' +
           '<div class="cat-grid">' +
