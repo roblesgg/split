@@ -13,7 +13,7 @@
   function bigAmount() { return A.bigAmount.apply(null, arguments); }
   function emptyHtml() { return A.emptyHtml.apply(null, arguments); }
   function goTo() { return A.goTo.apply(null, arguments); }
-  function monthName() { return A.monthName.apply(null, arguments); }
+  function nombreCiclo() { return A.nombreCiclo.apply(null, arguments); }
   function mountIcons() { return A.mountIcons.apply(null, arguments); }
   function openAdd() { return A.openAdd.apply(null, arguments); }
   function openDetail() { return A.openDetail.apply(null, arguments); }
@@ -50,13 +50,13 @@
     if (!a) { sheets.cuenta.close(); return; }
 
     var body = $("#sheetCuentaBody");
-    var curKey = S.currentMonthKey();
+    var curKey = S.cicloActual();
     var propios = movimientosDe(a.id);
 
     /* del mes en curso, y separando lo que entra de lo que sale */
     var entra = 0, sale = 0;
     propios.forEach(function (t) {
-      if (S.monthKey(t.date) !== curKey) return;
+      if (S.ciclo(t.date) !== curKey) return;
       var e = efectoEnCuenta(t, a.id);
       if (e >= 0) entra += e; else sale += -e;
     });
@@ -80,7 +80,7 @@
       '</div>' +
 
       '<p class="field__label" style="margin-top:var(--sp-5)">En ' +
-        esc(monthName(curKey)) + '</p>' +
+        esc(nombreCiclo(curKey)) + '</p>' +
       '<div class="kpi-row">' +
         '<div class="stat stat--compact stat--quiet">' +
           '<p class="stat__label">Ha entrado</p>' +

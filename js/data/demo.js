@@ -168,10 +168,13 @@
   function defaultState() {
     var today = ymd(new Date());
     return {
-      version: 11,
+      version: 12,
       createdAt: today,
       categories: cloneCategories(),
       tags: [],
+
+      /* El día en que se reinicia el mes. 1 = mes natural. */
+      ciclo: { dia: 1 },
 
       /* Cuánto cuentas al mes para repartir.
          auto  = media real de tus últimos meses cerrados
@@ -209,10 +212,11 @@
   function freshState() {
     var today = ymd(new Date());
     return {
-      version: 11,
+      version: 12,
       createdAt: today,
       categories: cloneCategories(),
       tags: [],
+      ciclo: { dia: 1 },
       income: { mode: "auto", manual: 0, months: 3 },
       /* Vacío a propósito. Traer diez categorías presupuestadas que nadie
          ha elegido hace que la pantalla de Ajustes parezca de otro y que

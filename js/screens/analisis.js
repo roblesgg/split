@@ -15,9 +15,12 @@
   function isDesktop() { return A.isDesktop.apply(null, arguments); }
   function money() { return A.money.apply(null, arguments); }
   function mountIcons() { return A.mountIcons.apply(null, arguments); }
-  function selectedMonth() { return A.selectedMonth.apply(null, arguments); }
+  function cicloVisible() { return A.cicloVisible.apply(null, arguments); }
   function seriesEnding() { return A.seriesEnding.apply(null, arguments); }
   function wrapStagger() { return A.wrapStagger.apply(null, arguments); }
+  function Periodo() { return A.Periodo.apply(null, arguments); }
+  function periodo() { return A.periodo.apply(null, arguments); }
+  function periodos() { return A.periodos.apply(null, arguments); }
 
   /* ============================================================
      Pantalla · Análisis
@@ -25,10 +28,10 @@
 
   function renderAnalisis() {
     var root = $("#view-analisis");
-    var key = selectedMonth();
+    var key = cicloVisible();
     var series = seriesEnding(key, ui.range);
     var cats = S.byCategory(key, "out");
-    var t = S.totals(S.txOfMonth(key));
+    var t = S.totals(S.txDeCiclo(key));
     var rate = S.savingsRate(key);
     var days = S.dailySpend(key);
     var merchants = S.topMerchants(key, 5);
@@ -41,11 +44,11 @@
           '<div>' +
             '<h2 class="card__title">Historial</h2>' +
             '<p class="card__sub">' +
-              (ui.anView === "gastos" ? "Ingresos y gastos" : "Lo que ahorras cada mes") +
-              ", " + ui.range + " meses en euros" + '</p>' +
+              (ui.anView === "gastos" ? "Ingresos y gastos" : "Lo que ahorras cada " + periodo()) +
+              ", " + ui.range + " " + periodos() + " en euros" + '</p>' +
           '</div>' +
           '<span class="mini-select" style="pointer-events:none">hasta ' +
-            esc(S.monthLabel(key, "shortYear")) + '</span>' +
+            esc(S.etiquetaCiclo(key, "shortYear")) + '</span>' +
         '</div>' +
         '<div id="chartFlow"></div>' +
         /* con una sola serie no hace falta leyenda: el título ya la nombra */
@@ -64,7 +67,7 @@
       '<section class="card">' +
         '<div class="card__head">' +
           '<div>' +
-            '<h2 class="card__title">Ahorro por mes</h2>' +
+            '<h2 class="card__title">Ahorro por ' + esc(periodo()) + '</h2>' +
             ''+
           '</div>' +
         '</div>' +
@@ -78,7 +81,7 @@
       '<section class="card">' +
         '<div class="card__head">' +
           '<div>' +
-            '<h2 class="card__title">Ritmo del mes</h2>' +
+            '<h2 class="card__title">Ritmo del ' + esc(periodo()) + '</h2>' +
             ''+
           '</div>' +
         '</div>' +
@@ -101,7 +104,7 @@
         '<div class="card__head">' +
           '<div>' +
             '<h2 class="card__title">En qué se va</h2>' +
-            '<p class="card__sub">' + esc(S.monthLabel(key)) + '</p>' +
+            '<p class="card__sub">' + esc(S.etiquetaCiclo(key)) + '</p>' +
           '</div>' +
         '</div>' +
         /* El rosco dice el total y las proporciones a la vez; la lista de
@@ -137,7 +140,7 @@
                 '</div>' +
               '</div>';
             }).join("") + '</div>'
-          : '<p class="chart-note">Aún no hay gastos este mes.</p>') +
+          : '<p class="chart-note">Aún no hay gastos este ' + esc(periodo()) + '.</p>') +
       '</section>' +
 
       '<section class="card">' +
@@ -159,15 +162,15 @@
 
       '<div class="filter-row" style="flex-direction:column;align-items:stretch;gap:var(--sp-3)">' +
         '<div style="display:flex;align-items:center;gap:var(--sp-2)">' +
-          '<button type="button" class="icon-btn" data-amonth="-1" aria-label="Mes anterior" ' +
+          '<button type="button" class="icon-btn" data-aciclo="-1" aria-label="' + esc(Periodo()) + ' anterior" ' +
                   'data-icon="chevLeft" data-icon-size="17"></button>' +
           '<div class="month-nav">' +
-            '<p class="month-nav__label">' + esc(S.monthLabel(key)) + '</p>' +
+            '<p class="month-nav__label">' + esc(S.etiquetaCiclo(key)) + '</p>' +
             '<p class="month-nav__sub">' + esc(money(t.expense)) + ' gastados</p>' +
           '</div>' +
-          '<button type="button" class="icon-btn" data-amonth="1" aria-label="Mes siguiente" ' +
+          '<button type="button" class="icon-btn" data-aciclo="1" aria-label="' + esc(Periodo()) + ' siguiente" ' +
                   'data-icon="chevron" data-icon-size="17"' +
-                  (ui.monthOffset === 0 ? " disabled" : "") + '></button>' +
+                  (ui.cicloOffset === 0 ? " disabled" : "") + '></button>' +
         '</div>' +
         '<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3)">' +
           '<div class="segmented" id="anSeg" role="tablist">' +
@@ -212,8 +215,8 @@
       thick: 3,
       height: isDesktop() ? 190 : 155,
       ariaLabel: ui.anView === "gastos"
-        ? "Ingresos y gastos de los últimos 12 meses"
-        : "Ahorro de los últimos 12 meses"
+        ? "Ingresos y gastos de los últimos 12 " + periodos()
+        : "Ahorro de los últimos 12 " + periodos()
     });
 
     C.divergingColumns($("#chartNet", root), {
@@ -222,7 +225,7 @@
       }),
       format: S.signed,
       height: isDesktop() ? 170 : 130,
-      ariaLabel: "Ahorro neto por mes"
+      ariaLabel: "Ahorro neto por " + periodo()
     });
 
     C.donut($("#donutCats", root), cats, {
@@ -316,19 +319,19 @@
 
   function insights(d) {
     var out = [];
-    var elapsedDays = d.key === S.currentMonthKey() ? new Date().getDate() : 0;
+    var elapsedDays = d.key === S.cicloActual() ? S.diasCorridos(d.key) : 0;
 
     if (elapsedDays >= 5 && d.avg > 0) {
       var pctDiff = Math.round(((d.projected - d.avg) / d.avg) * 100);
       out.push({
         status: Math.abs(pctDiff) < 8 ? "neutral" : (pctDiff > 0 ? "warning" : "good"),
         ic: Math.abs(pctDiff) < 8 ? "info" : (pctDiff > 0 ? "warning" : "check"),
-        title: "Vas camino de cerrar el mes en " + S.moneyShort(d.projected),
+        title: "Vas camino de cerrar el " + periodo() + " en " + S.moneyShort(d.projected),
         text: (Math.abs(pctDiff) < 8
-          ? "En línea con tu media de los últimos 6 meses (" + S.moneyShort(d.avg) + ")."
+          ? "En línea con tu media de los últimos 6 " + periodos() + " (" + S.moneyShort(d.avg) + ")."
           : pctDiff > 0
-            ? "Un " + pctDiff + " % por encima de tu media de 6 meses (" + S.moneyShort(d.avg) + ")."
-            : "Un " + Math.abs(pctDiff) + " % por debajo de tu media de 6 meses (" + S.moneyShort(d.avg) + ").") +
+            ? "Un " + pctDiff + " % por encima de tu media de 6 " + periodos() + " (" + S.moneyShort(d.avg) + ")."
+            : "Un " + Math.abs(pctDiff) + " % por debajo de tu media de 6 " + periodos() + " (" + S.moneyShort(d.avg) + ").") +
           " Calculado sobre cuánto sueles llevar gastado a estas alturas del mes."
       });
     }
@@ -340,7 +343,7 @@
         status: share > 45 ? "warning" : "neutral",
         ic: share > 45 ? "warning" : "trendUp",
         title: top.name + " se lleva el " + share + " % de tus gastos",
-        text: S.moneyShort(top.value) + " de " + S.moneyShort(d.t.expense) + " este mes." +
+        text: S.moneyShort(top.value) + " de " + S.moneyShort(d.t.expense) + " este " + periodo() + "." +
               (share > 45 ? " Es la partida donde más margen tienes para recortar." : "")
       });
     }

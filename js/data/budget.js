@@ -11,27 +11,27 @@
      así que da igual el orden en que se carguen los scripts. */
   function addMonths() { return D.addMonths.apply(null, arguments); }
   function categoriesOf() { return D.categoriesOf.apply(null, arguments); }
-  function currentMonthKey() { return D.currentMonthKey.apply(null, arguments); }
+  function cicloActual() { return D.cicloActual.apply(null, arguments); }
   function mensualizar() { return D.mensualizar.apply(null, arguments); }
   function pct() { return D.pct.apply(null, arguments); }
   function save() { return D.save.apply(null, arguments); }
   function totals() { return D.totals.apply(null, arguments); }
-  function txOfMonth() { return D.txOfMonth.apply(null, arguments); }
+  function txDeCiclo() { return D.txDeCiclo.apply(null, arguments); }
 
   /* ---------- ingresos y reparto ---------- */
 
-  /* Media de lo que ha entrado de verdad en los últimos meses cerrados.
-     Se excluye el mes en curso porque va a medias y tiraría la media
-     hacia abajo. Un mes con paga extra o con más horas sube la media
+  /* Media de lo que ha entrado de verdad en los últimos ciclos cerrados.
+     Se excluye el que va en curso porque va a medias y tiraría la media
+     hacia abajo. Un ciclo con paga extra o con más horas sube la media
      solo, sin tener que declarar nada. */
   function averageIncome(months) {
     var n = Math.max(1, months || 3);
-    var cur = currentMonthKey();
+    var cur = cicloActual();
     var suma = 0, contados = 0;
     for (var i = 1; i <= n; i++) {
       var key = addMonths(cur, -i);
-      var t = totals(txOfMonth(key));
-      /* un mes sin ningún ingreso no cuenta: normalmente es que aún no
+      var t = totals(txDeCiclo(key));
+      /* un ciclo sin ningún ingreso no cuenta: normalmente es que aún no
          usabas la app, y meterlo como cero hundiría la media */
       if (t.income > 0) { suma += t.income; contados++; }
     }
@@ -51,7 +51,7 @@
 
   var INCOME_MODES = ["auto", "manual", "trabajos"];
 
-  /* Cuánto hay para repartir este mes. */
+  /* Cuánto hay para repartir este ciclo. */
   function plannedIncome() {
     var i = D.state.income || { mode: "auto", manual: 0, months: 3 };
 

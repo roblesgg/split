@@ -207,11 +207,21 @@
       s.version = 11;
     }
 
+    if (s.version < 12) {
+      /* v12: el mes deja de ser necesariamente el mes natural. Día 1 es
+         justo lo que la app venía haciendo, así que actualizar no le
+         cambia una sola cifra a nadie: quien quiera otro corte lo elige
+         en Ajustes. */
+      if (!s.ciclo || !s.ciclo.dia) s.ciclo = { dia: 1 };
+      s.version = 12;
+    }
+
     /* Red de seguridad, al margen de la versión: casi todo el código tira
        de las categorías por defecto cuando la lista no está, pero crear
        una necesita el array de verdad. Un estado importado a mano, o
        guardado a medias, se quedaba sin él y reventaba al añadir. */
     if (!Array.isArray(s.categories)) s.categories = DEFAULT_CATEGORIES.slice();
+    if (!s.ciclo || !s.ciclo.dia) s.ciclo = { dia: 1 };
 
     invalidateCats();
     return s;

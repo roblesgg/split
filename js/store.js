@@ -24,7 +24,7 @@
   var categoriasMadre = D.categoriasMadre, categories = D.categories, categoriesOf = D.categoriesOf;
   var categoryUsage = D.categoryUsage, clearAll = D.clearAll, confirmarPendiente = D.confirmarPendiente;
   var corregirSaldo = D.corregirSaldo, cuotasQueQuedan = D.cuotasQueQuedan;
-  var currentMonthKey = D.currentMonthKey, dailySpend = D.dailySpend, daysInMonth = D.daysInMonth;
+  var dailySpend = D.dailySpend;
   var declaredIncome = D.declaredIncome, deleteAccount = D.deleteAccount;
   var deleteCategory = D.deleteCategory, deleteGoal = D.deleteGoal, deleteRecurring = D.deleteRecurring;
   var deleteTag = D.deleteTag, deleteTx = D.deleteTx, descartarPendiente = D.descartarPendiente;
@@ -33,12 +33,13 @@
   var exportJson = D.exportJson, getEmojiSet = D.getEmojiSet, getTheme = D.getTheme;
   var hasSavedState = D.hasSavedState, hijasDe = D.hijasDe, importJson = D.importJson;
   var load = D.load, mediaCobradaDe = D.mediaCobradaDe, mensualizar = D.mensualizar;
-  var money = D.money, moneyShort = D.moneyShort, monthKey = D.monthKey;
-  var monthLabel = D.monthLabel, monthlySeries = D.monthlySeries, nextDue = D.nextDue;
+  var money = D.money, moneyShort = D.moneyShort;
+  var nextDue = D.nextDue;
   var nombreLargo = D.nombreLargo, num2 = D.num2, parseYmd = D.parseYmd;
   var pct = D.pct, pendientes = D.pendientes, plannedIncome = D.plannedIncome;
   var projectedExpense = D.projectedExpense, raizDe = D.raizDe, recurringMonthly = D.recurringMonthly;
   var relDayLabel = D.relDayLabel, removeAllocation = D.removeAllocation;
+  var fechaLarga = D.fechaLarga;
   var reset = D.reset, resetAllocation = D.resetAllocation, restoreTx = D.restoreTx;
   var resumenCfg = D.resumenCfg, runRecurring = D.runRecurring, save = D.save;
   var savingsPct = D.savingsPct, savingsRate = D.savingsRate, setAllocation = D.setAllocation;
@@ -46,7 +47,12 @@
   var setIncome = D.setIncome, setResumen = D.setResumen, setTheme = D.setTheme;
   var signed = D.signed, tagById = D.tagById, tagUsage = D.tagUsage, toggleRecurring = D.toggleRecurring;
   var topMerchants = D.topMerchants, totalesResumen = D.totalesResumen, totals = D.totals;
-  var txOfMonth = D.txOfMonth, unbudgetedCategories = D.unbudgetedCategories;
+  var unbudgetedCategories = D.unbudgetedCategories;
+  var ciclo = D.ciclo, cicloActual = D.cicloActual, txDeCiclo = D.txDeCiclo;
+  var diaDeCiclo = D.diaDeCiclo, diasDeCiclo = D.diasDeCiclo, diasCorridos = D.diasCorridos;
+  var rangoDeCiclo = D.rangoDeCiclo, etiquetaCiclo = D.etiquetaCiclo, nombreCiclo = D.nombreCiclo;
+  var diaDeCorte = D.diaDeCorte, setDiaDeCorte = D.setDiaDeCorte, esMesNatural = D.esMesNatural;
+  var serieDeCiclos = D.serieDeCiclos, CICLO_DIA_MAX = D.Ciclo.DIA_MAX;
   var upcomingRecurring = D.upcomingRecurring, updateAccount = D.updateAccount;
   var updateCategory = D.updateCategory, updateGoal = D.updateGoal, updateRecurring = D.updateRecurring;
   var updateTx = D.updateTx, ymd = D.ymd;
@@ -124,14 +130,27 @@
     budgetFor: budgetFor, budgetTotal: budgetTotal,
     DEFAULT_ALLOCATION: DEFAULT_ALLOCATION,
 
+    /* El ciclo: el «mes» de la app, que empieza el día que diga el
+       usuario. Con día 1 es el mes natural de toda la vida. */
+    ciclo: ciclo,                     /* en qué ciclo cae una fecha */
+    cicloActual: cicloActual,
+    rangoDeCiclo: rangoDeCiclo,       /* { desde, hasta } */
+    diasDeCiclo: diasDeCiclo,
+    diaDeCiclo: diaDeCiclo,           /* por qué día del ciclo va una fecha */
+    diasCorridos: diasCorridos,       /* cuánto llevas recorrido del ciclo */
+    etiquetaCiclo: etiquetaCiclo,     /* «agosto 2026» o «25 ago – 24 sep» */
+    nombreCiclo: nombreCiclo,         /* la versión de título, sin año */
+    diaDeCorte: diaDeCorte, setDiaDeCorte: setDiaDeCorte,
+    esMesNatural: esMesNatural,
+    CICLO_DIA_MAX: CICLO_DIA_MAX,
+
     /* selectores */
-    currentMonthKey: currentMonthKey,
-    txOfMonth: txOfMonth,
+    txDeCiclo: txDeCiclo,
     totals: totals,
     balance: balance,
     accountBalance: accountBalance,
     byCategory: byCategory,
-    monthlySeries: monthlySeries,
+    serieDeCiclos: serieDeCiclos,
     dailySpend: dailySpend,
     savingsRate: savingsRate,
     topMerchants: topMerchants,
@@ -140,9 +159,8 @@
     expenseShapeFraction: expenseShapeFraction,
 
     /* fechas y formato */
-    ymd: ymd, parseYmd: parseYmd, monthKey: monthKey, monthLabel: monthLabel,
-    addMonths: addMonths, daysInMonth: daysInMonth, dowMon: dowMon,
-    relDayLabel: relDayLabel,
+    ymd: ymd, parseYmd: parseYmd, addMonths: addMonths, dowMon: dowMon,
+    relDayLabel: relDayLabel, fechaLarga: fechaLarga,
     money: money, moneyShort: moneyShort, signed: signed, pct: pct, num2: num2,
 
     /* tema */

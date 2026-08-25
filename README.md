@@ -46,6 +46,29 @@ El tutorial se enseña una sola vez, la primera vez que hay algo guardado en
 No hay marco de móvil en escritorio ni maquetación duplicada: son los mismos
 componentes recolocados.
 
+## Cuándo empieza tu mes
+
+De fábrica el mes de la app es el del calendario: del 1 al último día. Pero si
+cobras el 25 y tu mes de verdad va del 25 al 24, en **Ajustes → Cuándo empieza
+tu mes** se cambia el día en que se reinicia todo.
+
+Ese día manda sobre **todo lo que la app cuenta**: los totales del Resumen, el
+presupuesto, el histórico de Análisis, la navegación de Movimientos y el mapa de
+calor. No hay dos calendarios conviviendo — si tu mes empieza el 25, la app
+entera empieza el 25, y la cabecera dice «25 ago – 24 sep» en vez de «agosto»,
+porque llamarle agosto sería mentir.
+
+- El día máximo es el **28**, por lo mismo que en los programados: un mes que
+  empezara el 31 no existiría en febrero.
+- **Lo que se cobra sigue el calendario, no el ciclo.** Un recibo domiciliado el
+  día 3 se cobra el 3, tengas el corte donde lo tengas. El ciclo manda en lo que
+  se mira; el calendario, en lo que se paga.
+- Con el día 1 —lo que trae la app— todo funciona exactamente como funcionaba
+  antes de que existieran los ciclos.
+
+Por dentro, un ciclo se identifica por el mes en el que **empieza**, así que
+sigue siendo una clave `AAAA-MM` y todo lo que ya guardaba meses no se entera.
+
 ## Cuánto cuentas al mes y el reparto
 
 En **Ajustes** decides sobre cuánto dinero repartir:
@@ -70,7 +93,7 @@ nómina, y no todos los meses entra lo mismo.
 | **Movimientos** | Histórico por día, filtro ingresos/gastos, búsqueda, navegación por mes, detalle con editar y eliminar |
 | **Análisis** | Histórico con rango 3M/6M/12M, ahorro por mes, tasa de ahorro, reparto por categoría, mapa de calor y lecturas automáticas |
 | **Planes** | Cuentas, pagos programados y metas de ahorro, todo con crear, editar y borrar |
-| **Ajustes** | Ingresos, reparto por porcentajes, tema y exportar/importar |
+| **Ajustes** | El día en que empieza tu mes, ingresos, reparto por porcentajes, tema y exportar/importar |
 
 ## Categorías
 
@@ -140,6 +163,8 @@ suscripciones, la nómina, o un traspaso automático a la hucha.
 - Se apuntan **solos** el día que toca, la próxima vez que abras la app. Si has
   estado semanas sin entrar, recupera todos los meses pendientes de una vez.
 - El día máximo es el **28**, para que caiga en todos los meses incluido febrero.
+- Los días son del **calendario**, no de tu ciclo: si tienes el corte el 25, el
+  recibo del día 3 se sigue cobrando el 3.
 - Cada uno se puede **pausar** sin borrarlo.
 - Los que ya se apuntaron son movimientos normales: se pueden editar o borrar
   uno a uno sin tocar la programación.
@@ -225,8 +250,9 @@ js/
   core/             lo que no sabe nada de finanzas
     base.js         el espacio común de la capa de datos (window.Datos)
     format.js       euros, porcentajes y decimales en es-ES
-    dates.js        fechas, siempre en local
+    dates.js        fechas en local y la matemática del ciclo (D.Ciclo)
   data/             un archivo por tema, todos cuelgan de window.Datos
+    ciclo.js        el día de corte configurado, atado a la matemática
     catalog.js      categorías de fábrica, colores y búsqueda por id
     demo.js         los datos de ejemplo, con semilla fija
     state.js        con qué arranca, cómo se guarda y las migraciones
@@ -332,15 +358,15 @@ El gráfico de Historial no usa la paleta categórica sino la forma de **énfasi
 la serie que cuenta va en tinta y el contexto en un gris validado a 3:1. Es lo
 que le permite quedarse en blanco y negro sin perder identidad.
 
-## Cómo se calcula la proyección del mes
+## Cómo se calcula la proyección del ciclo
 
-La típica regla de tres (*gastado ÷ días transcurridos × días del mes*) miente:
-el alquiler y las cuotas caen a principio de mes, así que el día 7 el ritmo
-aparente se dispara y proyecta cifras absurdas.
+La típica regla de tres (*gastado ÷ días transcurridos × días del ciclo*)
+miente: el alquiler y las cuotas caen al principio, así que al octavo día el
+ritmo aparente se dispara y proyecta cifras absurdas.
 
 En su lugar `projectedExpense()` mide la **forma** real de tu gasto: qué
-fracción del total mensual llevabas gastada a esta misma altura del mes en los
-6 meses anteriores. Si a día 7 sueles llevar el 45 %, lo gastado hasta hoy se
+fracción del total llevabas gastada a esta misma altura del ciclo en los 6
+anteriores. Si al octavo día sueles llevar el 45 %, lo gastado hasta hoy se
 divide entre 0,45. Los fijos ya pagados no se duplican. Sin historial
 suficiente, cae al reparto lineal.
 

@@ -17,14 +17,14 @@ window.App = (function () {
 
   var ui = {
     view: "inicio",
-    monthOffset: 0,          /* scope único de Análisis */
+    cicloOffset: 0,          /* qué ciclo mira Análisis */
     anView: "ahorro",        /* qué muestra el gráfico de Historial */
     range: 12,               /* meses de histórico que se dibujan */
     movsKind: "all",
     movsQuery: "",
     movsAccount: null,       /* si se llega desde una cuenta, solo la suya */
     movsCat: null,           /* y si se llega desde una categoría, solo la suya */
-    movsMonthOffset: 0,
+    movsCicloOffset: 0,      /* y cuál mira Movimientos */
     draft: null,
     editingId: null,
     cuentaReturn: null,      /* a qué cuenta volver al salir de su edición */
@@ -45,8 +45,8 @@ window.App = (function () {
   /* ---------- helpers ---------- */
 
   function money(v) { return S.money(v); }
-  function selectedMonth() { return S.addMonths(S.currentMonthKey(), -ui.monthOffset); }
-  function movsMonth() { return S.addMonths(S.currentMonthKey(), -ui.movsMonthOffset); }
+  function cicloVisible() { return S.addMonths(S.cicloActual(), -ui.cicloOffset); }
+  function cicloMovs() { return S.addMonths(S.cicloActual(), -ui.movsCicloOffset); }
   function catOf(id) { return S.catById(id); }
 
   /* Emoji de la categoría sobre un fondo teñido con su color. Sustituye al
@@ -68,7 +68,7 @@ window.App = (function () {
     var out = [];
     for (var i = n - 1; i >= 0; i--) {
       var key = S.addMonths(endKey, -i);
-      var mes = S.txOfMonth(key);
+      var mes = S.txDeCiclo(key);
       if (cuentas) {
         mes = mes.filter(function (t) {
           return cuentas.indexOf(t.accountId) >= 0 ||
@@ -78,8 +78,8 @@ window.App = (function () {
       var t = S.totals(mes);
       out.push({
         key: key,
-        label: S.monthLabel(key, "short"),
-        labelFull: S.monthLabel(key),
+        label: S.etiquetaCiclo(key, "short"),
+        labelFull: S.etiquetaCiclo(key),
         income: t.income, expense: t.expense, net: t.net
       });
     }
@@ -111,7 +111,15 @@ window.App = (function () {
     return esc(s.slice(0, i)) + '<span class="cents">' + esc(s.slice(i)) + "</span>";
   }
 
-  function monthName(key) { return S.monthLabel(key).split(" ")[0]; }
+  function nombreCiclo(key) { return S.nombreCiclo(key); }
+
+  /* Cómo llamar al periodo en los textos. Si el mes del usuario es el del
+     calendario, «mes», que es como lo llama todo el mundo. Si lo ha
+     movido al 25, «ciclo»: llamarle mes a algo que va del 25 al 24
+     confunde más de lo que aclara. */
+  function periodo() { return S.esMesNatural() ? "mes" : "ciclo"; }
+  function periodos() { return S.esMesNatural() ? "meses" : "ciclos"; }
+  function Periodo() { return S.esMesNatural() ? "Mes" : "Ciclo"; }
 
   /* ---------- tarjetas plegables ----------
      Qué está plegado se guarda aparte del estado de datos: es una
@@ -160,9 +168,9 @@ window.App = (function () {
   }
 
   /* presupuestos vigentes, derivados del reparto */
-  function budgetRows(monthKey) {
+  function budgetRows(key) {
     var spent = {};
-    S.byCategory(monthKey, "out").forEach(function (c) { spent[c.id] = c.value; });
+    S.byCategory(key, "out").forEach(function (c) { spent[c.id] = c.value; });
     return Object.keys(S.state.allocation).map(function (id) {
       var limit = S.budgetFor(id);
       return {
@@ -194,6 +202,14 @@ window.App = (function () {
     screens: {},
     wire: wire, wireAll: wireAll,
 
-    bigAmount: bigAmount, budgetRows: budgetRows, catFace: catFace, catOf: catOf, deltaPct: deltaPct, foldCard: foldCard, isDesktop: isDesktop, money: money, monthName: monthName, mountIcons: mountIcons, movsMonth: movsMonth, selectedMonth: selectedMonth, seriesEnding: seriesEnding, setFolded: setFolded
+    /* ayudantes que usa más de una pantalla */
+    bigAmount: bigAmount, budgetRows: budgetRows, catFace: catFace,
+    catOf: catOf, deltaPct: deltaPct, foldCard: foldCard,
+    isDesktop: isDesktop, money: money, mountIcons: mountIcons,
+    seriesEnding: seriesEnding, setFolded: setFolded,
+
+    /* qué ciclo está mirando cada pantalla */
+    cicloVisible: cicloVisible, cicloMovs: cicloMovs, nombreCiclo: nombreCiclo,
+    periodo: periodo, periodos: periodos, Periodo: Periodo
   };
 })();

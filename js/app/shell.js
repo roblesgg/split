@@ -221,12 +221,12 @@
         ui.anView = node.getAttribute("data-anview");
         renderAnalisis(); U.haptic("light"); return;
       }
-      if ((node = e.target.closest("[data-month]"))) {
-        ui.movsMonthOffset = Math.max(0, ui.movsMonthOffset - (+node.getAttribute("data-month")));
+      if ((node = e.target.closest("[data-ciclo]"))) {
+        ui.movsCicloOffset = Math.max(0, ui.movsCicloOffset - (+node.getAttribute("data-ciclo")));
         renderMovs(); U.haptic("light"); return;
       }
-      if ((node = e.target.closest("[data-amonth]"))) {
-        ui.monthOffset = Math.max(0, ui.monthOffset - (+node.getAttribute("data-amonth")));
+      if ((node = e.target.closest("[data-aciclo]"))) {
+        ui.cicloOffset = Math.max(0, ui.cicloOffset - (+node.getAttribute("data-aciclo")));
         renderAnalisis(); U.haptic("light"); return;
       }
       if ((node = e.target.closest("[data-fold]"))) {
@@ -251,7 +251,7 @@
         ui.movsAccount = null;
         ui.movsKind = "all";
         ui.movsQuery = "";
-        ui.movsMonthOffset = ui.monthOffset;
+        ui.movsCicloOffset = ui.cicloOffset;
         goTo("movs");
         U.haptic("light");
         return;

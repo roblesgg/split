@@ -22,6 +22,8 @@
   function renderAll() { return A.renderAll.apply(null, arguments); }
   function startOnboarding() { return A.startOnboarding.apply(null, arguments); }
   function wrapStagger() { return A.wrapStagger.apply(null, arguments); }
+  function periodo() { return A.periodo.apply(null, arguments); }
+  function periodos() { return A.periodos.apply(null, arguments); }
 
   /* ============================================================
      Pantalla · Ajustes — ingresos y reparto del sueldo
@@ -53,10 +55,36 @@
     });
     var declarado = S.declaredIncome();
 
+    /* El ciclo va el primero porque es la regla que manda sobre todo lo
+       que se ve debajo: si tu mes empieza el 25, el presupuesto, los
+       totales y el histórico van del 25 al 24. */
+    var dia = S.diaDeCorte();
+    var cicloKey = S.cicloActual();
+    var rango = S.rangoDeCiclo(cicloKey);
+
     var main =
       '<section class="card">' +
         '<div class="card__head">' +
-          '<h2 class="card__title">Cuánto cuentas al mes</h2>' +
+          '<h2 class="card__title">Cuándo empieza tu mes</h2>' +
+        '</div>' +
+
+        '<div class="field">' +
+          '<span class="field__label">Se reinicia el día</span>' +
+          pickField("cicloDia", dia, dia === 1 ? "1, como el calendario" : String(dia)) +
+        '</div>' +
+
+        '<p class="card__sub" style="margin-top:var(--sp-3)">' +
+          (dia === 1
+            ? 'Tu mes es el del calendario: del 1 al último día.'
+            : 'Este mes va del <strong>' + esc(S.fechaLarga(rango.desde)) +
+              '</strong> al <strong>' + esc(S.fechaLarga(rango.hasta)) + '</strong>. ' +
+              'Todo lo que cuenta la app —totales, presupuesto e histórico— va con él.') +
+        '</p>' +
+      '</section>' +
+
+      '<section class="card">' +
+        '<div class="card__head">' +
+          '<h2 class="card__title">Cuánto cuentas por ' + esc(periodo()) + '</h2>' +
         '</div>' +
 
         '<div class="segmented" id="incSeg" role="tablist">' +
@@ -80,16 +108,16 @@
                          : "Suma de tus " + trabajos.length + " trabajos")
                     : "Aún no has programado ningún cobro")
                : (media > 0
-                    ? "Media de tus últimos " + inc.months + " meses"
+                    ? "Media de tus últimos " + inc.months + " " + periodos()
                     : "Aún sin historial: se usa la cifra manual")) + '</p>' +
         '</div>' +
 
         (modo === "auto"
           ? '<div class="field">' +
-              '<span class="field__label">Meses que promedia</span>' +
-              pickField("incMonths", inc.months, inc.months + " meses") +
+              '<span class="field__label">Cuántos ' + esc(periodos()) + ' promedia</span>' +
+              pickField("incMonths", inc.months, inc.months + " " + periodos()) +
               '<p class="field__hint">Cuenta lo que te ha entrado de verdad. ' +
-                'Un mes con paga extra sube la media solo.</p>' +
+                'Un ' + esc(periodo()) + ' con paga extra sube la media solo.</p>' +
             '</div>'
 
         : modo === "trabajos"
@@ -146,7 +174,8 @@
       '<section class="card">' +
         '<div class="card__head">' +
           '<div>' +
-            '<h2 class="card__title">Presupuesto del mes</h2>' +
+            '<h2 class="card__title">Presupuesto del ' +
+            esc(periodo()) + '</h2>' +
             '<p class="card__sub">Cuánto quieres gastar como mucho en cada tipo de ' +
               'gasto. No son tus cuentas.</p>' +
           '</div>' +

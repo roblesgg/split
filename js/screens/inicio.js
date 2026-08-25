@@ -18,7 +18,7 @@
   function emptyHtml() { return A.emptyHtml.apply(null, arguments); }
   function foldCard() { return A.foldCard.apply(null, arguments); }
   function money() { return A.money.apply(null, arguments); }
-  function monthName() { return A.monthName.apply(null, arguments); }
+  function nombreCiclo() { return A.nombreCiclo.apply(null, arguments); }
   function mountIcons() { return A.mountIcons.apply(null, arguments); }
   function seriesEnding() { return A.seriesEnding.apply(null, arguments); }
   function txRowHtml() { return A.txRowHtml.apply(null, arguments); }
@@ -29,8 +29,8 @@
 
   function renderInicio() {
     var root = $("#view-inicio");
-    var curKey = S.currentMonthKey();
-    var cur = S.totals(S.txOfMonth(curKey));
+    var curKey = S.cicloActual();
+    var cur = S.totals(S.txDeCiclo(curKey));
     var bal = S.balance();
     var cfgRes = S.resumenCfg();
     var series = seriesEnding(curKey, 12, cfgRes.cuentas);
@@ -63,7 +63,7 @@
                 '<div class="paycard__foot">' +
                   '<span class="paycard__label">' +
                     (i === 0
-                      ? esc(S.signed(cur.net)) + " en " + esc(monthName(curKey))
+                      ? esc(S.signed(cur.net)) + " en " + esc(nombreCiclo(curKey))
                       : esc(a.type)) +
                   '</span>' +
                   '<span class="paycard__mark" aria-hidden="true"><span></span><span></span></span>' +
@@ -126,7 +126,7 @@
 
     var cardBudgets = hayPresupuesto
       ? foldCard("presupuesto",
-          "Presupuesto de " + esc(monthName(curKey)),
+          "Presupuesto de " + esc(nombreCiclo(curKey)),
           esc(money(cur.expense)) + " de " + esc(money(budgetTotal)) + " asignados",
           '<button type="button" class="card__link" data-goto="ajustes">Editar</button>',
           rows.map(meterHtml).join(""))
@@ -138,7 +138,7 @@
       ? '<button type="button" class="limit" data-goto="ajustes">' +
           '<span class="limit__ring" data-limit-ring="' + usedRatio + '"></span>' +
           '<span class="limit__body">' +
-            '<span class="limit__label">Presupuesto de ' + esc(monthName(curKey)) + '</span>' +
+            '<span class="limit__label">Presupuesto de ' + esc(nombreCiclo(curKey)) + '</span>' +
             '<span class="limit__value">' + esc(S.moneyShort(cur.expense)) + ' de ' +
               esc(S.moneyShort(budgetTotal)) + '</span>' +
           '</span>' +
@@ -161,7 +161,7 @@
           '<div class="card__head" style="margin-bottom:var(--sp-3)">' +
             '<div>' +
               '<h2 class="card__title">En qué se te va</h2>' +
-              '<p class="card__sub">' + esc(monthName(curKey)) +
+              '<p class="card__sub">' + esc(nombreCiclo(curKey)) +
                 (todasCats.length > topCats.length
                   ? " · " + todasCats.length + " categorías"
                   : "") + '</p>' +

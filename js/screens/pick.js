@@ -130,11 +130,24 @@
         })
       };
     }
+    if (id === "cicloDia") {
+      var dias = [];
+      for (var d = 1; d <= S.CICLO_DIA_MAX; d++) {
+        dias.push({
+          value: d,
+          label: d === 1 ? "Día 1 · como el calendario" : "Día " + d
+        });
+      }
+      /* El tope es 28 por lo mismo que en los programados: un mes que
+         empezara el 31 no existiría en febrero. */
+      return { titulo: "¿Qué día empieza tu mes?", lista: dias };
+    }
     if (id === "incMonths") {
+      var palabra = S.esMesNatural() ? "meses" : "ciclos";
       return {
-        titulo: "¿Cuántos meses promedia?",
+        titulo: "¿Cuántos " + palabra + " promedia?",
         lista: [3, 6, 12].map(function (n) {
-          return { value: n, label: n + " meses" };
+          return { value: n, label: n + " " + palabra };
         })
       };
     }
@@ -164,6 +177,12 @@
       ui.form.d.type = valor; renderForm();
     } else if (id === "incMonths") {
       S.setIncome({ months: +valor }); renderAjustes();
+    } else if (id === "cicloDia") {
+      S.setDiaDeCorte(+valor);
+      renderAjustes();
+      U.toast(S.esMesNatural()
+        ? "Tu mes vuelve a ser el del calendario"
+        : "Tu mes empieza el día " + S.diaDeCorte(), { icon: "check" });
     }
   }
   /* ============================================================

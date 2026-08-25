@@ -13,8 +13,9 @@
   function catOf() { return A.catOf.apply(null, arguments); }
   function emptyHtml() { return A.emptyHtml.apply(null, arguments); }
   function mountIcons() { return A.mountIcons.apply(null, arguments); }
-  function movsMonth() { return A.movsMonth.apply(null, arguments); }
+  function cicloMovs() { return A.cicloMovs.apply(null, arguments); }
   function txRowHtml() { return A.txRowHtml.apply(null, arguments); }
+  function Periodo() { return A.Periodo.apply(null, arguments); }
 
   /* ============================================================
      Pantalla · Movimientos
@@ -22,8 +23,8 @@
 
   function renderMovs() {
     var root = $("#view-movs");
-    var key = movsMonth();
-    var list = S.txOfMonth(key);
+    var key = cicloMovs();
+    var list = S.txDeCiclo(key);
 
     /* Al venir de «Ver todos» desde una cuenta, la lista se queda en ella
        hasta que se quite la chapa. Es un filtro visible, no una trampa. */
@@ -70,16 +71,16 @@
     root.innerHTML =
       '<div class="single">' +
         '<div class="filter-row">' +
-          '<button type="button" class="icon-btn" data-month="-1" aria-label="Mes anterior" ' +
+          '<button type="button" class="icon-btn" data-ciclo="-1" aria-label="' + esc(Periodo()) + ' anterior" ' +
                   'data-icon="chevLeft" data-icon-size="17"></button>' +
           '<div class="month-nav">' +
-            '<p class="month-nav__label">' + esc(S.monthLabel(key)) + '</p>' +
+            '<p class="month-nav__label">' + esc(S.etiquetaCiclo(key)) + '</p>' +
             '<p class="month-nav__sub">' + list.length + ' movimiento' +
               (list.length === 1 ? "" : "s") + '</p>' +
           '</div>' +
-          '<button type="button" class="icon-btn" data-month="1" aria-label="Mes siguiente" ' +
+          '<button type="button" class="icon-btn" data-ciclo="1" aria-label="' + esc(Periodo()) + ' siguiente" ' +
                   'data-icon="chevron" data-icon-size="17"' +
-                  (ui.movsMonthOffset === 0 ? " disabled" : "") + '></button>' +
+                  (ui.movsCicloOffset === 0 ? " disabled" : "") + '></button>' +
         '</div>' +
 
         '<div class="stagger">' +

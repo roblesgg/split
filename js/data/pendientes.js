@@ -16,7 +16,7 @@
   function accountBalance() { return D.accountBalance.apply(null, arguments); }
   function addMonths() { return D.addMonths.apply(null, arguments); }
   function addTx() { return D.addTx.apply(null, arguments); }
-  function currentMonthKey() { return D.currentMonthKey.apply(null, arguments); }
+  function mesActual() { return D.mesActual.apply(null, arguments); }
   function dateOfMonth() { return D.dateOfMonth.apply(null, arguments); }
   function diasDe() { return D.diasDe.apply(null, arguments); }
   function dowMon() { return D.dowMon.apply(null, arguments); }
@@ -66,7 +66,7 @@
       return d;
     }
 
-    var cur = currentMonthKey();
+    var cur = mesActual();
     var m = r.lastPosted ? addMonths(r.lastPosted, 1) : cur;
     if (m < cur) m = cur;
     var f = dateOfMonth(m, r.day);

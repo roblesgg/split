@@ -1,5 +1,11 @@
 /* ============================================================
    split — pagos y cobros programados
+
+   Aquí se cuenta por MES NATURAL, no por el ciclo de la app: un recibo
+   del día 3 se cobra el 3, se corte el mes del usuario donde se corte.
+   Por eso `lastPosted` y `nextDue` van con mesActual() y no con el ciclo.
+   El ciclo manda en lo que se mira (totales, límites, presupuesto); el
+   calendario manda en lo que se cobra.
    ============================================================ */
 
 (function () {
@@ -10,7 +16,7 @@
   /* Puentes a lo que vive en otro archivo. Se resuelven en la llamada,
      así que da igual el orden en que se carguen los scripts. */
   function addMonths() { return D.addMonths.apply(null, arguments); }
-  function currentMonthKey() { return D.currentMonthKey.apply(null, arguments); }
+  function mesActual() { return D.mesActual.apply(null, arguments); }
   function daysInMonth() { return D.daysInMonth.apply(null, arguments); }
   function dowMon() { return D.dowMon.apply(null, arguments); }
   function monthKey() { return D.monthKey.apply(null, arguments); }
@@ -73,7 +79,7 @@
          `yaHecho` es para cuando el programado nace de un movimiento que
          se acaba de apuntar: el de este periodo ya está puesto, así que
          se marca como hecho y el siguiente será el que toque. */
-      lastPosted: data.yaHecho ? currentMonthKey() : addMonths(currentMonthKey(), -1),
+      lastPosted: data.yaHecho ? mesActual() : addMonths(mesActual(), -1),
       lastDate: ymd(data.desde ? parseYmd(data.desde) : new Date())
     };
     D.state.recurring.push(r);
@@ -101,7 +107,7 @@
       if (nueva !== r.freq) {
         r.freq = nueva;
         r.lastDate = ymd(new Date());
-        r.lastPosted = currentMonthKey();
+        r.lastPosted = mesActual();
       }
     }
     if (patch.weekdays != null) {
@@ -202,7 +208,7 @@
       return out;
     }
 
-    var cur = currentMonthKey();
+    var cur = mesActual();
     var m = r.lastPosted ? addMonths(r.lastPosted, 1) : cur;
     while (m <= cur && guard++ < 120) {
       var fecha = dateOfMonth(m, r.day);
