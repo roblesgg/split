@@ -17,6 +17,7 @@
   function catFace() { return A.catFace.apply(null, arguments); }
   function catOf() { return A.catOf.apply(null, arguments); }
   function money() { return A.money.apply(null, arguments); }
+  function pickField() { return A.pickField.apply(null, arguments); }
 
   function accName(id) {
     var a = S.state.accounts.find(function (x) { return x.id === id; });
@@ -72,9 +73,15 @@
       return '<div style="--i:' + i + '">' + p + '</section></div>';
     }).join("");
   }
+  function accountSelect(id, selected) {
+    var a = S.state.accounts.find(function (x) { return x.id === selected; })
+            || S.state.accounts[0];
+    return pickField(id, a ? a.id : "", a ? a.name : "—");
+  }
 
   /* --- lo que usan otros archivos --- */
   A.accName = accName;
+  A.accountSelect = accountSelect;
   A.emptyHtml = emptyHtml;
   A.txRowHtml = txRowHtml;
   A.wrapStagger = wrapStagger;

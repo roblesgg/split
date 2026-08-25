@@ -1,18 +1,24 @@
 /* ============================================================
    split — hoja: elegir de una lista
+
+   La hoja y, con ella, las opciones de todos los desplegables de la app y
+   qué hacer con lo elegido. Juntas para que el campo y la hoja que abre no
+   se puedan desincronizar.
    ============================================================ */
 
 (function () {
   "use strict";
 
   var A = window.App;
-  var U = A.U, $ = A.$, $$ = A.$$, esc = A.esc, ui = A.ui, sheets = A.sheets;
+  var S = A.S, U = A.U, $ = A.$, $$ = A.$$, esc = A.esc, ui = A.ui, sheets = A.sheets;
 
   /* Puentes a lo que vive en otro archivo. Se resuelven en la llamada,
      así que da igual el orden en que se carguen los scripts. */
-  function aplicarPick() { return A.aplicarPick.apply(null, arguments); }
+  function catOf() { return A.catOf.apply(null, arguments); }
   function mountIcons() { return A.mountIcons.apply(null, arguments); }
-  function opcionesDe() { return A.opcionesDe.apply(null, arguments); }
+  function renderAddSheet() { return A.renderAddSheet.apply(null, arguments); }
+  function renderAjustes() { return A.renderAjustes.apply(null, arguments); }
+  function renderForm() { return A.renderForm.apply(null, arguments); }
 
   /* ============================================================
      Elegir de una lista
@@ -86,6 +92,80 @@
       '</button>';
   }
 
+  /* Las opciones de cada desplegable, en un sitio: así el campo y la hoja
+     que abre no se pueden desincronizar. */
+  function opcionesDe(id) {
+    if (id === "addAccount" || id === "addToAccount" ||
+        id === "fAccount" || id === "fToAccount") {
+      return {
+        titulo: (id === "addToAccount" || id === "fToAccount") ? "¿Hacia dónde?" : "¿Qué cuenta?",
+        lista: S.state.accounts.map(function (a) {
+          return { value: a.id, label: a.name, sub: a.type, color: a.color || 1 };
+        })
+      };
+    }
+    if (id === "fCat") {
+      var kind = ui.form.d.kind === "in" ? "in" : "out";
+      return {
+        titulo: "¿Qué categoría?",
+        lista: S.CATEGORIES.filter(function (c) { return c.kind === kind; })
+          .map(function (c) {
+            return { value: c.id, label: c.name, emoji: c.emoji, color: c.color };
+          })
+      };
+    }
+    if (id === "fMadre") {
+      var lista = [{ value: "", label: "Nada, va suelta" }];
+      S.categoriasMadre(ui.form.d.kind).forEach(function (c) {
+        if (c.id === ui.form.id || c.sistema) return;
+        lista.push({ value: c.id, label: c.name, emoji: c.emoji, color: c.color });
+      });
+      return { titulo: "¿Dentro de cuál?", lista: lista };
+    }
+    if (id === "fType") {
+      return {
+        titulo: "¿Qué tipo de cuenta?",
+        lista: ["Banco", "Ahorro", "Efectivo", "Tarjeta"].map(function (x) {
+          return { value: x, label: x };
+        })
+      };
+    }
+    if (id === "incMonths") {
+      return {
+        titulo: "¿Cuántos meses promedia?",
+        lista: [3, 6, 12].map(function (n) {
+          return { value: n, label: n + " meses" };
+        })
+      };
+    }
+    return null;
+  }
+
+  /* Qué hacer con lo elegido. Cada campo sabe lo suyo. */
+  function aplicarPick(id, valor) {
+    if (id === "addAccount") {
+      ui.draft.accountId = valor;
+      renderAddSheet();
+    } else if (id === "addToAccount") {
+      ui.draft.toAccountId = valor;
+      renderAddSheet();
+    } else if (id === "fAccount") {
+      ui.form.d.accountId = valor; renderForm();
+    } else if (id === "fToAccount") {
+      ui.form.d.toAccountId = valor; renderForm();
+    } else if (id === "fCat") {
+      ui.form.d.categoryId = valor; renderForm();
+    } else if (id === "fMadre") {
+      ui.form.d.parentId = valor;
+      /* hereda el color de la madre, como hace el store al guardar */
+      if (valor) ui.form.d.color = catOf(valor).color;
+      renderForm();
+    } else if (id === "fType") {
+      ui.form.d.type = valor; renderForm();
+    } else if (id === "incMonths") {
+      S.setIncome({ months: +valor }); renderAjustes();
+    }
+  }
   /* ============================================================
      Cableado
      ============================================================ */
