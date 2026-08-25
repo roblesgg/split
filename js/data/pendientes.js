@@ -18,9 +18,13 @@
   function addTx() { return D.addTx.apply(null, arguments); }
   function mesActual() { return D.mesActual.apply(null, arguments); }
   function dateOfMonth() { return D.dateOfMonth.apply(null, arguments); }
+  function monthKey() { return D.monthKey.apply(null, arguments); }
   function diasDe() { return D.diasDe.apply(null, arguments); }
   function dowMon() { return D.dowMon.apply(null, arguments); }
   function esAbierto() { return D.esAbierto.apply(null, arguments); }
+  function cadaDe() { return D.cadaDe.apply(null, arguments); }
+  function esDiario() { return D.esDiario.apply(null, arguments); }
+  function tocaEn() { return D.tocaEn.apply(null, arguments); }
   function esSemanal() { return D.esSemanal.apply(null, arguments); }
   function save() { return D.save.apply(null, arguments); }
   function sortTx() { return D.sortTx.apply(null, arguments); }
@@ -58,20 +62,50 @@
     var hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
 
-    if (esSemanal(r)) {
-      var dias = diasDe(r);
+    /* Misma regla que la que apunta, para que lo que se anuncia y lo que
+       pasa no puedan discrepar. */
+    if (esDiario(r) || esSemanal(r)) {
       var d = new Date(hoy);
       var guard = 0;
-      while (dias.indexOf(dowMon(d)) < 0 && guard++ < 8) d.setDate(d.getDate() + 1);
+      /* con «cada N» puede haber que saltar varias semanas, no una */
+      while (!tocaEn(r, d) && guard++ < 400) d.setDate(d.getDate() + 1);
       return d;
     }
 
+    var cada = cadaDe(r);
     var cur = mesActual();
-    var m = r.lastPosted ? addMonths(r.lastPosted, 1) : cur;
+    var m = r.lastPosted ? addMonths(r.lastPosted, cada) : cur;
     if (m < cur) m = cur;
     var f = dateOfMonth(m, r.day);
-    if (f < hoy) f = dateOfMonth(addMonths(m, 1), r.day);
+    if (f < hoy) f = dateOfMonth(addMonths(m, cada), r.day);
     return f;
+  }
+
+  /* Las próximas n veces que toca. Los avisos del móvil las necesitan
+     como fechas concretas: una alarma de Android es un instante, no una
+     regla, y con «cada tres meses» no hay día de la semana que valga. */
+  function proximasFechas(r, n) {
+    var out = [];
+    var d = nextDue(r);
+    var guard = 0;
+    while (out.length < (n || 8) && guard++ < 800) {
+      out.push(new Date(d));
+      /* se busca la siguiente saltando un día y volviendo a preguntar */
+      var siguiente = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1);
+      if (esDiario(r) || esSemanal(r)) {
+        var g2 = 0;
+        while (!tocaEn(r, siguiente) && g2++ < 400) {
+          siguiente.setDate(siguiente.getDate() + 1);
+        }
+        if (g2 >= 400) break;
+      } else {
+        var cada = cadaDe(r);
+        var m = monthKey(ymd(d));
+        siguiente = dateOfMonth(addMonths(m, cada), r.day);
+      }
+      d = siguiente;
+    }
+    return out;
   }
 
   function upcomingRecurring(limit) {
@@ -83,8 +117,12 @@
   }
 
   /* Lo que supone al mes un programado, sea cual sea su ritmo.
+
+     Diario: 365 días entre 12 meses.
      Semanal: hay 52 semanas en el año, no 48, así que cuatro pagos al mes
-     se quedan cortos; se reparte 52/12.
+     se quedan cortos; se reparte 52/12. Y se multiplica por los días
+     marcados: un trabajo de martes Y jueves cobra dos veces por semana.
+     Mensual: tal cual, dividido entre cada cuántos meses toca.
      Catorce pagas: las dos extras también se reparten, para que el mes de
      junio no parezca de golpe un sueldazo y los demás una miseria. */
   /* Cuántas letras faltan. null si no es de cuotas contadas. */
@@ -102,9 +140,11 @@
        honesta que hay. */
     if (esAbierto(r) && base <= 0) base = mediaCobradaDe(r.id);
 
-    if (esSemanal(r)) return base * 52 / 12;
-    if (r.kind === "in" && +r.pagas === 14) return base * 14 / 12;
-    return base;
+    var cada = cadaDe(r);
+    if (esDiario(r)) return base * (365 / 12) / cada;
+    if (esSemanal(r)) return base * (52 / 12) * diasDe(r).length / cada;
+    if (r.kind === "in" && cada === 1 && +r.pagas === 14) return base * 14 / 12;
+    return base / cada;
   }
 
   /* Media por vencimiento de lo realmente apuntado desde un programado.
@@ -263,6 +303,7 @@
   D.mediaCobradaDe = mediaCobradaDe;
   D.mensualizar = mensualizar;
   D.nextDue = nextDue;
+  D.proximasFechas = proximasFechas;
   D.pendientes = pendientes;
   D.recurringMonthly = recurringMonthly;
   D.resumenCfg = resumenCfg;

@@ -138,7 +138,7 @@
       }
       var data = {
         kind: d.kind, note: d.note, amount: d.amount, day: d.day,
-        freq: d.freq === "semanal" ? "semanal" : "mensual",
+        freq: d.freq, cada: d.cada,
         weekdays: d.weekdays,
         /* Un gasto no tiene modos: siempre lleva su importe. */
         importeAbierto: d.kind === "in" && d.modo !== "fijo",
@@ -148,8 +148,9 @@
         avisar: !!d.avisar,
         cuotas: (d.kind === "out" && parseFloat(d.cuotas) > 0)
           ? parseInt(d.cuotas, 10) : null,
-        /* las catorce pagas solo existen en un cobro mensual */
-        pagas: (d.kind === "in" && d.freq !== "semanal" && +d.pagas === 14) ? 14 : 12,
+        /* las catorce pagas solo existen en un cobro mensual de cada mes */
+        pagas: (d.kind === "in" && d.freq === "mensual" && +d.cada === 1 &&
+                +d.pagas === 14) ? 14 : 12,
         confirmar: !!d.confirmar,
         accountId: d.accountId,
         toAccountId: d.kind === "transfer" ? d.toAccountId : null,

@@ -104,8 +104,20 @@ public class RecordatorioPlugin extends Plugin {
     }
 
     /**
-     * Reemplaza todos los avisos. Recibe { avisos: [{ id, titulo, texto,
-     * dias: [0..6 con lunes=0], hora: "HH:MM" }] }.
+     * Reemplaza todos los avisos. Cada uno llega de una de dos formas:
+     *
+     *   { id, titulo, texto, hora: "HH:MM", dias: [0..6 con lunes=0] }
+     *   { id, titulo, texto, fechas: [instante en ms, ...] }
+     *
+     * `dias` es para lo que de verdad es semanal: la alarma se vuelve a
+     * poner sola cada siete días y sigue avisando aunque no se abra la
+     * app en meses.
+     *
+     * `fechas` es para todo lo demás —mensual, cada tres meses, cada dos
+     * semanas, diario—, porque no hay día de la semana que los describa.
+     * Son alarmas de una sola vez y el lado web repone las siguientes
+     * cada vez que se abre la app. Antes esto también iba por `dias`, y
+     * por eso un recibo mensual avisaba todas las semanas.
      */
     @PluginMethod
     public void programar(PluginCall call) {
@@ -128,6 +140,21 @@ public class RecordatorioPlugin extends Plugin {
                 int h = hm.length > 0 ? parseInt(hm[0], 9) : 9;
                 int m = hm.length > 1 ? parseInt(hm[1], 0) : 0;
 
+                org.json.JSONArray fechas = a.optJSONArray("fechas");
+                if (fechas != null) {
+                    for (int d = 0; d < fechas.length(); d++) {
+                        long cuando = fechas.optLong(d, 0L);
+                        if (cuando <= System.currentTimeMillis()) continue;
+                        programarEn(getContext(), BASE + puestos, id, titulo, texto, cuando);
+                        puestos++;
+                        /* Tope de seguridad: nadie necesita mil alarmas, y
+                           así un estado corrupto no llena el sistema. */
+                        if (puestos >= 120) break;
+                    }
+                    if (puestos >= 120) break;
+                    continue;
+                }
+
                 org.json.JSONArray dias = a.optJSONArray("dias");
                 if (dias == null) continue;
 
@@ -136,8 +163,6 @@ public class RecordatorioPlugin extends Plugin {
                     if (dia < 0 || dia > 6) continue;
                     programarUno(getContext(), BASE + puestos, id, titulo, texto, dia, h, m);
                     puestos++;
-                    /* Tope de seguridad: nadie necesita mil alarmas, y así
-                       un estado corrupto no llena el sistema. */
                     if (puestos >= 120) break;
                 }
                 if (puestos >= 120) break;
@@ -156,6 +181,38 @@ public class RecordatorioPlugin extends Plugin {
 
     private static int parseInt(String s, int porDefecto) {
         try { return Integer.parseInt(s.trim()); } catch (Exception e) { return porDefecto; }
+    }
+
+    /**
+     * Programa una alarma de una sola vez para un instante concreto. No se
+     * vuelve a poner al saltar: la repone el lado web al abrir la app, que
+     * es quien sabe cuándo toca la siguiente.
+     */
+    static void programarEn(Context ctx, int codigo, String id, String titulo,
+                            String texto, long cuando) {
+        AlarmManager am = (AlarmManager) ctx.getSystemService(Context.ALARM_SERVICE);
+        if (am == null) return;
+
+        Intent i = new Intent(ctx, RecordatorioReceiver.class);
+        i.putExtra(EXTRA_ID, id);
+        i.putExtra(EXTRA_TITULO, titulo);
+        i.putExtra(EXTRA_TEXTO, texto);
+        /* Sin EXTRA_DIA el receptor no la reprograma, que es lo que se
+           quiere: esta alarma es para un día y solo para ese. */
+        i.putExtra(EXTRA_DIA, -1);
+
+        PendingIntent pi = PendingIntent.getBroadcast(ctx, codigo, i,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !am.canScheduleExactAlarms()) {
+                am.set(AlarmManager.RTC_WAKEUP, cuando, pi);
+            } else {
+                am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, cuando, pi);
+            }
+        } catch (SecurityException e) {
+            am.set(AlarmManager.RTC_WAKEUP, cuando, pi);
+        }
     }
 
     /**

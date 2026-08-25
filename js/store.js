@@ -53,6 +53,8 @@
   var rangoDeCiclo = D.rangoDeCiclo, etiquetaCiclo = D.etiquetaCiclo, nombreCiclo = D.nombreCiclo;
   var diaDeCorte = D.diaDeCorte, setDiaDeCorte = D.setDiaDeCorte, esMesNatural = D.esMesNatural;
   var serieDeCiclos = D.serieDeCiclos, CICLO_DIA_MAX = D.Ciclo.DIA_MAX;
+  var esDiario = D.esDiario, esSemanal = D.esSemanal;
+  var cadaDe = D.cadaDe, tocaEn = D.tocaEn, proximasFechas = D.proximasFechas;
   var limiteDe = D.limiteDe, setLimite = D.setLimite;
   var gastoDeCuenta = D.gastoDeCuenta, estadoDeLimite = D.estadoDeLimite;
   var cuentasConLimite = D.cuentasConLimite;
@@ -128,7 +130,9 @@
     deleteRecurring: deleteRecurring, toggleRecurring: toggleRecurring,
     runRecurring: runRecurring, nextDue: nextDue,
     upcomingRecurring: upcomingRecurring, recurringMonthly: recurringMonthly,
+    proximasFechas: proximasFechas,
     mensualizar: mensualizar, diasDe: diasDe, esAbierto: esAbierto,
+    esDiario: esDiario, esSemanal: esSemanal, cadaDe: cadaDe, tocaEn: tocaEn,
     cuotasQueQuedan: cuotasQueQuedan,
     mediaCobradaDe: mediaCobradaDe,
 

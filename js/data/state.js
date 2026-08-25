@@ -224,6 +224,19 @@
       s.version = 13;
     }
 
+    if (s.version < 14) {
+      /* v14: los programados admiten diario y «cada N». Lo que ya estaba
+         era cada 1, que es como se comportaba, así que nadie nota nada.
+         El ancla se pone donde estaba el último apuntado: es desde donde
+         se contaría el «cada N» si algún día lo cambian. */
+      (s.recurring || []).forEach(function (r) {
+        if (["diario", "semanal", "mensual"].indexOf(r.freq) < 0) r.freq = "mensual";
+        if (!(r.cada > 0)) r.cada = 1;
+        if (!r.ancla) r.ancla = r.lastDate || s.createdAt;
+      });
+      s.version = 14;
+    }
+
     /* Red de seguridad, al margen de la versión: casi todo el código tira
        de las categorías por defecto cuando la lista no está, pero crear
        una necesita el array de verdad. Un estado importado a mano, o

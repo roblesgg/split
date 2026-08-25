@@ -91,7 +91,7 @@
     } else {
       d = it
         ? { kind: it.kind, note: it.note, amount: it.amount, day: it.day,
-            freq: it.freq === "semanal" ? "semanal" : "mensual",
+            freq: it.freq, cada: S.cadaDe(it),
             weekdays: S.diasDe(it),
             pagas: +it.pagas === 14 ? 14 : 12,
             confirmar: !!it.confirmar,
@@ -112,6 +112,7 @@
             hora: "09:00", avisar: false, cuotas: "",
             categoryId: "hogar",
             accountId: accs[0].id, toAccountId: (accs[1] || accs[0]).id };
+      if (!it) { d.freq = "mensual"; d.cada = 1; }
     }
 
     ui.form = { type: type, id: id || null, d: d };
@@ -172,15 +173,31 @@
 
   /* Cómo se lee el ritmo de un programado en una línea. */
   function ritmoDe(r) {
-    if (r.freq === "semanal") return listaDias(S.diasDe(r));
-    if (r.kind === "in" && +r.pagas === 14) return "14 pagas, día " + r.day;
+    var cada = S.cadaDe(r);
+
+    if (S.esDiario(r)) {
+      return cada === 1 ? "Todos los días" : "Cada " + cada + " días";
+    }
+    if (S.esSemanal(r)) {
+      var dias = listaDias(S.diasDe(r));
+      return cada === 1 ? dias : dias + " · cada " + cada + " semanas";
+    }
+
+    /* Mensual. Cada 12 se dice «al año», que es como se llama. */
+    var cuando = cada === 12 ? "Cada año el " + r.day
+               : cada === 1 ? "Cada día " + r.day
+               : "Cada " + cada + " meses, el " + r.day;
+
+    if (r.kind === "in" && cada === 1 && +r.pagas === 14) {
+      return "14 pagas, día " + r.day;
+    }
     var quedan = S.cuotasQueQuedan(r);
     if (quedan != null) {
-      return "Día " + r.day + " · " +
+      return cuando + " · " +
              (quedan === 0 ? "pagado del todo"
                            : "quedan " + quedan + (quedan === 1 ? " cuota" : " cuotas"));
     }
-    return "Cada día " + r.day;
+    return cuando;
   }
 
   /* Un interruptor de sí/no con su explicación debajo. Es un botón, no un
@@ -266,6 +283,7 @@
       Cuotas: function (v) { ui.form.d.cuotas = v; },
       Dias: function (v) { ui.form.d.dias = v; },
       Day: function (v) { ui.form.d.day = v; },
+      Cada: function (v) { ui.form.d.cada = v; },
       Cat: function (v) { ui.form.d.categoryId = v; }
     };
 
@@ -320,12 +338,6 @@
         if (ui.form.d.modo !== "hora") ui.form.d.tarifa = "";
         ui.form.d.importeAbierto = ui.form.d.modo !== "fijo";
         if (ui.form.d.importeAbierto) ui.form.d.confirmar = true;
-        renderForm();
-        U.haptic("light");
-        return;
-      }
-      if ((node = e.target.closest("[data-ffreq]"))) {
-        ui.form.d.freq = node.getAttribute("data-ffreq");
         renderForm();
         U.haptic("light");
         return;
@@ -391,6 +403,16 @@
       /* Las categorías que se descuentan solas del apartado. Se marcan y
          desmarcan sin repintar: el formulario es largo y repintarlo te
          mandaría al principio en cada toque. */
+      /* «Año» no es un ritmo aparte en los datos: es mensual cada 12. Un
+         concepto menos que mantener, y la palabra que la gente usa. */
+      if ((node = e.target.closest("[data-fritmo]"))) {
+        var ritmo = node.getAttribute("data-fritmo");
+        ui.form.d.freq = ritmo === "anual" ? "mensual" : ritmo;
+        ui.form.d.cada = ritmo === "anual" ? 12 : 1;
+        renderForm();
+        U.haptic("light");
+        return;
+      }
       if ((node = e.target.closest("[data-fdir]"))) {
         ui.form.d.dir = node.getAttribute("data-fdir");
         renderForm();

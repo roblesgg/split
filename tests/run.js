@@ -14,7 +14,8 @@ console.log("\nsplit — pruebas");
 
 [["El ciclo", "./ciclo"],
  ["Límites de cuenta", "./limites"],
- ["Apartados", "./apartados"]].forEach(function (par) {
+ ["Apartados", "./apartados"],
+ ["Programados", "./programados"]].forEach(function (par) {
   console.log("\n" + par[0]);
   console.log("─".repeat(par[0].length));
   require(par[1])();

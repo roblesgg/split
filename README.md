@@ -238,20 +238,56 @@ Se hace desde el botón **+** eligiendo la pestaña «Traspaso», o desde
 
 ## Pagos programados
 
-En **Planes → Programados** defines lo que se repite cada mes: alquiler,
-suscripciones, la nómina, o un traspaso automático a la hucha.
+En **Planes → Programados** defines lo que se repite: el alquiler, las
+suscripciones, la nómina, el seguro del coche o un traspaso automático a la
+hucha.
 
-- Se apuntan **solos** el día que toca, la próxima vez que abras la app. Si has
-  estado semanas sin entrar, recupera todos los meses pendientes de una vez.
-- El día máximo es el **28**, para que caiga en todos los meses incluido febrero.
+Cuatro ritmos, que es como se habla:
+
+| Ritmo | Qué se elige |
+|---|---|
+| **Día** | Cada cuántos días (hasta 30) |
+| **Semana** | Qué días de la semana —se pueden marcar varios— y cada cuántas semanas (hasta 8) |
+| **Mes** | Qué día del mes y cada cuántos meses (hasta 12) |
+| **Año** | Qué día del mes. Es el mismo día, una vez al año |
+
+- El **día del mes llega hasta 31**. Los meses que no lo tengan, cae en su
+  último día: un recibo del 31 se cobra el 30 en abril, no en mayo.
 - Los días son del **calendario**, no de tu ciclo: si tienes el corte el 25, el
-  recibo del día 3 se sigue cobrando el 3.
+  recibo del día 3 se sigue cobrando el 3. El ciclo manda en lo que se mira; el
+  calendario, en lo que se paga.
+- Se apuntan **solos** el día que toca, la próxima vez que abras la app. Si has
+  estado semanas sin entrar, recupera todo lo pendiente de una vez.
 - Cada uno se puede **pausar** sin borrarlo.
 - Los que ya se apuntaron son movimientos normales: se pueden editar o borrar
   uno a uno sin tocar la programación.
+- Cambiar el ritmo o el «cada cuántos» **empieza a contar de cero**. Si no, al
+  pasar algo a semanal se apuntarían de golpe todas las semanas desde una fecha
+  vieja.
 
-Los de ejemplo arrancan con `lastPosted` en el mes en curso para no duplicarse
-con los movimientos de demostración que ya existen.
+Por dentro solo hay **tres** reglas —diario, semanal y mensual— y un «cada N».
+Con eso sale todo: cada dos semanas es semanal con cada 2, y cada año es mensual
+con cada 12. La interfaz ofrece cuatro palabras porque es como se habla, pero
+los datos no necesitan un cuarto concepto, y cada concepto de más es una regla
+más que puede fallar.
+
+### Los avisos en el móvil
+
+Un programado puede avisarte el día que toca, a la hora que le digas. Eso lo
+lleva la capa Android con `AlarmManager`, para que llegue con la app cerrada.
+
+Hay dos formas de mandarle un aviso, según lo que pueda representar:
+
+- **Por días de la semana**, para lo que de verdad es semanal. Android vuelve a
+  poner la alarma sola cada siete días, así que sigue avisando aunque no abras
+  la app en meses.
+- **Por fechas concretas**, para todo lo demás: mensual, cada tres meses, cada
+  dos semanas, diario. No hay ningún día de la semana que los describa. Se
+  mandan las **ocho próximas** y se reponen cada vez que abres la app.
+
+Antes todo iba por días de la semana, y por eso **un recibo mensual avisaba
+todas las semanas**: Android reprogramaba a los siete días sin saber que aquello
+era mensual.
 
 ## Cuentas y metas
 
@@ -411,7 +447,8 @@ Sin dependencias y sin navegador, igual que la app: los archivos son scripts
 clásicos, así que la prueba los lee y los evalúa como haría el navegador.
 
 Lo que hay ahí es **la aritmética**, que es lo que no se ve y lo que más duele
-cuando falla: los ciclos, los límites de cuenta y los apartados. Lo que se ve en pantalla se
+cuando falla: los ciclos, los límites de cuenta, los apartados y el
+calendario de los programados. Lo que se ve en pantalla se
 comprueba abriendo la app, que para eso se abre con doble clic.
 
 ## El lenguaje visual
@@ -468,10 +505,10 @@ suficiente, cae al reparto lineal.
 
 ## Lo que todavía no hace
 
-- **Programados solo mensuales.** No hay semanal, trimestral ni anual.
 - **Una sola moneda** (euros).
-- **Sin deudas ni préstamos**: un préstamo hay que llevarlo a mano como
-  movimientos sueltos.
+
+Los préstamos sí se llevan, aunque aquí ponía que no: un gasto programado admite
+un número de cuotas y al llegar a la última se apaga solo.
 
 ## Datos
 

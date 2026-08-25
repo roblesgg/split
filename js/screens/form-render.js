@@ -290,6 +290,9 @@
       });
       var mismaCuenta = d.kind === "transfer" && d.accountId === d.toAccountId;
       var esSem = d.freq === "semanal";
+      /* Lo que enseña la interfaz. «anual» no existe en los datos: es
+         mensual cada 12. */
+      var ritmo = d.freq === "mensual" && +d.cada === 12 ? "anual" : d.freq;
       var modoImporte = d.kind === "in" ? (d.modo || "fijo") : "fijo";
       /* Un traspaso necesita sus dos cuentas sí o sí, así que ahí las
          opciones se abren de entrada. */
@@ -354,43 +357,70 @@
                 numField("fAmount", "Importe", d.amount, 5) +
               '</div>') +
 
-        /* Con qué ritmo se repite. Dos opciones y ya: nadie quiere una
-           pantalla de reglas de calendario para apuntar el alquiler. */
+        /* Cuatro palabras, que es como se habla. «Año» no es un ritmo
+           aparte en los datos: es mensual cada 12. */
         '<div class="field" style="margin-top:var(--sp-5)">' +
           '<span class="field__label">Cada cuánto</span>' +
           '<div class="segmented" id="fFreqSeg" role="tablist">' +
             '<span class="segmented__thumb" id="fFreqThumb" aria-hidden="true"></span>' +
-            '<button type="button" class="segmented__btn" role="tab" data-ffreq="mensual" ' +
-                    'aria-selected="' + !esSem + '">Al mes</button>' +
-            '<button type="button" class="segmented__btn" role="tab" data-ffreq="semanal" ' +
-                    'aria-selected="' + esSem + '">A la semana</button>' +
+            [["diario", "Día"], ["semanal", "Semana"],
+             ["mensual", "Mes"], ["anual", "Año"]].map(function (par) {
+              return '<button type="button" class="segmented__btn" role="tab" ' +
+                       'data-fritmo="' + par[0] + '" ' +
+                       'aria-selected="' + (ritmo === par[0]) + '">' + par[1] + '</button>';
+            }).join("") +
           '</div>' +
         '</div>' +
 
+        /* Cada cuántos. En «año» no se pregunta: un año es un año, y
+           «cada 2 años» es lo bastante raro como para no ocupar sitio. */
+        (ritmo === "anual"
+          ? ""
+          : '<div class="field" style="margin-top:var(--sp-5)">' +
+              numField("fCada",
+                       ritmo === "diario" ? "Cada cuántos días"
+                       : ritmo === "semanal" ? "Cada cuántas semanas"
+                       : "Cada cuántos meses",
+                       d.cada, 1, ritmo === "diario" ? "días"
+                                  : ritmo === "semanal" ? "sem." : "meses") +
+              (+d.cada > 1
+                ? '<p class="field__hint">Se cuenta desde ahora: el primero ' +
+                  'será dentro de ' + esc(d.cada) + ' ' +
+                  esc(ritmo === "diario" ? "días" : ritmo === "semanal" ? "semanas" : "meses") +
+                  '.</p>'
+                : "") +
+            '</div>') +
+
         /* Y qué día. Los siete días caben en una fila a lo ancho de la
            hoja; metidos en media columna se partían en dos. */
-        (esSem
-          ? '<div class="field" style="margin-top:var(--sp-5)">' +
-              '<span class="field__label">Qué día</span>' +
-              '<div class="chips chips--dias" role="group" aria-label="Días de la semana">' +
-                DIAS_LARGO.map(function (nombre, i) {
-                  return '<button type="button" class="chip chip--dia" data-fweekday="' + i + '" ' +
-                         'aria-pressed="' + (d.weekdays.indexOf(i) >= 0) + '" ' +
-                         'aria-label="' + esc(nombre) + '">' +
-                         esc(S.DOW_SHORT[i]) + '</button>';
-                }).join("") +
-              '</div>' +
-              '<p class="field__hint">Puedes marcar varios.</p>' +
-            '</div>'
-          : '<div class="field" style="margin-top:var(--sp-5)">' +
-              '<label class="field__label" for="fDay">Día del mes</label>' +
-              '<input type="number" class="field__input" id="fDay" data-f="Day" min="1" max="28" ' +
-                     'step="1" inputmode="numeric" value="' + esc(d.day) + '">' +
-            '</div>') +
+        (ritmo === "diario"
+          ? ""
+          : esSem
+            ? '<div class="field" style="margin-top:var(--sp-5)">' +
+                '<span class="field__label">Qué día</span>' +
+                '<div class="chips chips--dias" role="group" aria-label="Días de la semana">' +
+                  DIAS_LARGO.map(function (nombre, i) {
+                    return '<button type="button" class="chip chip--dia" data-fweekday="' + i + '" ' +
+                           'aria-pressed="' + (d.weekdays.indexOf(i) >= 0) + '" ' +
+                           'aria-label="' + esc(nombre) + '">' +
+                           esc(S.DOW_SHORT[i]) + '</button>';
+                  }).join("") +
+                '</div>' +
+                '<p class="field__hint">Puedes marcar varios.</p>' +
+              '</div>'
+            : '<div class="field" style="margin-top:var(--sp-5)">' +
+                '<label class="field__label" for="fDay">Día del mes</label>' +
+                '<input type="number" class="field__input" id="fDay" data-f="Day" min="1" max="31" ' +
+                       'step="1" inputmode="numeric" value="' + esc(d.day) + '">' +
+                (+d.day > 28
+                  ? '<p class="field__hint">Los meses que no tengan el ' + esc(d.day) +
+                    ' caerá en su último día.</p>'
+                  : "") +
+              '</div>') +
 
         /* Las catorce pagas son cosa de las nóminas de aquí: dos extras,
            en junio y en diciembre. Solo tiene sentido en cobros mensuales. */
-        (d.kind === "in" && !esSem
+        (d.kind === "in" && ritmo === "mensual" && +d.cada === 1
           ? '<div class="field" style="margin-top:var(--sp-5)">' +
               '<span class="field__label">Pagas al año</span>' +
               '<div class="segmented" id="fPagasSeg" role="tablist">' +
@@ -527,7 +557,8 @@
 
       var segF = $("#fFreqSeg", body);
       if (segF) U.slideIndicator(segF, $("#fFreqThumb", body),
-        $('[data-ffreq="' + (d.freq === "semanal" ? "semanal" : "mensual") + '"]', segF));
+        $('[data-fritmo="' +
+          (d.freq === "mensual" && +d.cada === 12 ? "anual" : d.freq) + '"]', segF));
 
       var segM = $("#fModoSeg", body);
       if (segM) U.slideIndicator(segM, $("#fModoThumb", body),

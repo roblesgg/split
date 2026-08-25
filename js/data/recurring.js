@@ -6,6 +6,15 @@
    Por eso `lastPosted` y `nextDue` van con mesActual() y no con el ciclo.
    El ciclo manda en lo que se mira (totales, límites, presupuesto); el
    calendario manda en lo que se cobra.
+
+   Hay TRES ritmos —diario, semanal y mensual— y un «cada N». Con eso sale
+   todo: cada dos semanas es semanal con cada 2, y cada año es mensual con
+   cada 12. La interfaz ofrece cuatro palabras (día, semana, mes, año)
+   porque es como se habla, pero los datos no necesitan un cuarto
+   concepto, y cada concepto de más es una regla más que puede fallar.
+
+   El día del mes llega hasta 31: si el mes no tiene ese día, cae en el
+   último. Un recibo del 31 se cobra el 30 en abril, no en mayo.
    ============================================================ */
 
 (function () {
@@ -16,6 +25,7 @@
   /* Puentes a lo que vive en otro archivo. Se resuelven en la llamada,
      así que da igual el orden en que se carguen los scripts. */
   function addMonths() { return D.addMonths.apply(null, arguments); }
+  function diasEntre() { return D.diasEntre.apply(null, arguments); }
   function mesActual() { return D.mesActual.apply(null, arguments); }
   function daysInMonth() { return D.daysInMonth.apply(null, arguments); }
   function dowMon() { return D.dowMon.apply(null, arguments); }
@@ -42,8 +52,10 @@
       accountId: data.accountId || D.state.accounts[0].id,
       toAccountId: data.kind === "transfer" ? (data.toAccountId || null) : null,
       note: (data.note || "").trim() || "Programado",
-      day: Math.min(28, Math.max(1, parseInt(data.day, 10) || 1)),
-      freq: data.freq === "semanal" ? "semanal" : "mensual",
+      day: normalizarDia(data.day),
+      freq: normalizarFreq(data.freq),
+      /* Cada cuántos días, semanas o meses. 1 es lo de siempre. */
+      cada: normalizarCada(data.cada, normalizarFreq(data.freq)),
       /* lunes = 0, igual que dowMon. Varios, que hay trabajos de martes
          y jueves. */
       weekdays: normalizarDias(data.weekdays, parseInt(data.weekday, 10) || 0),
@@ -79,8 +91,12 @@
          `yaHecho` es para cuando el programado nace de un movimiento que
          se acaba de apuntar: el de este periodo ya está puesto, así que
          se marca como hecho y el siguiente será el que toque. */
-      lastPosted: data.yaHecho ? mesActual() : addMonths(mesActual(), -1),
-      lastDate: ymd(data.desde ? parseYmd(data.desde) : new Date())
+      lastPosted: data.yaHecho ? mesActual()
+                : addMonths(mesActual(), -normalizarCada(data.cada, normalizarFreq(data.freq))),
+      lastDate: ymd(data.desde ? parseYmd(data.desde) : new Date()),
+      /* Desde dónde se cuenta el «cada N» de los ritmos por días. Sin un
+         punto de partida, «cada dos semanas» no significa nada. */
+      ancla: ymd(data.desde ? parseYmd(data.desde) : new Date())
     };
     D.state.recurring.push(r);
     save();
@@ -99,22 +115,36 @@
     if (patch.categoryId != null) r.categoryId = patch.categoryId;
     if (patch.accountId != null) r.accountId = patch.accountId;
     if (patch.toAccountId !== undefined) r.toAccountId = patch.toAccountId;
-    if (patch.day != null) r.day = Math.min(28, Math.max(1, parseInt(patch.day, 10) || 1));
+    if (patch.day != null) r.day = normalizarDia(patch.day);
     if (patch.freq != null) {
-      var nueva = patch.freq === "semanal" ? "semanal" : "mensual";
+      var nueva = normalizarFreq(patch.freq);
       /* Cambiar de ritmo empieza de cero: si no, al pasar a semanal se
          apuntarían de golpe todas las semanas desde una fecha vieja. */
       if (nueva !== r.freq) {
         r.freq = nueva;
-        r.lastDate = ymd(new Date());
-        r.lastPosted = mesActual();
+        r.cada = normalizarCada(r.cada, nueva);
+        reiniciar(r);
+      }
+    }
+    if (patch.cada != null) {
+      var cadaN = normalizarCada(patch.cada, r.freq);
+      if (cadaN !== r.cada) {
+        r.cada = cadaN;
+        /* el «cada N» se cuenta desde un punto: al cambiarlo, ese punto
+           es ahora, o si no se apuntarían de golpe los saltos de atrás */
+        reiniciar(r);
       }
     }
     if (patch.weekdays != null) {
       r.weekdays = normalizarDias(patch.weekdays, diasDe(r)[0]);
       delete r.weekday;
     }
-    if (patch.pagas != null) r.pagas = (r.kind === "in" && +patch.pagas === 14) ? 14 : 12;
+    if (patch.pagas != null) {
+      /* Las catorce pagas son de una nómina mensual de las de aquí: con
+         otro ritmo no significan nada. */
+      r.pagas = (r.kind === "in" && r.freq === "mensual" && r.cada === 1 &&
+                 +patch.pagas === 14) ? 14 : 12;
+    }
     if (patch.confirmar != null) r.confirmar = !!patch.confirmar;
     if (patch.importeAbierto != null) r.importeAbierto = !!patch.importeAbierto;
     if (patch.tarifa !== undefined) {
@@ -159,7 +189,78 @@
      reparten aquí.
      Semanal: el día de la semana elegido, cada siete días. */
 
+  var FREQS = ["diario", "semanal", "mensual"];
+
+  function normalizarFreq(v) {
+    return FREQS.indexOf(v) >= 0 ? v : "mensual";
+  }
+
+  /* Un «cada N» sin techo deja programar cada 400 meses, que no es una
+     opción: es una forma de que la app parezca rota. Se topa donde deja
+     de tener sentido para cada ritmo. */
+  function normalizarCada(v, freq) {
+    var techo = freq === "diario" ? 30 : freq === "semanal" ? 8 : 12;
+    var n = parseInt(v, 10);
+    if (!isFinite(n) || n < 1) return 1;
+    return Math.min(techo, n);
+  }
+
+  /* Hasta 31. Si el mes no llega, dateOfMonth lo deja en el último día:
+     un recibo del 31 se cobra el 30 en abril, no en mayo. */
+  function normalizarDia(v) {
+    return Math.min(31, Math.max(1, parseInt(v, 10) || 1));
+  }
+
+  /* Volver a empezar la cuenta desde hoy. Se usa al cambiar el ritmo o el
+     «cada N»: sin esto se apuntarían de golpe los saltos de antes. */
+  function reiniciar(r) {
+    var hoy = ymd(new Date());
+    r.lastDate = hoy;
+    r.ancla = hoy;
+    r.lastPosted = mesActual();
+  }
+
   function esSemanal(r) { return r.freq === "semanal"; }
+  function esDiario(r) { return r.freq === "diario"; }
+  function cadaDe(r) { return normalizarCada(r.cada, normalizarFreq(r.freq)); }
+  /* Desde dónde se cuenta el «cada N».
+
+     En semanal no vale el día en que se creó: si lo montas un jueves y es
+     «los lunes cada dos semanas», el primero tiene que ser el lunes que
+     viene, no dentro de once días. Así que el ancla se corre hasta la
+     primera vez que toca de verdad. */
+  function anclaDe(r) {
+    var base = r.ancla || r.lastDate || ymd(new Date());
+    if (!esSemanal(r)) return base;
+    var dias = diasDe(r);
+    var d = parseYmd(base);
+    var guard = 0;
+    while (dias.indexOf(dowMon(d)) < 0 && guard++ < 8) d.setDate(d.getDate() + 1);
+    return ymd(d);
+  }
+
+  /* Semanas enteras desde un lunes de referencia. El 5 de enero de 1970
+     fue lunes, así que sirve de cero. */
+  function semanaDe(fecha) {
+    var d = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
+    d.setDate(d.getDate() - dowMon(d));
+    return Math.round(diasEntre("1970-01-05", ymd(d)) / 7);
+  }
+
+  /* ¿Le toca a este día, según el ritmo? Es la única regla del calendario
+     y la usan tanto lo que se apunta como lo que se anuncia. */
+  function tocaEn(r, fecha) {
+    var cada = cadaDe(r);
+    if (esDiario(r)) {
+      var dd = diasEntre(anclaDe(r), ymd(fecha));
+      return dd >= 0 && dd % cada === 0;
+    }
+    var dias = diasDe(r);
+    if (dias.indexOf(dowMon(fecha)) < 0) return false;
+    if (cada === 1) return true;
+    var ds = semanaDe(fecha) - semanaDe(parseYmd(anclaDe(r)));
+    return ds >= 0 && ds % cada === 0;
+  }
 
   /* Los días de la semana en los que toca. Antes era uno solo; ahora son
      varios, porque hay trabajos de martes y jueves. Se acepta lo viejo
@@ -194,39 +295,40 @@
     var out = [];
     var guard = 0;
 
-    if (esSemanal(r)) {
-      var dias = diasDe(r);
+    /* Los ritmos por días se recorren día a día desde el siguiente al
+       último apuntado: con varios días de la semana marcados, o con un
+       «cada N», ya no vale saltar de siete en siete. */
+    if (esDiario(r) || esSemanal(r)) {
       var desde = r.lastDate ? parseYmd(r.lastDate) : new Date();
       var d = new Date(desde.getFullYear(), desde.getMonth(), desde.getDate());
-      /* día a día desde el siguiente al último apuntado: con varios días
-         elegidos ya no vale saltar de siete en siete */
       d.setDate(d.getDate() + 1);
-      while (d <= hasta && guard++ < 400) {
-        if (dias.indexOf(dowMon(d)) >= 0) out.push({ fecha: new Date(d), extra: false });
+      while (d <= hasta && guard++ < 800) {
+        if (tocaEn(r, d)) out.push({ fecha: new Date(d), extra: false });
         d.setDate(d.getDate() + 1);
       }
       return out;
     }
 
+    var cada = cadaDe(r);
     var cur = mesActual();
-    var m = r.lastPosted ? addMonths(r.lastPosted, 1) : cur;
-    while (m <= cur && guard++ < 120) {
+    var m = r.lastPosted ? addMonths(r.lastPosted, cada) : cur;
+    while (m <= cur && guard++ < 240) {
       var fecha = dateOfMonth(m, r.day);
       if (fecha > hasta) break;
       out.push({ fecha: fecha, extra: false });
       /* la paga extra cae el mismo día, en junio y en diciembre */
-      if (r.kind === "in" && +r.pagas === 14) {
+      if (r.kind === "in" && cada === 1 && +r.pagas === 14) {
         var mes = +m.split("-")[1];
         if (mes === 6 || mes === 12) out.push({ fecha: fecha, extra: true });
       }
-      m = addMonths(m, 1);
+      m = addMonths(m, cada);
     }
     return out;
   }
 
   /* Marca hasta dónde se ha llegado, para no repetir. */
   function anotarUltimo(r, fecha) {
-    if (esSemanal(r)) r.lastDate = ymd(fecha);
+    if (esDiario(r) || esSemanal(r)) r.lastDate = ymd(fecha);
     else r.lastPosted = monthKey(ymd(fecha));
   }
 
@@ -302,9 +404,12 @@
   D.addRecurring = addRecurring;
   D.dateOfMonth = dateOfMonth;
   D.deleteRecurring = deleteRecurring;
+  D.cadaDe = cadaDe;
   D.diasDe = diasDe;
   D.esAbierto = esAbierto;
+  D.esDiario = esDiario;
   D.esSemanal = esSemanal;
+  D.tocaEn = tocaEn;
   D.runRecurring = runRecurring;
   D.toggleRecurring = toggleRecurring;
   D.updateRecurring = updateRecurring;
