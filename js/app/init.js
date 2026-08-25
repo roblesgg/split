@@ -37,6 +37,9 @@
     /* apunta lo programado que haya vencido desde la última visita */
     var posted = S.runRecurring();
 
+    /* y rellena los apartados de los ciclos que hayan pasado */
+    S.rellenarApartados();
+
     /* Las alarmas del sistema no sobreviven a un reinicio del teléfono,
        así que se vuelven a poner en cada arranque. */
     if (window.Avisos && window.Avisos.hay()) window.Avisos.sincronizar(S);

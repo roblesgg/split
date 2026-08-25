@@ -121,6 +121,60 @@ gasto, lo apuntarías en otro sitio y entonces la app te estaría mintiendo.
 
 Solo cuenta lo que **sale de esa cuenta como gasto**. Un traspaso a tu propia
 hucha no es gastar, así que no suma, igual que no suma en ningún otro total.
+Tampoco suma lo que sale de un apartado (ver más abajo).
+
+## Apartados
+
+Un **apartado** es una sub-bolsa dentro de una cuenta. Separas 200 € para
+gasolina y esos 200 dejan de contar en el resto de tus gastos, porque ya los
+tienes guardados.
+
+**Apartar no mueve el dinero de sitio: lo reserva.** El saldo de la cuenta sigue
+siendo el mismo, y por eso lo que ves en la app sigue cuadrando con lo que ves
+en el banco. Dentro de la cuenta se enseñan las dos cifras: el saldo y cuánto
+de ese saldo está disponible de verdad.
+
+Se crean desde **la cuenta a la que pertenecen**, con su nombre, su emoji y su
+color. Cada uno lleva:
+
+- **Cuánto apartas cada ciclo.** Se mete solo al empezar cada uno. Si lo dejas
+  vacío, vas metiendo tú a mano cuando quieras.
+- **Las categorías que se descuentan solas.** Si «Gasolina» está atada al
+  apartado, un gasto de gasolina pagado con esa cuenta sale de ahí sin que
+  tengas que decir nada. Al apuntarlo la app te lo dice, y se puede quitar de un
+  toque.
+
+### La regla que lo hace útil
+
+Un gasto que sale de un apartado **no cuenta en el objetivo de gasto de la
+cuenta ni en el presupuesto por categorías**. Ese dinero ya lo habías separado:
+si contara otra vez, lo estarías gastando dos veces.
+
+Lo que sí hace es contar donde tiene que contar. Sale en Movimientos, en los
+totales del ciclo y en el gráfico de en qué se te va, porque ese gasto existió.
+Lo único que cambia es que no consume tu presupuesto general, porque consumió
+el suyo.
+
+### El sobrante se acumula
+
+Si apartas 200 € y gastas 160, el ciclo siguiente empiezas con 240. Es lo que
+haría un sobre de verdad. Para bajarlo, se devuelve a la cuenta a mano con el
+botón de la fila.
+
+**Pasarte no está bloqueado.** Si te pasas, el apartado se queda en negativo y
+la app lo dice en rojo, pero te deja apuntarlo. Bloquearlo haría que el gasto se
+apuntara en otro sitio, y entonces la app te estaría mintiendo.
+
+### Cómo se guarda
+
+El saldo **no se guarda: se calcula**. Lo que se guarda son los aportes —cuánto
+has metido y en qué ciclo— y el saldo sale de restarles lo gastado. Un número
+guardado que hubiera que ir subiendo y bajando a mano se desincronizaría en
+cuanto editas o borras un movimiento, y en una app de dinero eso no se puede
+permitir.
+
+Borrar un apartado **no borra sus gastos**: los suelta. Vuelven a contar en el
+objetivo de la cuenta, que es donde habrían estado siempre.
 
 ## Categorías
 
@@ -280,6 +334,7 @@ js/
     dates.js        fechas en local y la matemática del ciclo (D.Ciclo)
   data/             un archivo por tema, todos cuelgan de window.Datos
     ciclo.js        el día de corte configurado, atado a la matemática
+    apartados.js    sub-bolsas dentro de una cuenta
     limites.js      el objetivo de gasto de una cuenta
     catalog.js      categorías de fábrica, colores y búsqueda por id
     demo.js         los datos de ejemplo, con semilla fija
@@ -312,7 +367,7 @@ js/
     init.js         arranque: monta las hojas, engancha y pinta
   screens/          una pantalla u hoja por archivo, con su cableado al lado
     inicio.js  movs.js  analisis.js  planes.js  ajustes.js
-    form.js  form-render.js    hoja de cuentas, metas y programados
+    form.js  form-guardar.js  form-render.js  form-apartado.js
     add.js   add-render.js     hoja de añadir movimiento
     detail.js  pick.js  cuenta.js  cobro.js  onboard.js
 ```
@@ -356,7 +411,7 @@ Sin dependencias y sin navegador, igual que la app: los archivos son scripts
 clásicos, así que la prueba los lee y los evalúa como haría el navegador.
 
 Lo que hay ahí es **la aritmética**, que es lo que no se ve y lo que más duele
-cuando falla: los ciclos y los límites de cuenta. Lo que se ve en pantalla se
+cuando falla: los ciclos, los límites de cuenta y los apartados. Lo que se ve en pantalla se
 comprueba abriendo la app, que para eso se abre con doble clic.
 
 ## El lenguaje visual

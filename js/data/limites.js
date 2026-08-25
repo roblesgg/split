@@ -8,6 +8,11 @@
    Solo cuenta lo que SALE de la cuenta como gasto. Un traspaso a tu
    propia hucha no es gastar, así que no suma, igual que no suma en
    ningún otro total de la app.
+
+   Y tampoco suma lo que va a un apartado. Ese dinero ya lo habías
+   separado: si contara aquí, estarías gastándolo dos veces —una contra
+   su sobre y otra contra el límite general— y el límite se te acabaría
+   sin que hubieras hecho nada raro.
    ============================================================ */
 
 (function () {
@@ -49,12 +54,14 @@
     return a;
   }
 
-  /* Lo gastado de una cuenta en un ciclo. Los traspasos quedan fuera. */
+  /* Lo gastado de una cuenta en un ciclo, contra su límite: fuera los
+     traspasos y fuera lo que sale de un apartado. */
   function gastoDeCuenta(accId, key) {
     var total = 0;
     D.state.transactions.forEach(function (t) {
       if (t.kind !== "out") return;
       if (t.accountId !== accId) return;
+      if (t.apartadoId) return;
       if (ciclo(t.date) !== key) return;
       total += t.amount;
     });

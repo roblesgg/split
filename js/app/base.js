@@ -167,10 +167,12 @@ window.App = (function () {
       '</section>';
   }
 
-  /* presupuestos vigentes, derivados del reparto */
+  /* Presupuestos vigentes, derivados del reparto. Lo que sale de un
+     apartado no cuenta: ese dinero ya estaba separado, y volver a
+     descontarlo aquí sería gastarlo dos veces. */
   function budgetRows(key) {
     var spent = {};
-    S.byCategory(key, "out").forEach(function (c) { spent[c.id] = c.value; });
+    S.byCategory(key, "out", true).forEach(function (c) { spent[c.id] = c.value; });
     return Object.keys(S.state.allocation).map(function (id) {
       var limit = S.budgetFor(id);
       return {

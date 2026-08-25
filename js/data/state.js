@@ -213,7 +213,15 @@
          cambia una sola cifra a nadie: quien quiera otro corte lo elige
          en Ajustes. */
       if (!s.ciclo || !s.ciclo.dia) s.ciclo = { dia: 1 };
+    if (!Array.isArray(s.apartados)) s.apartados = [];
       s.version = 12;
+    }
+
+    if (s.version < 13) {
+      /* v13: apartados. Nadie tiene ninguno todavía, así que la lista
+         nace vacía y quien no cree ninguno no nota la diferencia. */
+      if (!Array.isArray(s.apartados)) s.apartados = [];
+      s.version = 13;
     }
 
     /* Red de seguridad, al margen de la versión: casi todo el código tira
@@ -222,6 +230,7 @@
        guardado a medias, se quedaba sin él y reventaba al añadir. */
     if (!Array.isArray(s.categories)) s.categories = DEFAULT_CATEGORIES.slice();
     if (!s.ciclo || !s.ciclo.dia) s.ciclo = { dia: 1 };
+    if (!Array.isArray(s.apartados)) s.apartados = [];
 
     invalidateCats();
     return s;

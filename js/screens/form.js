@@ -16,10 +16,12 @@
   function abrirCobros() { return A.abrirCobros.apply(null, arguments); }
   function hayPendientes() { return A.hayPendientes.apply(null, arguments); }
   function money() { return A.money.apply(null, arguments); }
+  function deleteForm() { return A.deleteForm.apply(null, arguments); }
   function renderAddSheet() { return A.renderAddSheet.apply(null, arguments); }
   function renderAll() { return A.renderAll.apply(null, arguments); }
   function renderCuenta() { return A.renderCuenta.apply(null, arguments); }
   function renderForm() { return A.renderForm.apply(null, arguments); }
+  function saveForm() { return A.saveForm.apply(null, arguments); }
   function sincronizarAvisos() { return A.sincronizarAvisos.apply(null, arguments); }
 
   /* ============================================================
@@ -67,6 +69,22 @@
             limite: it.limite != null ? it.limite : "" }
         : { name: "", type: "Banco", opening: 0, icon: "wallet",
             color: ((S.state.accounts.length * 5) % S.CAT_COLORS) + 1, limite: "" };
+    } else if (type === "aportar") {
+      /* Mover dinero entre la cuenta y uno de sus apartados. No es un
+         movimiento: nada sale de la cuenta, solo cambia lo reservado. */
+      var apAp = S.apartadoById(id);
+      d = { apartadoId: id, dir: "meter", importe: "",
+            name: apAp ? apAp.name : "" };
+    } else if (type === "apartado") {
+      d = it
+        ? { name: it.name, emoji: it.emoji, color: it.color,
+            accountId: it.accountId, porCiclo: it.porCiclo || "",
+            categoryIds: (it.categoryIds || []).slice() }
+        : { name: "", emoji: "📦",
+            color: ((S.APARTADOS.length * 5) % S.CAT_COLORS) + 1,
+            /* siempre nace dentro de una cuenta: se llega desde ella */
+            accountId: (opts && opts.accountId) || accs[0].id,
+            porCiclo: "", inicial: "", categoryIds: [] };
     } else if (type === "goal") {
       d = it ? { name: it.name, target: it.target, saved: it.saved, monthly: it.monthly }
              : { name: "", target: "", saved: 0, monthly: "" };
@@ -105,7 +123,9 @@
       recurring: id ? "Editar programado" : "Nuevo programado",
       saldo: "Corregir el saldo",
       resumen: "Qué cuentan estas cifras",
-      category: id ? "Editar categoría" : "Nueva categoría"
+      category: id ? "Editar categoría" : "Nueva categoría",
+      apartado: id ? "Editar apartado" : "Nuevo apartado",
+      aportar: "Apartar o devolver"
     }[type] || "Editar";
 
     renderForm();
@@ -116,6 +136,8 @@
     if (type === "saldo" || type === "resumen") return null;   /* no editan una ficha */
     if (type === "category") return S.state.categories.find(function (x) { return x.id === id; });
     if (type === "account") return S.state.accounts.find(function (x) { return x.id === id; });
+    if (type === "aportar") return null;   /* no edita una ficha */
+    if (type === "apartado") return S.apartadoById(id);
     if (type === "goal") return S.state.goals.find(function (x) { return x.id === id; });
     return (S.state.recurring || []).find(function (x) { return x.id === id; });
   }
@@ -221,168 +243,6 @@
     if (nombre) nombre.textContent = String(ui.form.d.name || "").trim() || "Tu cuenta";
   }
 
-  function saveForm() {
-    var t = ui.form.type, id = ui.form.id, d = ui.form.d;
-
-    if (t === "category") {
-      if (!String(d.name).trim()) {
-        U.toast("Ponle un nombre a la categoría", { icon: "warning" }); return;
-      }
-      var cat = id ? S.updateCategory(id, d) : S.addCategory(d);
-      U.toast(id ? "Categoría actualizada" : "Categoría creada", { icon: "check" });
-
-      /* si se vino desde el selector del movimiento, se vuelve allí con el
-         importe que se llevaba tecleado; si además era nueva, ya elegida */
-      if (ui.catReturnToAdd) {
-        ui.catReturnToAdd = false;
-        if (!id) ui.draft.categoryId = cat.id;
-        sheets.form.close();
-        renderAddSheet();
-        sheets.add.show();
-        return;
-      }
-    }
-
-    if (t === "resumen") {
-      if (!d.cuentas.length) {
-        U.toast("Marca al menos una cuenta", { icon: "warning" }); return;
-      }
-      S.setResumen({
-        periodo: d.periodo,
-        dias: parseInt(d.dias, 10) || 30,
-        /* todas marcadas se guarda como «todas», no como la lista: así
-           una cuenta nueva entra sola en vez de quedarse fuera */
-        cuentas: d.cuentas.length === S.state.accounts.length ? null : d.cuentas
-      });
-      U.toast("Hecho", { icon: "check" });
-    }
-
-    if (t === "saldo") {
-      var puestoS = parseFloat(d.real);
-      if (!isFinite(puestoS)) {
-        U.toast("Pon cuánto tienes de verdad", { icon: "warning" }); return;
-      }
-      var res = S.corregirSaldo(d.accountId, puestoS);
-      if (!res) { U.toast("Esa cuenta ya no existe", { icon: "warning" }); return; }
-      U.toast(res.dif === 0
-        ? "Ya cuadraba: no se ha apuntado nada"
-        : "Saldo corregido, " + (res.dif > 0 ? "+" : "−") + money(Math.abs(res.dif)),
-        { icon: "check" });
-    }
-
-    if (t === "account") {
-      if (!String(d.name).trim()) {
-        U.toast("Ponle un nombre a la cuenta", { icon: "warning" }); return;
-      }
-      if (id) S.updateAccount(id, d); else S.addAccount(d);
-      U.toast(id ? "Cuenta actualizada" : "Cuenta creada", { icon: "check" });
-    }
-
-    if (t === "goal") {
-      if (!String(d.name).trim()) {
-        U.toast("Ponle un nombre a la meta", { icon: "warning" }); return;
-      }
-      if (!(parseFloat(d.target) > 0)) {
-        U.toast("El objetivo tiene que ser mayor que cero", { icon: "warning" }); return;
-      }
-      if (id) S.updateGoal(id, d); else S.addGoal(d);
-      U.toast(id ? "Meta actualizada" : "Meta creada", { icon: "check" });
-    }
-
-    if (t === "recurring") {
-      if (!String(d.note).trim()) {
-        U.toast("Ponle un concepto", { icon: "warning" }); return;
-      }
-      var modoG = d.kind === "in" ? (d.modo || "fijo") : "fijo";
-      if (modoG === "hora") {
-        if (!(parseFloat(d.tarifa) > 0)) {
-          U.toast("Pon lo que cobras por hora", { icon: "warning" }); return;
-        }
-      } else if (modoG === "varia") {
-        /* el importe es opcional: se preguntará cada vez */
-      } else if (!(parseFloat(d.amount) > 0)) {
-        U.toast("El importe tiene que ser mayor que cero", { icon: "warning" }); return;
-      }
-      var data = {
-        kind: d.kind, note: d.note, amount: d.amount, day: d.day,
-        freq: d.freq === "semanal" ? "semanal" : "mensual",
-        weekdays: d.weekdays,
-        /* Un gasto no tiene modos: siempre lleva su importe. */
-        importeAbierto: d.kind === "in" && d.modo !== "fijo",
-        tarifa: (d.kind === "in" && d.modo === "hora" && parseFloat(d.tarifa) > 0)
-          ? parseFloat(d.tarifa) : null,
-        hora: d.hora,
-        avisar: !!d.avisar,
-        cuotas: (d.kind === "out" && parseFloat(d.cuotas) > 0)
-          ? parseInt(d.cuotas, 10) : null,
-        /* las catorce pagas solo existen en un cobro mensual */
-        pagas: (d.kind === "in" && d.freq !== "semanal" && +d.pagas === 14) ? 14 : 12,
-        confirmar: !!d.confirmar,
-        accountId: d.accountId,
-        toAccountId: d.kind === "transfer" ? d.toAccountId : null,
-        categoryId: d.kind === "transfer" ? "otros" : d.categoryId
-      };
-      if (id) S.updateRecurring(id, data); else S.addRecurring(data);
-      U.toast(id ? "Programado actualizado" : "Programado creado", { icon: "check" });
-    }
-
-    sheets.form.close();
-    S.runRecurring();
-    sincronizarAvisos();
-    renderAll();
-
-    /* Si el programado que se acaba de guardar ya tocaba y pide que le
-       pregunten el importe, se pregunta ahora y no en la próxima apertura. */
-    if (t === "recurring" && hayPendientes()) setTimeout(abrirCobros, 380);
-  }
-
-  function deleteForm() {
-    var t = ui.form.type, id = ui.form.id;
-
-    if (t === "category") {
-      var resCat = S.deleteCategory(id);
-      if (!resCat.ok) { U.toast(resCat.reason, { icon: "warning", duration: 5500 }); return; }
-      U.toast("Categoría eliminada", { icon: "check" });
-
-      if (ui.catReturnToAdd) {
-        ui.catReturnToAdd = false;
-        /* el borrador apuntaba a la que acaba de desaparecer */
-        if (ui.draft && ui.draft.categoryId === id) {
-          var quedan = S.categoriesOf(ui.draft.kind === "in" ? "in" : "out");
-          ui.draft.categoryId = quedan.length ? quedan[0].id : "otros";
-        }
-        sheets.form.close();
-        renderAddSheet();
-        sheets.add.show();
-        return;
-      }
-    }
-
-    if (t === "account") {
-      var res = S.deleteAccount(id);
-      if (!res.ok) { U.toast(res.reason, { icon: "warning", duration: 5500 }); return; }
-      U.toast("Cuenta eliminada", { icon: "check" });
-    }
-    if (t === "goal") {
-      if (!confirm("¿Eliminar esta meta?")) return;
-      S.deleteGoal(id);
-      U.toast("Meta eliminada", { icon: "check" });
-    }
-    if (t === "recurring") {
-      if (!confirm("¿Eliminar este programado? Los movimientos ya apuntados se quedan.")) return;
-      S.deleteRecurring(id);
-      sincronizarAvisos();
-      U.toast("Programado eliminado", { icon: "check" });
-    }
-
-    sheets.form.close();
-    renderAll();
-  }
-
-  /* ============================================================
-     Cableado
-     ============================================================ */
-
   function wire() {
     /* --- sheet de formulario (cuentas, metas, programados) --- */
     var formBody = $("#sheetFormBody");
@@ -393,6 +253,9 @@
       Type: function (v) { ui.form.d.type = v; },
       Opening: function (v) { ui.form.d.opening = v; },
       Limite: function (v) { ui.form.d.limite = v; },
+      PorCiclo: function (v) { ui.form.d.porCiclo = v; },
+      Importe: function (v) { ui.form.d.importe = v; },
+      Inicial: function (v) { ui.form.d.inicial = v; },
       Target: function (v) { ui.form.d.target = v; },
       Saved: function (v) { ui.form.d.saved = v; },
       Monthly: function (v) { ui.form.d.monthly = v; },
@@ -522,6 +385,24 @@
         });
         refreshCatPreview();
         refreshCardPreview();
+        U.haptic("light");
+        return;
+      }
+      /* Las categorías que se descuentan solas del apartado. Se marcan y
+         desmarcan sin repintar: el formulario es largo y repintarlo te
+         mandaría al principio en cada toque. */
+      if ((node = e.target.closest("[data-fdir]"))) {
+        ui.form.d.dir = node.getAttribute("data-fdir");
+        renderForm();
+        U.haptic("light");
+        return;
+      }
+      if ((node = e.target.closest("[data-pcat]"))) {
+        var cid = node.getAttribute("data-pcat");
+        var lista = ui.form.d.categoryIds || (ui.form.d.categoryIds = []);
+        var i = lista.indexOf(cid);
+        if (i >= 0) lista.splice(i, 1); else lista.push(cid);
+        node.setAttribute("aria-pressed", String(i < 0));
         U.haptic("light");
         return;
       }

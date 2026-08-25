@@ -82,12 +82,18 @@
   /* Los totales por categoría suman las hijas dentro de su madre: si
      «Deudas» tiene dentro la del coche y la de la casa, en el gráfico se
      ve «Deudas» con lo de las dos. Para verlas por separado está la lista
-     de movimientos, que sí distingue. */
-  function byCategory(key, kind) {
+     de movimientos, que sí distingue.
+
+     `sinApartados` es para el presupuesto: lo que sale de un sobre ya
+     estaba separado y no puede volver a consumir el reparto del sueldo.
+     Los gráficos NO lo pasan, porque ahí la pregunta es otra —en qué se
+     te va el dinero— y ese gasto existió igual. */
+  function byCategory(key, kind, sinApartados) {
     var want = kind || "out";
     var sums = {};
     txDeCiclo(key).forEach(function (t) {
       if (t.kind !== want) return;
+      if (sinApartados && t.apartadoId) return;
       var raiz = raizDe(t.categoryId);
       var id = raiz ? raiz.id : t.categoryId;
       sums[id] = (sums[id] || 0) + t.amount;

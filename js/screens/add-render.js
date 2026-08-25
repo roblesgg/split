@@ -23,6 +23,54 @@
   function refreshAttachments() { return A.refreshAttachments.apply(null, arguments); }
   function repetirHtml() { return A.repetirHtml.apply(null, arguments); }
 
+  /* Si el gasto va a salir de un apartado, se dice antes de guardarlo y
+     se puede quitar de un toque. Enterarse después de que un gasto no
+     contaba donde creías es la clase de sorpresa que hace desconfiar.
+
+     Va en su propia caja porque elegir categoría no repinta la hoja
+     —hacerlo te movería el teclado debajo del dedo—, así que este trozo
+     se refresca solo. */
+  function apartadoHtml(d) {
+    return '<div id="addApartadoBox">' + apartadoInner(d) + '</div>';
+  }
+
+  function apartadoInner(d) {
+    if (d.kind !== "out") return "";
+
+    var fuera = d.apartadoId === "";
+    var ap = d.apartadoId
+      ? S.apartadoById(d.apartadoId)
+      : S.apartadoParaGasto(d.accountId, d.categoryId);
+    if (!ap) return "";
+
+    var e = S.estadoDeApartado(ap.id);
+    return '<div class="field" style="margin-top:var(--sp-4)">' +
+        '<button type="button" class="switch-row" id="addApartado" ' +
+                'role="switch" aria-checked="' + (!fuera) + '">' +
+          '<span class="cat-face apartado__face" ' +
+                'style="--cat-color:var(--cat-' + ap.color + ')" aria-hidden="true">' +
+            esc(ap.emoji) + '</span>' +
+          '<span class="switch-row__text">' +
+            '<span class="switch-row__label">Sale de ' + esc(ap.name) + '</span>' +
+            '<span class="switch-row__hint">' +
+              (fuera
+                ? "Ahora no: este gasto contará en el límite de la cuenta."
+                : "Quedan " + esc(S.moneyShort(e.saldo)) +
+                  ", y no contará en el límite de la cuenta.") +
+            '</span>' +
+          '</span>' +
+          '<span class="switch" aria-hidden="true"><span class="switch__dot"></span></span>' +
+        '</button>' +
+      '</div>';
+  }
+
+  function refreshApartado() {
+    var box = $("#addApartadoBox");
+    if (!box) return;
+    box.innerHTML = apartadoInner(ui.draft);
+    mountIcons(box);
+  }
+
   function renderAddSheet() {
     var d = ui.draft;
     var body = $("#sheetAddBody");
@@ -128,6 +176,8 @@
               '<span class="field__label">Cuenta</span>' +
               accountSelect("addAccount", d.accountId) +
             '</div>') +
+
+      apartadoHtml(d) +
 
       /* Solo tiene sentido en un ingreso nuevo y con más de una cuenta:
          editar uno ya guardado es editar ese, no repartir de nuevo. */
@@ -296,6 +346,7 @@
   /* --- lo que usan otros archivos --- */
   A.refreshAmount = refreshAmount;
   A.refreshResto = refreshResto;
+  A.refreshApartado = refreshApartado;
   A.renderAddSheet = renderAddSheet;
   A.repartirIgual = repartirIgual;
   A.restoPorRepartir = restoPorRepartir;

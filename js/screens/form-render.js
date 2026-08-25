@@ -17,10 +17,12 @@
   function accountSelect() { return A.accountSelect.apply(null, arguments); }
   function catOf() { return A.catOf.apply(null, arguments); }
   function listaDias() { return A.listaDias.apply(null, arguments); }
+  function bigAmount() { return A.bigAmount.apply(null, arguments); }
   function money() { return A.money.apply(null, arguments); }
   function mountIcons() { return A.mountIcons.apply(null, arguments); }
   function numField() { return A.numField.apply(null, arguments); }
   function pickField() { return A.pickField.apply(null, arguments); }
+  function htmlApartado() { return A.htmlApartado.apply(null, arguments); }
   function periodo() { return A.periodo.apply(null, arguments); }
   function switchRow() { return A.switchRow.apply(null, arguments); }
 
@@ -28,6 +30,8 @@
     var body = $("#sheetFormBody");
     var t = ui.form.type, d = ui.form.d;
     var html = "";
+
+    if (t === "aportar" || t === "apartado") html = htmlApartado(t, d);
 
     if (t === "category") {
       var colores = [];

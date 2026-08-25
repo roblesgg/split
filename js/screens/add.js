@@ -21,6 +21,7 @@
   function openForm() { return A.openForm.apply(null, arguments); }
   function refreshAmount() { return A.refreshAmount.apply(null, arguments); }
   function refreshResto() { return A.refreshResto.apply(null, arguments); }
+  function refreshApartado() { return A.refreshApartado.apply(null, arguments); }
   function renderAddSheet() { return A.renderAddSheet.apply(null, arguments); }
   function renderAll() { return A.renderAll.apply(null, arguments); }
   function repartirIgual() { return A.repartirIgual.apply(null, arguments); }
@@ -47,12 +48,14 @@
           accountId: t.accountId, toAccountId: t.toAccountId || null,
           note: t.note, memo: t.memo || "", date: t.date, time: t.time || "",
           tags: Array.isArray(t.tags) ? t.tags.slice() : [],
-          attachments: Array.isArray(t.attachments) ? t.attachments.slice() : [] }
+          attachments: Array.isArray(t.attachments) ? t.attachments.slice() : [],
+          /* null = que lo decida la categoría; "" = fuera del apartado */
+          apartadoId: t.apartadoId || (t.kind === "out" ? "" : null) }
       : { kind: kind || "out", amount: "", categoryId: kind === "in" ? "nomina" : "comida",
           accountId: (opts && opts.accountId) || accs[0].id,
           toAccountId: null,
           note: "", memo: "", date: S.ymd(new Date()), time: nowHHMM(),
-          tags: [], attachments: [],
+          tags: [], attachments: [], apartadoId: null,
           /* reparto de un ingreso entre varias cuentas: apagado por
              defecto, y `trozos` guarda cuánto va a cada una */
           reparto: false, trozos: {},
@@ -293,6 +296,11 @@
       tags: d.tags,
       attachments: (ui.draftAttachments || []).map(function (a) { return a.id; })
     };
+    /* null se lo deja decidir a la categoría; cualquier otra cosa es una
+       elección del usuario y manda. */
+    if (d.apartadoId !== null && d.apartadoId !== undefined) {
+      payload.apartadoId = d.apartadoId;
+    }
     if (ui.editingId) {
       S.updateTx(ui.editingId, payload);
       U.toast("Movimiento actualizado", { icon: "check" });
@@ -386,6 +394,17 @@
         ui.draft.repFreq = node.getAttribute("data-repfreq");
         renderAddSheet(); U.haptic("light"); return;
       }
+      /* Sacar el gasto del apartado, o volver a meterlo. Vacío es «fuera
+         a propósito»; null es «que lo decida la categoría». */
+      if (e.target.closest("#addApartado")) {
+        var ap = ui.draft.apartadoId
+          ? S.apartadoById(ui.draft.apartadoId)
+          : S.apartadoParaGasto(ui.draft.accountId, ui.draft.categoryId);
+        ui.draft.apartadoId = ui.draft.apartadoId === "" ? (ap ? ap.id : null) : "";
+        refreshApartado();
+        U.haptic("light");
+        return;
+      }
       if (e.target.closest("#addDetalles")) {
         ui.detallesAbiertos = !ui.detallesAbiertos;
         renderAddSheet(); U.haptic("light"); return;
@@ -435,6 +454,11 @@
         });
         var note = $("#addNote");
         if (note) note.placeholder = catOf(ui.draft.categoryId).name;
+        /* La categoría decide de qué apartado sale, así que ese aviso se
+           vuelve a pintar. Lo demás se queda como está: repintar la hoja
+           entera te movería el teclado debajo del dedo. */
+        ui.draft.apartadoId = null;
+        refreshApartado();
         U.haptic("light"); return;
       }
       if ((node = e.target.closest("[data-tag]"))) {

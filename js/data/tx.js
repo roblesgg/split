@@ -9,8 +9,20 @@
 
   /* Puentes a lo que vive en otro archivo. Se resuelven en la llamada,
      así que da igual el orden en que se carguen los scripts. */
+  function apartadoParaGasto() { return D.apartadoParaGasto.apply(null, arguments); }
   function catById() { return D.catById.apply(null, arguments); }
   function save() { return D.save.apply(null, arguments); }
+
+  /* A qué apartado va un gasto. Si te lo dan puesto, se respeta —incluido
+     el vacío, que es «este no, aunque la categoría lo diga»—. Si no, lo
+     elige la categoría: apuntar gasolina no puede costar un paso más solo
+     porque tengas un sobre para ella. */
+  function apartadoDeMovimiento(t) {
+    if (t.kind !== "out") return null;
+    if (t.apartadoId !== undefined) return t.apartadoId || null;
+    var ap = apartadoParaGasto(t.accountId || "banco", t.categoryId);
+    return ap ? ap.id : null;
+  }
 
   /* ---------- mutaciones ---------- */
 
@@ -39,6 +51,11 @@
       tags: normalizeTags(t.tags),
       attachments: Array.isArray(t.attachments) ? t.attachments.slice() : []
     };
+    var ap = apartadoDeMovimiento({
+      kind: tx.kind, accountId: tx.accountId,
+      categoryId: tx.categoryId, apartadoId: t.apartadoId
+    });
+    if (ap) tx.apartadoId = ap;
     D.state.transactions.push(tx);
     sortTx();
     save();
@@ -69,6 +86,17 @@
     if (!t) return null;
     Object.keys(patch).forEach(function (k) { t[k] = patch[k]; });
     if (patch.amount != null) t.amount = Math.round(Math.abs(patch.amount) * 100) / 100;
+    /* Si cambia la cuenta o la categoría, el apartado puede dejar de
+       tener sentido: se vuelve a decidir salvo que venga dicho. */
+    if (patch.apartadoId === undefined &&
+        (patch.accountId != null || patch.categoryId != null || patch.kind != null)) {
+      var ap = apartadoDeMovimiento({ kind: t.kind, accountId: t.accountId,
+                                      categoryId: t.categoryId });
+      if (ap) t.apartadoId = ap; else delete t.apartadoId;
+    } else if (patch.apartadoId !== undefined && !patch.apartadoId) {
+      delete t.apartadoId;
+    }
+    if (t.kind !== "out") delete t.apartadoId;
     if (patch.time != null) t.time = normalizeTime(patch.time);
     if (patch.memo != null) t.memo = String(patch.memo).trim();
     if (patch.tags != null) t.tags = normalizeTags(patch.tags);

@@ -23,11 +23,12 @@
       .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 18);
     var id = base, n = 2;
     var taken = {};
-    D.state.accounts.forEach(function (a) { taken[a.id] = 1; });
-    D.state.goals.forEach(function (g) { taken[g.id] = 1; });
+    (D.state.accounts || []).forEach(function (a) { taken[a.id] = 1; });
+    (D.state.goals || []).forEach(function (g) { taken[g.id] = 1; });
     (D.state.recurring || []).forEach(function (r) { taken[r.id] = 1; });
     (D.state.categories || []).forEach(function (c) { taken[c.id] = 1; });
     (D.state.tags || []).forEach(function (t) { taken[t.id] = 1; });
+    (D.state.apartados || []).forEach(function (a) { taken[a.id] = 1; });
     while (taken[id]) { id = base + "-" + (n++); }
     return id;
   }

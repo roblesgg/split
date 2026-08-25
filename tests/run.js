@@ -13,7 +13,8 @@ var t = require("./ayuda");
 console.log("\nsplit — pruebas");
 
 [["El ciclo", "./ciclo"],
- ["Límites de cuenta", "./limites"]].forEach(function (par) {
+ ["Límites de cuenta", "./limites"],
+ ["Apartados", "./apartados"]].forEach(function (par) {
   console.log("\n" + par[0]);
   console.log("─".repeat(par[0].length));
   require(par[1])();

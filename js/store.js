@@ -56,6 +56,11 @@
   var limiteDe = D.limiteDe, setLimite = D.setLimite;
   var gastoDeCuenta = D.gastoDeCuenta, estadoDeLimite = D.estadoDeLimite;
   var cuentasConLimite = D.cuentasConLimite;
+  var addApartado = D.addApartado, updateApartado = D.updateApartado;
+  var deleteApartado = D.deleteApartado, apartadoById = D.apartadoById;
+  var apartadosDe = D.apartadosDe, apartados = D.apartados, aportar = D.aportar;
+  var estadoDeApartado = D.estadoDeApartado, reservadoDe = D.reservadoDe;
+  var apartadoParaGasto = D.apartadoParaGasto, rellenarApartados = D.rellenarApartados;
   var upcomingRecurring = D.upcomingRecurring, updateAccount = D.updateAccount;
   var updateCategory = D.updateCategory, updateGoal = D.updateGoal, updateRecurring = D.updateRecurring;
   var updateTx = D.updateTx, ymd = D.ymd;
@@ -97,6 +102,16 @@
     limiteDe: limiteDe, setLimite: setLimite,
     gastoDeCuenta: gastoDeCuenta, estadoDeLimite: estadoDeLimite,
     cuentasConLimite: cuentasConLimite,
+
+    /* Apartados: sub-bolsas dentro de una cuenta. El saldo no se guarda,
+       se calcula, así que editar o borrar un gasto nunca lo descuadra. */
+    get APARTADOS() { return apartados(); },
+    addApartado: addApartado, updateApartado: updateApartado,
+    deleteApartado: deleteApartado, apartadoById: apartadoById,
+    apartadosDe: apartadosDe, aportar: aportar,
+    estadoDeApartado: estadoDeApartado, reservadoDe: reservadoDe,
+    apartadoParaGasto: apartadoParaGasto,
+    rellenarApartados: rellenarApartados,
 
     /* etiquetas */
     addTag: addTag, tagById: tagById, deleteTag: deleteTag, tagUsage: tagUsage,

@@ -255,3 +255,109 @@
 }
 
 .limit__chev { flex: none; color: var(--text-muted); }
+
+/* ---------- la fila de un apartado ----------
+   Vive dentro de la pantalla de una cuenta. Tres alturas: el nombre con
+   lo que queda, la barra de lo gastado y el pie que lo cuenta en euros.
+   El botón de apartar va aparte, a la derecha, porque es otra acción. */
+
+.apartado {
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-3);
+  padding: var(--sp-3) 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.apartado:last-child { border-bottom: 0; padding-bottom: 0; }
+
+.apartado__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: none;
+  border: 0;
+  padding: 0;
+  text-align: left;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.apartado__main:active { transform: scale(0.995); }
+
+.apartado__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.apartado__face { flex: none; width: 30px; height: 30px; font-size: 15px; }
+
+.apartado__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 15px;
+  font-weight: var(--w-semi);
+  letter-spacing: -0.018em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.apartado__saldo {
+  flex: none;
+  font-size: 15px;
+  font-weight: var(--w-bold);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Barra propia y no la del presupuesto: va dentro de un <button>, donde
+   solo caben spans, y un span en línea se come el alto. Además aquí se
+   quiere más fina, porque hay varias seguidas. */
+.apartado__track {
+  display: block;
+  position: relative;
+  height: 10px;
+  border-radius: var(--r-full);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.apartado__fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--r-full);
+  transform-origin: left center;
+  transform: scaleX(0);
+  animation: meter-grow var(--dur-slow) var(--ease-out) forwards;
+  animation-delay: 90ms;
+}
+
+.apartado__foot {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.apartado__mas {
+  flex: none;
+  align-self: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: var(--r-full);
+  background: var(--surface-2);
+  box-shadow: var(--nm-out-sm);
+  color: var(--text-secondary);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.apartado__mas:active { box-shadow: var(--nm-in); }

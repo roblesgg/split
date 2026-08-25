@@ -15,6 +15,7 @@
   function goTo() { return A.goTo.apply(null, arguments); }
   function nombreCiclo() { return A.nombreCiclo.apply(null, arguments); }
   function limiteHtml() { return A.limiteHtml.apply(null, arguments); }
+  function periodo() { return A.periodo.apply(null, arguments); }
   function mountIcons() { return A.mountIcons.apply(null, arguments); }
   function openAdd() { return A.openAdd.apply(null, arguments); }
   function openDetail() { return A.openDetail.apply(null, arguments); }
@@ -46,6 +47,47 @@
     return t.kind === "in" ? t.amount : -t.amount;
   }
 
+  /* Una fila por apartado: cuánto queda dentro, la barra de lo gastado y
+     el botón de meter o sacar. El nombre lleva a editarlo. */
+  function apartadoFilaHtml(ap) {
+    var e = S.estadoDeApartado(ap.id);
+    var fill = e.nivel === "pasado" ? "var(--status-critical)"
+             : e.nivel === "cerca" ? "var(--status-warning)"
+             : "var(--cat-" + ap.color + ")";
+    return '' +
+      '<div class="apartado">' +
+        '<button type="button" class="apartado__main" data-form="apartado" ' +
+                'data-form-id="' + esc(ap.id) + '">' +
+          '<span class="apartado__head">' +
+            '<span class="cat-face apartado__face" ' +
+                  'style="--cat-color:var(--cat-' + ap.color + ')">' +
+              esc(ap.emoji) + '</span>' +
+            '<span class="apartado__name">' + esc(ap.name) + '</span>' +
+            '<span class="apartado__saldo">' + esc(S.moneyShort(e.saldo)) + '</span>' +
+          '</span>' +
+          '<span class="apartado__track">' +
+            '<span class="apartado__fill" style="width:' + e.pct + '%;background:' +
+              fill + '"></span>' +
+          '</span>' +
+          '<span class="apartado__foot">' +
+            (e.nivel === "pasado"
+              ? icon("warning", 11) + ' Te has pasado ' + esc(S.moneyShort(-e.saldo))
+              : 'Gastado ' + esc(S.moneyShort(e.gastado)) + ' de ' +
+                esc(S.moneyShort(e.metido))) +
+            /* Lo que entra cada ciclo solo se dice si aporta algo: el
+               primero, cuando aún no has acumulado, sería repetir la
+               misma cifra dos veces en la misma línea. */
+            (ap.porCiclo > 0 && e.metido !== ap.porCiclo
+              ? ' · ' + esc(S.moneyShort(ap.porCiclo)) + ' cada ' + esc(periodo())
+              : "") +
+          '</span>' +
+        '</button>' +
+        '<button type="button" class="apartado__mas" data-aportar="' + esc(ap.id) + '" ' +
+                'aria-label="Apartar o devolver en ' + esc(ap.name) + '" ' +
+                'data-icon="swap" data-icon-size="17"></button>' +
+      '</div>';
+  }
+
   function renderCuenta() {
     var a = S.state.accounts.find(function (x) { return x.id === ui.cuentaAbierta; });
     if (!a) { sheets.cuenta.close(); return; }
@@ -64,6 +106,8 @@
 
     var ultimos = propios.slice(0, 5);
     var lim = S.estadoDeLimite(a.id, curKey);
+    var aps = S.apartadosDe(a.id);
+    var reservado = S.reservadoDe(a.id);
     var uso = S.accountUsage(a.id);
 
     $("#sheetCuentaTitle").textContent = a.name;
@@ -79,6 +123,15 @@
           '<p class="paycard__label">Saldo</p>' +
           '<p class="paycard__value">' + bigAmount(S.accountBalance(a.id)) + '</p>' +
         '</div>' +
+        /* Con apartados, el saldo ya no es lo que puedes gastar: hay una
+           parte reservada. Se dice aquí para que no engañe. */
+        (reservado > 0
+          ? '<div class="paycard__limite">' +
+              '<span class="paycard__label">' +
+                esc(S.moneyShort(S.accountBalance(a.id) - reservado)) +
+                ' disponible · ' + esc(S.moneyShort(reservado)) + ' apartados</span>' +
+            '</div>'
+          : "") +
       '</div>' +
 
       /* Si hay objetivo de gasto, lo primero al abrir la cuenta es cuánto
@@ -106,6 +159,18 @@
           '<p class="stat__label">Ha salido</p>' +
           '<p class="stat__value">− ' + esc(S.moneyShort(sale)) + '</p>' +
         '</div>' +
+      '</div>' +
+
+      '<div class="card" style="margin-top:var(--sp-5)">' +
+        '<div class="card__head">' +
+          '<h3 class="card__title">Apartados</h3>' +
+          '<button type="button" class="card__link" id="cuentaApartado">+ Nuevo</button>' +
+        '</div>' +
+        (aps.length
+          ? aps.map(apartadoFilaHtml).join("")
+          : '<p class="card__sub">Un apartado es una sub-bolsa dentro de esta ' +
+            'cuenta: separas 200 € para gasolina y esos 200 dejan de contar en ' +
+            'el resto de tus gastos, porque ya los tienes guardados.</p>') +
       '</div>' +
 
       '<div class="field" style="margin-top:var(--sp-6)">' +
@@ -170,6 +235,30 @@
         sheets.cuenta.close();
         var txId = node.getAttribute("data-tx");
         setTimeout(function () { openDetail(txId); }, 220);
+        return;
+      }
+
+      /* Los apartados se crean y se editan sin salir de la cuenta: al
+         cerrar el formulario se vuelve aquí con lo que hayas hecho. */
+      if (e.target.closest("#cuentaApartado")) {
+        ui.cuentaReturn = id;
+        sheets.cuenta.close();
+        setTimeout(function () { openForm("apartado", null, { accountId: id }); }, 220);
+        return;
+      }
+      if ((node = e.target.closest("[data-aportar]"))) {
+        var apId = node.getAttribute("data-aportar");
+        ui.cuentaReturn = id;
+        sheets.cuenta.close();
+        setTimeout(function () { openForm("aportar", apId); }, 220);
+        return;
+      }
+      if ((node = e.target.closest("[data-form]"))) {
+        ui.cuentaReturn = id;
+        sheets.cuenta.close();
+        var tipoF = node.getAttribute("data-form");
+        var idF = node.getAttribute("data-form-id");
+        setTimeout(function () { openForm(tipoF, idF); }, 220);
         return;
       }
 
