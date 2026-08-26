@@ -48,4 +48,11 @@
     <!-- Avisos de lo que toca cobrar. Desde Android 13 hay que pedirlo al
          usuario; antes bastaba con declararlo. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Sin esto, desde Android 12 la alarma es «inexacta» y el sistema
+         puede correrla horas para ahorrar batería. En un aviso de «hoy
+         cobras, dime cuánto» eso es la diferencia entre servir y no
+         servir. No se concede de oficio: el usuario lo da desde los
+         ajustes del móvil, y la app lo lleva ahí cuando hace falta. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 </manifest>

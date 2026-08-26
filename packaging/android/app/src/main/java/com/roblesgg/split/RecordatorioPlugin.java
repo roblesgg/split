@@ -119,6 +119,48 @@ public class RecordatorioPlugin extends Plugin {
      * cada vez que se abre la app. Antes esto también iba por `dias`, y
      * por eso un recibo mensual avisaba todas las semanas.
      */
+    /**
+     * ¿Puede el sistema poner alarmas a su hora exacta? Desde Android 12
+     * no se concede de oficio, y sin ella el aviso puede llegar horas
+     * tarde. Se contesta también qué hacer al respecto, para que el lado
+     * web no tenga que saber de versiones de Android.
+     */
+    @PluginMethod
+    public void alarmasExactas(PluginCall call) {
+        JSObject r = new JSObject();
+        boolean puede = true;
+        boolean sePuedePedir = false;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            AlarmManager am = (AlarmManager) getContext().getSystemService(Context.ALARM_SERVICE);
+            puede = am == null || am.canScheduleExactAlarms();
+            sePuedePedir = !puede;
+        }
+        r.put("exactas", puede);
+        r.put("sePuedePedir", sePuedePedir);
+        call.resolve(r);
+    }
+
+    /**
+     * Abre la pantalla del sistema donde se conceden las alarmas exactas.
+     * No hay forma de pedirlo con un diálogo: Android obliga a pasar por
+     * ajustes.
+     */
+    @PluginMethod
+    public void pedirAlarmasExactas(PluginCall call) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            try {
+                Intent i = new Intent("android.settings.REQUEST_SCHEDULE_EXACT_ALARM");
+                i.setData(android.net.Uri.parse("package:" + getContext().getPackageName()));
+                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                getContext().startActivity(i);
+            } catch (Exception e) {
+                call.reject("no se ha podido abrir los ajustes de alarmas");
+                return;
+            }
+        }
+        call.resolve();
+    }
+
     @PluginMethod
     public void programar(PluginCall call) {
         borrarTodos();

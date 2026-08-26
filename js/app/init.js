@@ -19,6 +19,7 @@
   function goTo() { return A.goTo.apply(null, arguments); }
   function mountIcons() { return A.mountIcons.apply(null, arguments); }
   function renderAll() { return A.renderAll.apply(null, arguments); }
+  function sincronizarAvisos() { return A.sincronizarAvisos.apply(null, arguments); }
   function renderInicio() { return A.renderInicio.apply(null, arguments); }
   function setTopbar() { return A.setTopbar.apply(null, arguments); }
   function startOnboarding() { return A.startOnboarding.apply(null, arguments); }
@@ -41,8 +42,10 @@
     S.rellenarApartados();
 
     /* Las alarmas del sistema no sobreviven a un reinicio del teléfono,
-       así que se vuelven a poner en cada arranque. */
-    if (window.Avisos && window.Avisos.hay()) window.Avisos.sincronizar(S);
+       así que se vuelven a poner en cada arranque. Sin pedir permisos:
+       eso solo pasa cuando el usuario guarda un programado que los
+       necesita. */
+    sincronizarAvisos();
 
     sheets.add = new U.Sheet($("#sheetAdd"), $("#scrim"));
     sheets.detail = new U.Sheet($("#sheetDetail"), $("#scrim"));

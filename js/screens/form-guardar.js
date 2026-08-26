@@ -162,7 +162,7 @@
 
     sheets.form.close();
     S.runRecurring();
-    sincronizarAvisos();
+    sincronizarAvisos({ pedir: t === "recurring" });
     renderAll();
 
     /* Si el programado que se acaba de guardar ya tocaba y pide que le

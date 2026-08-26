@@ -39,6 +39,31 @@
                                  function () { return false; });
   }
 
+  /* Tener permiso para notificar no basta: desde Android 12 la alarma
+     puede ser «inexacta» y el sistema correrla horas para ahorrar
+     batería. En un aviso de «hoy cobras, dime cuánto» eso es la
+     diferencia entre servir y no servir.
+
+     Se contesta { exactas, sePuedePedir }. En un móvil viejo, o si el
+     plugin es de antes, se dice que sí: no había nada que conceder. */
+  function alarmasExactas() {
+    var R = plugin();
+    if (!R || typeof R.alarmasExactas !== "function") {
+      return Promise.resolve({ exactas: true, sePuedePedir: false });
+    }
+    return R.alarmasExactas().then(function (r) {
+      return { exactas: !!(r && r.exactas), sePuedePedir: !!(r && r.sePuedePedir) };
+    }, function () { return { exactas: true, sePuedePedir: false }; });
+  }
+
+  /* Lleva a la pantalla del sistema donde se conceden. No hay diálogo:
+     Android obliga a pasar por ajustes. */
+  function pedirAlarmasExactas() {
+    var R = plugin();
+    if (!R || typeof R.pedirAlarmasExactas !== "function") return Promise.resolve();
+    return R.pedirAlarmasExactas().then(function () {}, function () {});
+  }
+
   /* Un aviso se manda de una de dos formas, según lo que la capa Android
      sepa hacer con él:
 
@@ -105,6 +130,8 @@
     hay: hay,
     permitido: permitido,
     pedirPermiso: pedirPermiso,
+    alarmasExactas: alarmasExactas,
+    pedirAlarmasExactas: pedirAlarmasExactas,
     sincronizar: sincronizar
   };
 })();

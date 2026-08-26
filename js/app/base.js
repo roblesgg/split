@@ -38,7 +38,9 @@ window.App = (function () {
     form: null,             /* formulario abierto: { type, id, d } */
     ob: null,               /* cuestionario de bienvenida a medias */
     cuentaAbierta: null,    /* qué cuenta se está mirando por dentro */
-    pickPendiente: null     /* quién espera una elección: { resolver } */
+    pickPendiente: null,    /* quién espera una elección: { resolver } */
+    cobro: "",              /* lo tecleado al confirmar un cobro, en céntimos */
+    avisadoDeAlarmas: false /* el aviso de «las alarmas llegan tarde», una vez */
   };
 
   var sheets = {};

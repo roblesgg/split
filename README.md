@@ -271,6 +271,25 @@ con cada 12. La interfaz ofrece cuatro palabras porque es como se habla, pero
 los datos no necesitan un cuarto concepto, y cada concepto de más es una regla
 más que puede fallar.
 
+### Cuando no se sabe cuánto va a ser
+
+Hay trabajos en los que no sabes lo que vas a cobrar hasta que cobras, y recibos
+que varían un poco cada mes. Para esos la app **no apunta nada sola**: te avisa
+el día que toca y te pregunta.
+
+La pantalla de confirmar es una cifra grande y un teclado, como al apuntar un
+movimiento: es lo único que estás haciendo ahí.
+
+- Si el programado va **por horas**, se piden horas y no euros. Hacer la
+  multiplicación de cabeza cada vez es justo lo que la app tiene que ahorrarte:
+  se teclea «18,50» y debajo pone «A 12,00 € la hora · 222,00 €».
+- Se **propone una cifra**: la media de lo que de verdad ha entrado por ese
+  programado. Es un botón, no un valor puesto de oficio — verlo y decidir es
+  distinto de encontrártelo escrito sin saber de dónde sale. Si no hay historial
+  todavía, se propone lo previsto.
+- «Esta vez no lo he cobrado» descarta ese y ya está: la próxima vez que toque
+  vuelve a preguntar.
+
 ### Los avisos en el móvil
 
 Un programado puede avisarte el día que toca, a la hora que le digas. Eso lo
@@ -288,6 +307,18 @@ Hay dos formas de mandarle un aviso, según lo que pueda representar:
 Antes todo iba por días de la semana, y por eso **un recibo mensual avisaba
 todas las semanas**: Android reprogramaba a los siete días sin saber que aquello
 era mensual.
+
+**Dos permisos, no uno.** Notificar se pide con un diálogo, y solo cuando
+guardas un programado que lo necesita: salir de la nada con un diálogo de
+permisos es de las cosas que hacen desinstalar una app. Pero desde Android 12
+hay un segundo permiso, el de **poner la alarma a su hora**: sin él el sistema
+puede correrla horas para ahorrar batería, y en un aviso de «hoy cobras» eso es
+la diferencia entre servir y no servir. Ese no se puede pedir con un diálogo, así
+que la app lo comprueba y, si falta, avisa una vez con un botón que lleva
+directo a la pantalla de ajustes donde se concede.
+
+Las alarmas **no sobreviven a un reinicio del teléfono**. Por eso se reponen
+todas cada vez que se abre la app.
 
 ## Cuentas y metas
 
