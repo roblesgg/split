@@ -175,8 +175,34 @@
   --w-bold: 800;
   --w-heavy: 800;
 
-  --eyebrow-size: 11px;
+  /* --- la escala de texto ---
+     Nada por debajo de --t-min. Un texto que hay que acercarse a leer no
+     está diciendo nada: o sube o sobra. Las medidas van aquí y no
+     sueltas por cada archivo, para que subir el suelo sea una línea. */
+  --t-min: 12.5px;        /* el suelo: pies de gráfico y poco más */
+  --t-hint: 13.5px;       /* ayudas, pies y lo secundario */
+  --t-body: 15px;         /* el texto normal */
+  --t-label: 16px;        /* etiquetas de campo y filas */
+  --t-title: 19px;        /* títulos de tarjeta */
+
+  --eyebrow-size: var(--t-min);
   --eyebrow-track: 0.06em;
+
+  /* --- la escala de cifra ---
+     El número ES el dato, así que manda sobre el texto que lo acompaña.
+     Una tarjeta enseña UNA cifra grande, nunca dos: si hay dos, ninguna
+     es la importante. */
+  --num-hero: 42px;       /* la cifra de la pantalla: la que se teclea */
+  --num-xl: 34px;         /* la protagonista de una tarjeta */
+  --num-l: 26px;          /* la de un KPI */
+  --num-m: 19px;          /* la de una fila de lista */
+
+  /* --- lo que se pulsa ---
+     Fallar un toque en una app de dinero da miedo, así que los objetivos
+     son grandes. --tap para lo que se pulsa a propósito; --tap-min es el
+     suelo de lo secundario, y por debajo no baja nada. */
+  --tap: 56px;
+  --tap-min: 48px;
 
   /* --- movimiento --- */
   --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);

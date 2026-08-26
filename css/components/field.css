@@ -9,7 +9,7 @@
 .field__label {
   display: block;
   margin-bottom: 8px;
-  font-size: 12.5px;
+  font-size: var(--t-min);
   font-weight: var(--w-medium);
   color: var(--text-secondary);
   letter-spacing: -0.008em;
@@ -48,7 +48,7 @@ select.field__input { appearance: none; cursor: pointer; padding-right: var(--sp
 
 .field__row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
 
-.field__hint { margin-top: 7px; font-size: 12px; color: var(--text-muted); line-height: 1.5; }
+.field__hint { margin-top: 7px; font-size: var(--t-min); color: var(--text-muted); line-height: 1.5; }
 
 .input-affix { position: relative; }
 
@@ -93,6 +93,7 @@ select.field__input { appearance: none; cursor: pointer; padding-right: var(--sp
   align-items: center;
   gap: var(--sp-2);
   width: 100%;
+  min-height: var(--tap-min);
   text-align: left;
 }
 
@@ -138,7 +139,7 @@ select.field__input { appearance: none; cursor: pointer; padding-right: var(--sp
   padding: var(--sp-4);
   border-radius: var(--r-sm);
   background: var(--surface-2);
-  font-size: 13.5px;
+  font-size: var(--t-hint);
   line-height: 1.55;
   color: var(--text-secondary);
   white-space: pre-wrap;
@@ -154,7 +155,7 @@ select.field__input { appearance: none; cursor: pointer; padding-right: var(--sp
   border-radius: var(--r-full);
   background: var(--surface-1);
   box-shadow: var(--nm-out-sm);
-  font-size: 12.5px;
+  font-size: var(--t-min);
   font-weight: var(--w-medium);
   color: var(--text-secondary);
   transition: box-shadow var(--dur-fast) var(--ease-out),

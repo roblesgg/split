@@ -205,8 +205,8 @@ svg { display: block; }
 .icon-btn {
   display: grid;
   place-items: center;
-  width: 42px;
-  height: 42px;
+  width: var(--tap-min);
+  height: var(--tap-min);
   border-radius: var(--r-full);
   background: var(--surface-1);
   color: var(--text-secondary);

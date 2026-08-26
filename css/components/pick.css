@@ -67,7 +67,7 @@
   white-space: nowrap;
 }
 
-.pick__sub { display: block; margin-top: 1px; font-size: 11.5px; color: var(--text-muted); }
+.pick__sub { display: block; margin-top: 1px; font-size: var(--t-min); color: var(--text-muted); }
 
 .pick__tick { flex: none; display: flex; color: var(--accent); }
 
@@ -81,10 +81,11 @@
   justify-content: center;
   gap: 5px;
   width: 100%;
+  min-height: var(--tap-min);
   margin-top: var(--sp-3);
   padding: var(--sp-2);
   border-radius: var(--r-full);
-  font-size: 12.5px;
+  font-size: var(--t-hint);
   font-weight: var(--w-medium);
   color: var(--text-muted);
   transition: color var(--dur-fast) var(--ease-out);
@@ -124,7 +125,7 @@
 
 .donut__label {
   display: block;
-  font-size: 11px;
+  font-size: var(--t-min);
   font-weight: var(--w-medium);
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -162,7 +163,7 @@
 
 .pres-fila__nombre {
   display: block;
-  font-size: 13.5px;
+  font-size: var(--t-hint);
   font-weight: var(--w-semi);
   color: var(--text-primary);
   overflow: hidden;
@@ -173,14 +174,31 @@
 .pres-fila__pct {
   display: block;
   margin-top: 1px;
-  font-size: 11px;
+  font-size: var(--t-min);
   color: var(--text-muted);
 }
 
 .pres-fila__campo { display: block; flex: none; width: 108px; }
 .pres-fila__campo .field__input { height: 42px; text-align: right; }
 
-.pres-fila__quitar { flex: none; width: 30px; height: 30px; }
+/* Va al final de una fila apretada del presupuesto, así que se ve
+   pequeño; el objetivo, no. Misma zona invisible que los enlaces. */
+.pres-fila__quitar {
+  position: relative;
+  flex: none;
+  width: 34px;
+  height: 34px;
+}
+
+.pres-fila__quitar::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: var(--tap-min);
+  height: var(--tap-min);
+}
 
 /* ---------- repartir un ingreso entre cuentas ---------- */
 
@@ -201,7 +219,7 @@
 .reparto-fila__nombre {
   flex: 1;
   min-width: 0;
-  font-size: 13.5px;
+  font-size: var(--t-hint);
   font-weight: var(--w-medium);
   color: var(--text-primary);
   overflow: hidden;
@@ -228,7 +246,7 @@
   box-shadow: var(--nm-in);
 }
 
-.ajuste__txt { font-size: 13px; color: var(--text-secondary); }
+.ajuste__txt { font-size: var(--t-hint); color: var(--text-secondary); }
 
 .ajuste__eur {
   font-size: 17px;
@@ -264,7 +282,7 @@
 
 .mini-list__name {
   display: block;
-  font-size: 13.5px;
+  font-size: var(--t-hint);
   font-weight: var(--w-semi);
   color: var(--text-primary);
   overflow: hidden;
@@ -275,7 +293,7 @@
 .mini-list__meta {
   display: block;
   margin-top: 2px;
-  font-size: 11.5px;
+  font-size: var(--t-min);
   color: var(--text-muted);
 }
 

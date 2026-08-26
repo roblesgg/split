@@ -374,14 +374,17 @@
           '<div class="meter__fill" style="width:' + Math.min(100, b.ratio * 100).toFixed(1) + '%;' +
             'background:' + fill + ';--delay:' + (i * 55 + 90) + 'ms"></div>' +
         '</div>' +
-        /* el color de estado nunca va solo: siempre con icono y texto */
+        /* El porcentaje manda y los euros van detrás: lo que se quiere
+           saber de un vistazo es cuánto margen queda, no la resta. Y el
+           color de estado nunca va solo: siempre con icono y texto. */
         (over
-          ? '<p class="meter__foot">' + icon("warning", 11) + ' Te has pasado ' +
-            esc(S.moneyShort(b.spent - b.limit)) + '</p>'
-          : near
-            ? '<p class="meter__foot">' + icon("warning", 11) + ' Al límite: quedan ' +
-              esc(S.moneyShort(b.limit - b.spent)) + '</p>'
-            : '<p class="meter__foot">Quedan ' + esc(S.moneyShort(b.limit - b.spent)) + '</p>') +
+          ? '<p class="meter__foot">' + icon("warning", 11) + ' Te has pasado un ' +
+            esc(S.pct(Math.round((b.ratio - 1) * 100))) + ' · ' +
+            esc(S.moneyShort(b.spent - b.limit)) + ' de más</p>'
+          : '<p class="meter__foot">' +
+            (near ? icon("warning", 11) + ' Al límite: te queda ' : 'Te queda ') +
+            'el ' + esc(S.pct(Math.max(0, Math.round((1 - b.ratio) * 100)))) + ' · ' +
+            esc(S.moneyShort(b.limit - b.spent)) + '</p>') +
       '</div>';
   }
 

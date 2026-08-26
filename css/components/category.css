@@ -39,7 +39,7 @@
 .cat-pick[aria-pressed="true"] .cat-pick__icon { background: var(--surface-1); }
 
 .cat-pick__name {
-  font-size: 12.5px;
+  font-size: var(--t-min);
   font-weight: var(--w-medium);
   color: var(--text-secondary);
   text-align: center;
@@ -201,4 +201,4 @@
   letter-spacing: -0.015em;
 }
 
-.cat-list__meta { display: block; font-size: 11.5px; color: var(--text-muted); }
+.cat-list__meta { display: block; font-size: var(--t-min); color: var(--text-muted); }

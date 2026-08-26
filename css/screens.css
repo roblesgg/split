@@ -26,7 +26,7 @@
 }
 
 .month-nav__sub {
-  font-size: 11.5px;
+  font-size: var(--t-min);
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
 }
@@ -44,9 +44,9 @@
 
 .range-pill {
   flex: 1;
-  height: 32px;
+  height: var(--tap-min);
   border-radius: var(--r-full);
-  font-size: 12px;
+  font-size: var(--t-hint);
   font-weight: var(--w-semi);
   letter-spacing: -0.01em;
   color: var(--text-secondary);
@@ -92,8 +92,9 @@
   flex: none;
   display: grid;
   place-items: center;
-  width: 22px;
-  height: 22px;
+  position: relative;
+  width: 26px;
+  height: 26px;
   border-radius: var(--r-full);
   background: var(--surface-1);
   box-shadow: var(--nm-out-sm);
@@ -101,6 +102,17 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+/* Va dentro del buscador, así que grande no puede ser; el objetivo sí. */
+.search__clear::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: var(--tap-min);
+  height: var(--tap-min);
 }
 
 .search__clear[data-show="true"] { opacity: 1; pointer-events: auto; }
@@ -119,7 +131,7 @@
   border-radius: var(--r-full);
   background: var(--surface-1);
   box-shadow: var(--nm-out-sm);
-  font-size: 12.5px;
+  font-size: var(--t-min);
   font-weight: var(--w-semi);
   color: var(--text-secondary);
   transition: box-shadow var(--dur-fast) var(--ease-out),
@@ -166,7 +178,7 @@
 
 .insight__title {
   display: block;
-  font-size: 13.5px;
+  font-size: var(--t-hint);
   font-weight: var(--w-semi);
   letter-spacing: -0.016em;
   margin-bottom: 2px;
@@ -174,7 +186,7 @@
 
 .insight__text {
   display: block;
-  font-size: 12.5px;
+  font-size: var(--t-min);
   color: var(--text-secondary);
   line-height: 1.5;
 }
@@ -216,13 +228,13 @@
 .account__type {
   display: block;
   margin-top: 1px;
-  font-size: 11.5px;
+  font-size: var(--t-min);
   color: var(--text-secondary);
 }
 
 .account__amount {
   flex: none;
-  font-size: 15px;
+  font-size: var(--num-m);
   font-weight: var(--w-semi);
   letter-spacing: -0.026em;
   font-variant-numeric: tabular-nums;
@@ -266,14 +278,14 @@
 .setting__hint {
   display: block;
   margin-top: 1px;
-  font-size: 11.5px;
+  font-size: var(--t-min);
   color: var(--text-secondary);
   line-height: 1.4;
 }
 
 .setting__value {
   flex: none;
-  font-size: 12.5px;
+  font-size: var(--t-min);
   font-weight: var(--w-medium);
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
@@ -294,7 +306,7 @@
 }
 
 .alloc-total {
-  font-size: 12.5px;
+  font-size: var(--t-min);
   font-weight: var(--w-semi);
   font-variant-numeric: tabular-nums;
 }
@@ -318,14 +330,14 @@
 .alloc-row__name {
   flex: 1;
   min-width: 0;
-  font-size: 13.5px;
+  font-size: var(--t-hint);
   font-weight: var(--w-medium);
   letter-spacing: -0.016em;
 }
 
 .alloc-row__eur {
   flex: none;
-  font-size: 13.5px;
+  font-size: var(--t-hint);
   font-weight: var(--w-bold);
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.024em;
@@ -335,7 +347,7 @@
   flex: none;
   min-width: 40px;
   text-align: right;
-  font-size: 11.5px;
+  font-size: var(--t-min);
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }

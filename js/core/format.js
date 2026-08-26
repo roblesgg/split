@@ -30,11 +30,17 @@
     maximumFractionDigits: 2
   });
 
-  function money(v) { return eur.format(v); }
+  /* Intl escribe el negativo con un guion de teclado, y signed() lleva
+     desde siempre el menos tipográfico. Con las cifras grandes esas dos
+     rayas de distinto largo se ven a la primera, así que se unifican
+     aquí, que es por donde pasan todas. */
+  function menos(txt) { return txt.replace("-", "−"); }
+
+  function money(v) { return menos(eur.format(v)); }
   function moneyShort(v) {
     var a = Math.abs(v);
-    if (a >= 10000) return eur0.format(v);
-    return eur.format(v);
+    if (a >= 10000) return menos(eur0.format(v));
+    return menos(eur.format(v));
   }
   function signed(v) { return (v > 0 ? "+" : v < 0 ? "−" : "") + eur.format(Math.abs(v)); }
   function pct(v, digits) {

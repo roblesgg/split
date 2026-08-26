@@ -508,6 +508,44 @@ abriéndose con doble clic y funcionando sin internet.
 
 Todo lo demás — tarjetas, botones, iconos, avatares, tiles — es gris.
 
+## Números grandes, botones grandes
+
+Dos escalas en `tokens.css`, y ahí es donde está la regla: si hace falta un
+tamaño nuevo, se añade a la escala, no suelto en el archivo de turno.
+
+**El texto** tiene un suelo, `--t-min`, en 12,5 px. Nada baja de ahí: un texto
+que hay que acercarse a leer no está diciendo nada, o sube o sobra. Encima,
+`--t-hint` para ayudas y pies, `--t-body` para el texto normal, `--t-label` para
+etiquetas y `--t-title` para títulos de tarjeta.
+
+**Las cifras** tienen la suya, porque el número *es* el dato y manda sobre el
+texto que lo acompaña: `--num-hero` (42 px) para la cifra que se teclea,
+`--num-xl` para la protagonista de una tarjeta, `--num-l` para un KPI y
+`--num-m` para una fila de lista.
+
+La regla de fondo: **una cifra grande por tarjeta, nunca dos.** Si hay dos,
+ninguna es la importante. Por eso en el móvil las tres cifras del Resumen van
+dos arriba y la de ahorro entera debajo: las tres en una fila no caben —quedan
+88 px por tarjeta y «−576,63 €» pide 129— y aunque cupieran no dejarían ver
+cuál importa. En escritorio, donde hay sitio, van las tres.
+
+**Y el porcentaje manda sobre el euro** en todo lo que es un límite. «Te queda
+el 38 %» arriba y «148,50 € de 400 €» debajo, no al revés: lo que se quiere
+saber de un vistazo es cuánto margen queda, no la resta.
+
+### Lo que se pulsa
+
+`--tap` (56 px) para lo que se pulsa a propósito —botones, teclas del importe,
+filas— y `--tap-min` (48 px) como suelo de todo lo demás. Fallar un toque en una
+app de dinero da miedo.
+
+Cuando un enlace tiene que verse pequeño —el «+ Nueva» de una cabecera, la «×»
+del buscador— **el texto se queda pequeño y el objetivo no**: se extiende con una
+zona invisible hasta el mínimo, sin mover nada de sitio.
+
+Está comprobado midiendo el objetivo real de cada elemento pulsable de las cinco
+pantallas y las hojas, incluidas esas zonas invisibles.
+
 ## Sobre los colores de los gráficos
 
 La paleta de series está validada para daltonismo y contraste contra las

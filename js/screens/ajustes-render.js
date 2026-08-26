@@ -346,7 +346,7 @@
       '</section>' +
 
       '<section class="card">' +
-        '<p style="font-size:12px;color:var(--text-muted);line-height:1.6">' +
+        '<p style="font-size:var(--t-hint);color:var(--text-muted);line-height:1.6">' +
           'split guarda todo en el almacenamiento de este navegador, en este ' +
           'dispositivo. No hay servidor detrás y nada sale de aquí. Solo se ' +
           'conecta a GitHub cuando comprueba si hay una versión nueva.' +

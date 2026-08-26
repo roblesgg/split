@@ -127,8 +127,9 @@
     return '<div style="display:flex;align-items:center;justify-content:space-between;' +
              'gap:var(--sp-4);padding:var(--sp-3) var(--sp-4);' +
              'box-shadow:inset 0 1px 0 var(--hairline)">' +
-        '<span style="font-size:12.5px;color:var(--text-secondary)">' + esc(label) + '</span>' +
-        '<span style="font-size:13px;font-weight:570;text-align:right">' + esc(value) + '</span>' +
+        '<span style="font-size:var(--t-min);color:var(--text-secondary)">' + esc(label) + '</span>' +
+        '<span style="font-size:var(--t-hint);font-weight:var(--w-medium);text-align:right">' +
+          esc(value) + '</span>' +
       '</div>';
   }
 

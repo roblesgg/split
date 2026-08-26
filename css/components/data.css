@@ -19,7 +19,7 @@
 
 .hero-center__value {
   margin-top: var(--sp-2);
-  font-size: 40px;
+  font-size: var(--num-hero);
   font-weight: var(--w-bold);
   letter-spacing: -0.045em;
   line-height: 1.02;
@@ -67,7 +67,7 @@
 
 .big-ring__cap {
   margin-top: 4px;
-  font-size: 11px;
+  font-size: var(--t-min);
   font-weight: var(--w-medium);
   color: var(--text-secondary);
 }
@@ -83,7 +83,7 @@
   border-radius: var(--r-full);
   background: var(--surface-1);
   box-shadow: var(--nm-out-sm);
-  font-size: 12px;
+  font-size: var(--t-min);
   font-weight: var(--w-semi);
   color: var(--text-secondary);
   white-space: nowrap;
@@ -97,10 +97,23 @@
 
 /* ---------- stat tile (KPI) ---------- */
 
+/* Tres cifras grandes en una fila de móvil no caben: quedan 88 px por
+   tarjeta y una como «−576,63 €» pide 129. Y aunque cupieran, tres
+   cifras grandes juntas no dejan ver cuál importa.
+
+   Así que en móvil van dos arriba y la tercera entera debajo, que además
+   es la que más se mira. En escritorio, donde sí hay sitio, las tres. */
 .kpi-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--sp-3);
+}
+
+.kpi-row > :last-child:nth-child(3) { grid-column: 1 / -1; }
+
+@media (min-width: 700px) {
+  .kpi-row { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); }
+  .kpi-row > :last-child:nth-child(3) { grid-column: auto; }
 }
 
 .stat {
@@ -124,7 +137,7 @@
 
 .stat__value {
   margin-top: 6px;
-  font-size: 21px;
+  font-size: var(--num-l);
   font-weight: var(--w-bold);
   letter-spacing: -0.04em;
   line-height: 1.12;
@@ -134,7 +147,7 @@
    tres tarjetas quedan de altos distintos y se lee peor que si fuera una
    pizca más pequeña. Con nowrap y un ajuste de tamaño caben las tres. */
 .stat--compact .stat__value {
-  font-size: 16px;
+  font-size: var(--num-m);
   letter-spacing: -0.04em;
   white-space: nowrap;
 }
@@ -146,7 +159,7 @@
   align-items: center;
   gap: 3px;
   margin-top: 6px;
-  font-size: 12px;
+  font-size: var(--t-min);
   font-weight: var(--w-semi);
   font-variant-numeric: tabular-nums;
 }
@@ -199,7 +212,7 @@
 
 .tile__name {
   display: block;
-  font-size: 12px;
+  font-size: var(--t-min);
   font-weight: var(--w-medium);
   color: var(--text-secondary);
   letter-spacing: -0.008em;
@@ -240,7 +253,7 @@
 
 .limit__label {
   display: block;
-  font-size: 12px;
+  font-size: var(--t-min);
   font-weight: var(--w-normal);
   color: var(--text-secondary);
 }
@@ -309,7 +322,7 @@
 
 .apartado__saldo {
   flex: none;
-  font-size: 15px;
+  font-size: var(--num-m);
   font-weight: var(--w-bold);
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
@@ -341,7 +354,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 12.5px;
+  font-size: var(--t-min);
   color: var(--text-muted);
 }
 

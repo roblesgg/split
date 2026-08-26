@@ -50,11 +50,26 @@
 
 .card__link {
   flex: none;
-  font-size: 13px;
+  font-size: var(--t-hint);
   font-weight: var(--w-semi);
   color: var(--accent);
   letter-spacing: -0.012em;
   white-space: nowrap;
+}
+
+/* El texto es pequeño a propósito —es un enlace dentro de una cabecera—
+   pero el objetivo no puede serlo: se extiende con una zona invisible
+   hasta el mínimo de toque, sin mover nada de sitio. */
+.card__link { position: relative; }
+
+.card__link::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100%, var(--tap-min));
+  height: var(--tap-min);
 }
 
 .card__link:hover { text-decoration: underline; }
@@ -159,7 +174,7 @@
 }
 
 .paycard__nueva-txt { font-size: 14.5px; font-weight: var(--w-semi); color: var(--text-primary); }
-.paycard__nueva-sub { font-size: 11.5px; color: var(--text-muted); }
+.paycard__nueva-sub { font-size: var(--t-min); color: var(--text-muted); }
 
 /* veladura diagonal, el único brillo de la pieza */
 .paycard::after {
@@ -184,7 +199,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 13px;
+  font-size: var(--t-hint);
   font-weight: var(--w-semi);
   letter-spacing: -0.01em;
 }
@@ -199,18 +214,18 @@
 }
 
 .paycard__type {
-  font-size: 10.5px;
+  font-size: var(--t-min);
   font-weight: var(--w-semi);
   letter-spacing: var(--eyebrow-track);
   text-transform: uppercase;
   opacity: 0.6;
 }
 
-.paycard__label { font-size: 11.5px; font-weight: var(--w-normal); opacity: 0.72; }
+.paycard__label { font-size: var(--t-min); font-weight: var(--w-normal); opacity: 0.72; }
 
 .paycard__value {
   margin-top: 3px;
-  font-size: 31px;
+  font-size: var(--num-xl);
   font-weight: var(--w-bold);
   letter-spacing: -0.042em;
   line-height: 1.05;
@@ -297,7 +312,7 @@
   padding: 7px 13px;
   border-radius: var(--r-full);
   background: color-mix(in srgb, currentColor 12%, transparent);
-  font-size: 12.5px;
+  font-size: var(--t-min);
   font-weight: var(--w-medium);
   letter-spacing: -0.01em;
 }
@@ -313,7 +328,7 @@
   border-top: 1px solid color-mix(in srgb, currentColor 18%, transparent);
 }
 
-.balance__cell-label { font-size: 12px; font-weight: var(--w-normal); opacity: 0.7; }
+.balance__cell-label { font-size: var(--t-min); font-weight: var(--w-normal); opacity: 0.7; }
 
 .balance__cell-value {
   margin-top: 4px;
