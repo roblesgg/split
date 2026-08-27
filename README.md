@@ -90,42 +90,92 @@ porque llamarle agosto sería mentir.
 Por dentro, un ciclo se identifica por el mes en el que **empieza**, así que
 sigue siendo una clave `AAAA-MM` y todo lo que ya guardaba meses no se entera.
 
-## Cuánto cuentas al mes y el reparto
+## Cuánto cuentas al mes
 
-En **Ajustes** decides sobre cuánto dinero repartir:
+En **Ajustes** decides sobre cuánto dinero se habla:
 
 - **Automático** — la media de lo que ha entrado de verdad en tus últimos 3, 6 o
   12 meses cerrados. No hay que declarar nada: si un mes cobras más, la media
   sube sola. Los meses sin ningún ingreso no cuentan, para que no hundan la
   media cuando aún no usabas la app.
+- **Trabajos** — la suma de tus ingresos programados, ya repartidos al mes.
 - **Manual** — una cifra fija que pones tú.
-
-Debajo, en **Límites de cuenta**, le pones a cada tipo de gasto lo máximo que
-quieres gastar. Lo que no repartes es tu ahorro.
 
 No hay que configurar sueldos ni número de pagas: no todo lo que entra es una
 nómina, y no todos los meses entra lo mismo.
 
+Esa cifra ya no reparte nada: solo sirve para decirte qué porcentaje de lo que
+entra supone cada límite. Los topes se ponen en euros.
+
+## Límites del mes
+
+Un límite es un **tope con nombre**: cuánto quieres gastar y en qué. Puedes
+tener los que hagan falta y cada uno va a lo suyo. Viven en
+**Ajustes → Límites de [el mes]**.
+
+| | |
+|---|---|
+| **Nombre** | «Gasolina», «Gastos», «Caprichos» — el tuyo |
+| **Cuánto** | El tope, en euros |
+| **A qué afecta** | A todos los gastos · solo a estas categorías · a todos menos estas |
+
+El caso que lo explica, tal cual: **«Gasolina»**, 200 €, *solo* la categoría
+gasolina. Y aparte **«Gastos»**, 1.200 €, *todo menos* suscripciones y gasolina
+— porque un préstamo o una suscripción no son decisiones del mes.
+
+### Cada límite manda sobre lo suyo
+
+Un repostaje sube la barra de todos los límites que incluyan gasolina, y de
+ninguno más. Si no quieres que cuente dos veces, la excluyes del general: es
+explícito, se ve en su ficha y no hay que adivinar ninguna regla de prioridad.
+
+**Excluir una categoría madre excluye también a sus subcategorías.** Si dejas
+fuera «Suscripciones», ninguna de las de dentro se te cuela por detrás. Y al
+revés: marcar la madre las trae a todas. Una hija suelta sí se puede marcar
+sola, sin arrastrar a la madre.
+
 ### Los euros que escribes son los que quedan
 
-El límite se guarda **en porcentaje**, y eso es a propósito: si el mes que viene
-cobras más, tus topes suben solos sin tocar nada.
+El tope se guarda **en euros**, que es como se piensa: «doscientos al mes de
+gasolina». El porcentaje sobre lo que entra sigue enseñándose, pero ya solo es
+una lectura.
 
-Pero lo que se escribe son euros, y ahí estaba la trampa. El porcentaje se
-guardaba redondeado al entero, así que 200 € sobre 2.178 se guardaban como 9 %,
-y de ese 9 % salían luego **196 €**. Bastaba con repintar la lista —quitar otra
-partida, por ejemplo— para que las cifras que habías escrito se movieran solas.
+Antes era al revés —se guardaba el porcentaje, redondeado al entero— y eso tenía
+un fallo feo: 200 € sobre 2.178 se guardaban como 9 %, y de ese 9 % salían luego
+196 €. Bastaba con repintar la lista para que las cifras que habías escrito se
+movieran solas.
 
-Ahora el porcentaje se guarda **con decimales** y solo se redondea al pintarlo.
-Los euros que escribes son los que quedan, y quitar una partida no toca ni un
-euro de las demás.
+### Qué cuenta y qué no
 
-### El nombre va por delante
+Solo cuenta lo que **sales gastando de verdad este ciclo**. No cuentan:
 
-La sección se llama **Límites de cuenta** pero por dentro sigue siendo un tope
-por *tipo de gasto*, no por cuenta. Es deliberado: el nombre marca hacia dónde
-va y la pieza se irá moviendo ahí con el uso. Mientras tanto el subtítulo dice
-lo que de verdad mira, que es lo único que no se puede maquillar.
+- Los **traspasos**: pasar dinero a tu propia hucha no es gastar.
+- Lo que sale de un **apartado**: ese dinero ya lo habías separado (más abajo).
+
+Lo que no entre en ningún límite se sigue contando en todas partes, simplemente
+no tiene tope — y la sección lo dice: «12,00 € de este mes no entran en ningún
+límite».
+
+### Cómo se ve
+
+- **Dentro de la sección**, una fila por límite: el nombre con el porcentaje
+  consumido, a qué afecta, la barra y el tope editable ahí mismo. El porcentaje
+  va con el número que dice su propia barra, que es la única forma de que los
+  dos no se contradigan.
+- En el **Resumen**, la tarjeta plegable «Límites de [el mes]» con una barra por
+  límite, y arriba el **que va más apurado**: de un vistazo interesa el que está
+  a punto de reventar, no el primero que se creó. Sumar todos los topes no
+  valdría — dos límites pueden solaparse y la suma daría de más.
+- En **Análisis**, el aviso de «te has pasado» habla de límites, no de
+  categorías: si el tope era de «Caprichos», decir «te has pasado en Compras»
+  sería mentira.
+
+Los escalones son los mismos que en toda la app: a partir del **85 %** avisa, y
+pasado el 100 % lo dice en rojo. El color nunca va solo: cada escalón lleva su
+icono y su frase.
+
+**No es un tope duro: la app avisa, no bloquea.** Si te impidiera apuntar el
+gasto, lo apuntarías en otro sitio y entonces la app te estaría mintiendo.
 
 ## Qué hay en cada pantalla
 
@@ -139,7 +189,9 @@ lo que de verdad mira, que es lo único que no se puede maquillar.
 
 ## Objetivo de gasto por cuenta
 
-Cada cuenta puede llevar un **objetivo de gasto** que se vacía solo cuando
+Otro eje distinto de los límites del mes, y por eso se llama distinto también
+en el código: **los límites miran en qué se va el dinero, el objetivo mira de
+qué cuenta sale.** Cada cuenta puede llevar el suyo, y se vacía solo cuando
 empieza el ciclo siguiente. Se pone al crearla o editarla, y dejar el campo
 vacío es no tener ninguno.
 
@@ -462,7 +514,8 @@ js/
   data/             un archivo por tema, todos cuelgan de window.Datos
     ciclo.js        el día de corte configurado, atado a la matemática
     apartados.js    sub-bolsas dentro de una cuenta
-    limites.js      el objetivo de gasto de una cuenta
+    limites.js      los topes del mes: ámbito, gasto y estado
+    objetivo.js     el objetivo de gasto de una cuenta
     catalog.js      categorías de fábrica, colores y búsqueda por id
     demo.js         los datos de ejemplo, con semilla fija
     state.js        con qué arranca, cómo se guarda y las migraciones
@@ -473,7 +526,7 @@ js/
     goals.js        metas de ahorro
     recurring.js    pagos y cobros programados
     pendientes.js   la cola de lo que hay que confirmar
-    budget.js       ingresos y reparto del sueldo
+    budget.js       de cuánto dinero se habla al mes
     select.js       totales, series, proyección y tasa de ahorro
     prefs.js        tema, emojis y exportar/importar
   store.js          la fachada: window.Store, la API que ve la app
@@ -495,13 +548,13 @@ js/
   screens/          una pantalla u hoja por archivo, con su cableado al lado
     inicio.js  movs.js  analisis.js  planes.js
     ajustes.js  ajustes-render.js
-    form.js  form-guardar.js  form-render.js  form-apartado.js
+    form.js  form-guardar.js  form-render.js
+    form-apartado.js  form-limite.js
     add.js   add-render.js     hoja de añadir movimiento
     detail.js  pick.js  cuenta.js  cobro.js  onboard.js
 tests/              sin dependencias: node tests/run.js
   ayuda.js          cuarenta líneas en vez de un framework
   ciclo.js  limites.js  apartados.js  programados.js  cuentas.js
-  presupuesto.js    que los euros de un límite no se muevan solos
   migracion.js      de una versión publicada a la de hoy, de punta a punta
 packaging/          convierte la app en un APK; si lo borras, la app sigue igual
 ```

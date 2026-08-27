@@ -8,6 +8,10 @@
   var D = window.Datos;
   var CAT_COLORS = D.CAT_COLORS;
 
+  /* Puente a lo que vive en otro archivo. Se resuelve en la llamada, así
+     que da igual el orden en que se carguen los scripts. */
+  function olvidarCategoria() { return D.olvidarCategoria.apply(null, arguments); }
+
   /* Puentes a lo que vive en otro archivo. Se resuelven en la llamada,
      así que da igual el orden en que se carguen los scripts. */
   function catExacta() { return D.catExacta.apply(null, arguments); }
@@ -70,9 +74,10 @@
       if (madre) c.color = madre.color;
     }
     D.state.categories.push(c);
-    /* una de gasto nace en el reparto al 0 %: no cambia los presupuestos
-       de nadie hasta que se le asigne algo a mano */
-    if (kind === "out" && D.state.allocation[c.id] == null) D.state.allocation[c.id] = 0;
+    /* Antes una categoría de gasto nacía en el reparto al 0 %, y salía
+       en la lista como una fila de cero euros que nadie había pedido.
+       Con los límites no hace falta: se mete en el que corresponda, o en
+       ninguno, y lo que no tenga tope se sigue contando igual. */
     invalidateCats();
     save();
     return c;
@@ -159,7 +164,7 @@
     }
 
     D.state.categories = D.state.categories.filter(function (x) { return x.id !== id; });
-    delete D.state.allocation[id];
+    olvidarCategoria(id);
     invalidateCats();
     save();
     return { ok: true };

@@ -146,7 +146,10 @@
   .donut__trozo { animation: none; }
 }
 
-/* ---------- filas del presupuesto ---------- */
+/* ---------- filas de los límites ----------
+   Nombre y estado a la izquierda con su barra, y el tope a la derecha en
+   un campo que se edita sin salir de aquí. Lo demás de un límite —a qué
+   categorías mira— vive en su hoja, que es donde cabe. */
 
 .pres-fila {
   display: flex;
@@ -158,17 +161,80 @@
 
 .pres-fila:last-child { border-bottom: 0; }
 
-.pres-fila__cara { flex: none; }
-.pres-fila__texto { flex: 1; min-width: 0; }
+/* Todo lo que no es el campo de euros es un solo botón, que abre el
+   límite. Se le quita el aspecto de botón porque lo que se toca es la
+   fila entera, no algo dentro de ella. */
+.pres-fila__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: var(--tap-min);
+  border: 0;
+  padding: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.pres-fila__main:active { transform: scale(0.995); }
 
-.pres-fila__nombre {
+.pres-fila__cara {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  font-size: 15px;
+}
+
+.pres-fila__texto { flex: 1; min-width: 0; display: block; }
+
+/* Fina a propósito: hay una por fila y varias filas seguidas. */
+.pres-fila__track {
   display: block;
+  margin-top: 6px;
+  height: 6px;
+  border-radius: var(--r-full);
+  background: var(--surface-3);
+  overflow: hidden;
+}
+
+.pres-fila__fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--r-full);
+  transform-origin: left center;
+  transform: scaleX(0);
+  animation: meter-grow var(--dur-slow) var(--ease-out) forwards;
+  animation-delay: 90ms;
+}
+
+/* El nombre a la izquierda y la cifra a la derecha: el nombre cede
+   espacio y se corta si hace falta, la cifra nunca. */
+.pres-fila__nombre {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
   font-size: var(--t-hint);
   font-weight: var(--w-semi);
   color: var(--text-primary);
+}
+
+.pres-fila__label {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.pres-fila__num {
+  flex: none;
+  font-size: var(--t-body);
+  font-weight: var(--w-bold);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
 }
 
 .pres-fila__pct {
@@ -176,9 +242,14 @@
   margin-top: 1px;
   font-size: var(--t-min);
   color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.pres-fila__campo { display: block; flex: none; width: 108px; }
+/* Lo justo para un importe de cuatro cifras con su €: por debajo de
+   esto, un 1200 se come el símbolo. */
+.pres-fila__campo { display: block; flex: none; width: 110px; }
 .pres-fila__campo .field__input { height: 42px; text-align: right; }
 
 /* Va al final de una fila apretada del presupuesto, así que se ve

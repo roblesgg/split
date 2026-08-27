@@ -105,7 +105,7 @@
     });
 
     var ultimos = propios.slice(0, 5);
-    var lim = S.estadoDeLimite(a.id, curKey);
+    var lim = S.estadoDeObjetivo(a.id, curKey);
     var aps = S.apartadosDe(a.id);
     var reservado = S.reservadoDe(a.id);
     var uso = S.accountUsage(a.id);

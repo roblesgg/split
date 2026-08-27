@@ -360,17 +360,18 @@
           : "Subirlo al 20 % serían " + S.moneyShort(d.t.income * 0.2) + " al mes."
     });
 
-    var over = [];
-    d.cats.forEach(function (c) {
-      var lim = S.budgetFor(c.id);
-      if (lim && c.value > lim) over.push(c.name);
-    });
+    /* Los límites, no las categorías: uno puede englobar varias, y
+       entonces «te has pasado en Compras» sería mentira si el tope era
+       de «Caprichos» y lo que se ha pasado es la suma. */
+    var over = S.estadoDeLimites().filter(function (e) {
+      return e.nivel === "pasado";
+    }).map(function (e) { return e.name; });
     if (over.length) {
       out.push({
         status: "critical", ic: "warning",
         title: over.length === 1 ? "Te has pasado en " + over[0]
-                                 : "Te has pasado en " + over.length + " partidas",
-        text: over.join(", ") + ". Puedes reajustar los porcentajes en Ajustes."
+                                 : "Te has pasado en " + over.length + " límites",
+        text: over.join(", ") + ". Puedes cambiar los topes en Ajustes."
       });
     }
 

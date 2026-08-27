@@ -169,27 +169,9 @@ window.App = (function () {
       '</section>';
   }
 
-  /* Presupuestos vigentes, derivados del reparto. Lo que sale de un
-     apartado no cuenta: ese dinero ya estaba separado, y volver a
-     descontarlo aquí sería gastarlo dos veces. */
-  function budgetRows(key) {
-    var spent = {};
-    S.byCategory(key, "out", true).forEach(function (c) { spent[c.id] = c.value; });
-    return Object.keys(S.state.allocation).map(function (id) {
-      var limit = S.budgetFor(id);
-      return {
-        id: id,
-        name: catOf(id).name,
-        emoji: catOf(id).emoji,
-        color: catOf(id).color,
-        pct: S.state.allocation[id],
-        limit: limit,
-        spent: spent[id] || 0,
-        ratio: limit > 0 ? (spent[id] || 0) / limit : 0
-      };
-    });
-  }
-
+  /* Los límites del mes ya calculados viven en la capa de datos
+     (S.estadoDeLimites): aquí no queda nada que derivar. Lo que salía de
+     este hueco era el presupuesto por porcentajes, que ya no existe. */
 
   /* Cada archivo apunta aquí su cableado al cargarse y el arranque lo
      engancha de una vez, en el orden en que están los <script>. */
@@ -207,7 +189,7 @@ window.App = (function () {
     wire: wire, wireAll: wireAll,
 
     /* ayudantes que usa más de una pantalla */
-    bigAmount: bigAmount, budgetRows: budgetRows, catFace: catFace,
+    bigAmount: bigAmount, catFace: catFace,
     catOf: catOf, deltaPct: deltaPct, foldCard: foldCard,
     isDesktop: isDesktop, money: money, mountIcons: mountIcons,
     seriesEnding: seriesEnding, setFolded: setFolded,

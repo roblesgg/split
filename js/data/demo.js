@@ -124,10 +124,35 @@
 
   /* Reparto por defecto: % del ingreso mensual planificado que va a cada
      partida. Lo que no se reparte es ahorro. Suma 75 → 25 % de ahorro. */
+  /* Solo lo usa la migración vieja, la que traducía los presupuestos en
+     euros de la v1 a porcentajes. Desde la v15 los límites se guardan en
+     euros otra vez, así que esto no lo lee nadie más. */
   var DEFAULT_ALLOCATION = {
     hogar: 22, comida: 16, ocio: 9, gasolina: 6, transp: 4,
     compras: 7, salud: 4, subs: 3, regalos: 2, otros: 2
   };
+
+  /* Los límites de los datos de ejemplo, en euros sobre los 1.800 € que
+     trae de fábrica el modo manual. Dos de ellos enseñan de qué va la
+     cosa: uno que mira una sola categoría y otro que las mira todas
+     menos dos. */
+  var DEFAULT_LIMITES = [
+    { name: "Gastos del mes", emoji: "🎯", color: 1, importe: 900,
+      ambito: "salvo", categoryIds: ["gasolina", "subs"] },
+    { name: "Gasolina", emoji: "⛽", color: 5, importe: 110,
+      ambito: "solo", categoryIds: ["gasolina"] },
+    { name: "Suscripciones", emoji: "📺", color: 11, importe: 55,
+      ambito: "solo", categoryIds: ["subs"] }
+  ];
+
+  function seedLimites() {
+    return DEFAULT_LIMITES.map(function (l, i) {
+      return {
+        id: "lim-" + (i + 1), name: l.name, emoji: l.emoji, color: l.color,
+        importe: l.importe, ambito: l.ambito, categoryIds: l.categoryIds.slice()
+      };
+    });
+  }
 
   function seedRecurring(thisMonth) {
     var mk = function (o) {
@@ -168,7 +193,7 @@
   function defaultState() {
     var today = ymd(new Date());
     return {
-      version: 14,
+      version: 15,
       createdAt: today,
       categories: cloneCategories(),
       tags: [],
@@ -184,7 +209,8 @@
          manual = la cifra que pongas tú */
       income: { mode: "auto", manual: 1800, months: 3 },
 
-      allocation: Object.assign({}, DEFAULT_ALLOCATION),
+      /* Topes de gasto con nombre, en euros. */
+      limites: seedLimites(),
 
       /* Pagos y cobros programados. `lastPosted` arranca en el mes en
          curso para que no se dupliquen con los movimientos de ejemplo
@@ -215,18 +241,18 @@
   function freshState() {
     var today = ymd(new Date());
     return {
-      version: 14,
+      version: 15,
       createdAt: today,
       categories: cloneCategories(),
       tags: [],
       ciclo: { dia: 1 },
       apartados: [],
+      limites: [],
       income: { mode: "auto", manual: 0, months: 3 },
-      /* Vacío a propósito. Traer diez categorías presupuestadas que nadie
-         ha elegido hace que la pantalla de Ajustes parezca de otro y que
-         el Resumen enseñe barras de un plan que no es tuyo. Se empieza
-         sin presupuesto y se añade lo que a cada uno le interese. */
-      allocation: {},
+      /* Sin ningún límite a propósito. Traer diez topes que nadie ha
+         elegido hace que Ajustes parezca de otro y que el Resumen enseñe
+         barras de un plan que no es tuyo. Se empieza sin ninguno y se
+         añaden los que a cada uno le interesen. */
       recurring: [],
       accounts: [
         { id: "banco", name: "Banco", type: "Banco", slot: 1, color: 1, icon: "wallet", opening: 0 }
@@ -240,6 +266,7 @@
 
   /* --- lo que se lleva el espacio común --- */
   D.DEFAULT_ALLOCATION = DEFAULT_ALLOCATION;
+  D.DEFAULT_LIMITES = DEFAULT_LIMITES;
   D.cloneCategories = cloneCategories;
   D.defaultState = defaultState;
   D.freshState = freshState;

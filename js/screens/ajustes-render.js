@@ -18,6 +18,7 @@
   function catFace() { return A.catFace.apply(null, arguments); }
   function emptyHtml() { return A.emptyHtml.apply(null, arguments); }
   function money() { return A.money.apply(null, arguments); }
+  function nombreCiclo() { return A.nombreCiclo.apply(null, arguments); }
   function mountIcons() { return A.mountIcons.apply(null, arguments); }
   function pickField() { return A.pickField.apply(null, arguments); }
   function wrapStagger() { return A.wrapStagger.apply(null, arguments); }
@@ -28,22 +29,64 @@
   function emojiHint() { return A.emojiHint.apply(null, arguments); }
   function emojiCorto() { return A.emojiCorto.apply(null, arguments); }
   function settingRow() { return A.settingRow.apply(null, arguments); }
-  function refreshAllocation() { return A.refreshAllocation.apply(null, arguments); }
+  function refreshLimites() { return A.refreshLimites.apply(null, arguments); }
   function bindAjustes() { return A.bindAjustes.apply(null, arguments); }
+
+  /* Una fila por límite: el nombre con lo que supone al mes, la barra de
+     lo gastado y el importe editable. Tocar el nombre abre su hoja, que
+     es donde se elige a qué categorías mira. */
+  function filaDeLimite(e) {
+    var lim = S.limitePorId(e.id);
+    var fill = e.nivel === "pasado" ? "var(--status-critical)"
+             : e.nivel === "cerca" ? "var(--status-warning)"
+             : "var(--cat-" + e.color + ")";
+    /* La cara y el texto van dentro del MISMO botón: son la misma acción
+       —abrir el límite— y dos botones pegados haciendo lo mismo dan un
+       objetivo pequeño cada uno en vez de uno grande. */
+    return '<div class="pres-fila">' +
+        '<button type="button" class="pres-fila__main" data-lim-abrir="' +
+                esc(e.id) + '" aria-label="Editar ' + esc(e.name) + '">' +
+          '<span class="pres-fila__cara cat-face" ' +
+                'style="--cat-color:var(--cat-' + e.color + ')" aria-hidden="true">' +
+            esc(e.emoji) + '</span>' +
+          '<span class="pres-fila__texto">' +
+          /* La cifra va arriba con el nombre y no abajo con el ámbito:
+             en un móvil estrecho las dos cosas juntas en una línea no
+             caben, y lo que se perdía era siempre el final. Arriba el
+             porcentaje consumido, que es lo que se lee de un vistazo;
+             los euros exactos, en el Resumen y en la tabla. */
+          '<span class="pres-fila__nombre">' +
+            '<span class="pres-fila__label">' + esc(e.name) + '</span>' +
+            '<span class="pres-fila__num"' +
+              (e.nivel === "pasado" ? ' style="color:' + fill + '"' : "") + '>' +
+              esc(S.pct(e.pct)) + '</span>' +
+          '</span>' +
+          '<span class="pres-fila__pct">' +
+            esc(S.textoAmbitoCortoLimite(lim)) +
+          '</span>' +
+          '<span class="pres-fila__track">' +
+            '<span class="pres-fila__fill" style="width:' + e.pct + '%;background:' +
+              fill + '"></span>' +
+            '</span>' +
+          '</span>' +
+        '</button>' +
+        '<span class="input-affix pres-fila__campo">' +
+          '<input type="number" class="field__input" data-lim-eur="' +
+                 esc(e.id) + '" min="0" step="10" inputmode="decimal" ' +
+                 'value="' + e.limite + '" ' +
+                 'aria-label="Tope de ' + esc(e.name) + '">' +
+          '<span class="input-affix__suffix">€</span>' +
+        '</span>' +
+      '</div>';
+  }
 
   function renderAjustes() {
     var root = $("#view-ajustes");
     var inc = S.state.income;
     var planned = S.plannedIncome();
-    var sum = S.allocationSumPct();
-    var savings = S.savingsPctRedondo();
     var theme = S.getTheme();
-    /* Las del sistema («Ajuste de saldo») quedan fuera: no se le pone tope
-       a lo que por definición no habías previsto. */
-    var presupuestadas = S.budgetedCategories().filter(function (c) {
-      return !c.sistema;
-    });
-    var sinPresupuesto = S.unbudgetedCategories();
+    var lims = S.estadoDeLimites();
+    var res = S.resumenDeLimites();
 
     var media = S.averageIncome(inc.months);
     var modo = inc.mode === "manual" ? "manual"
@@ -168,89 +211,57 @@
             '</div>') +
       '</section>' +
 
-      /* ---- límites por tipo de gasto ----
-         Se llama «Límites de cuenta» y por dentro sigue siendo un tope por
-         tipo de gasto, no por cuenta: el nombre va por delante de lo que
-         hace todavía, y se irá moviendo hacia ahí con el uso. Mientras
-         tanto el subtítulo dice lo que de verdad mira, que es lo único
-         que no se puede maquillar.
+      /* ---- los límites del mes ----
+         Un límite es un tope con nombre: cuánto y sobre qué categorías.
+         Puedes tener los que hagan falta y cada uno va a lo suyo, así
+         que la lista es lo que manda; el detalle de cada uno se edita en
+         su hoja, que es donde caben el ámbito y las categorías.
 
-         No viene nada puesto de fábrica: se añade lo que a cada uno le
-         interese vigilar, y lo demás ni aparece. */
+         No viene ninguno de fábrica: se crean los que a cada uno le
+         interesen, y lo que no tenga tope se sigue contando igual. */
       '<section class="card">' +
         '<div class="card__head">' +
           '<div>' +
-            '<h2 class="card__title">Límites de cuenta</h2>' +
-            '<p class="card__sub">Cuánto quieres gastar como mucho en cada tipo de ' +
-              'gasto. Se vacían al empezar el ' + esc(periodo()) + ' siguiente.</p>' +
+            '<h2 class="card__title">Límites de ' + esc(nombreCiclo(S.cicloActual())) + '</h2>' +
+            '<p class="card__sub">Cuánto quieres gastar como mucho, y en qué. ' +
+              'Se vacían al empezar el ' + esc(periodo()) + ' siguiente.</p>' +
           '</div>' +
-          (presupuestadas.length
+          (lims.length
             ? '<button type="button" class="card__link" id="allocReset">Vaciar</button>'
             : "") +
         '</div>' +
 
-        (planned <= 0
-          ? emptyHtml("wallet", "Primero, cuánto cobras",
-              "Pon ahí arriba lo que entra al mes. Sin eso no hay de dónde repartir.")
+        (lims.length
+          ? '<div id="allocRows">' +
+              lims.map(filaDeLimite).join("") +
+            '</div>' +
 
-          : presupuestadas.length
-            ? '<div class="alloc-bar" id="allocBar" role="img" ' +
-                    'aria-label="Reparto del sueldo"></div>' +
+            /* Lo gastado que cae fuera de todos los límites. Sumar los
+               topes no valdría —dos límites pueden solaparse y la suma
+               daría de más—, pero esto es cierto siempre. */
+            (res.sinTope > 0
+              ? '<p class="card__sub" style="margin-top:var(--sp-4)">' +
+                  esc(S.moneyShort(res.sinTope)) + ' de este ' + esc(periodo()) +
+                  ' no entran en ningún límite.</p>'
+              : "")
 
-              '<div class="alloc-head">' +
-                '<p class="card__sub" id="allocSummary"></p>' +
-                '<p class="alloc-total" id="allocTotal"></p>' +
-              '</div>' +
+          : emptyHtml("chart", "Sin límites, de momento",
+              "Crea el primero abajo. Lo que no tenga tope se sigue contando " +
+              "igual, simplemente no avisa.")) +
 
-              '<div id="allocRows">' +
-                presupuestadas.map(function (c) {
-                  return '<div class="pres-fila">' +
-                      catFace(c, 22, "pres-fila__cara") +
-                      '<span class="pres-fila__texto">' +
-                        '<span class="pres-fila__nombre">' + esc(c.name) + '</span>' +
-                        '<span class="pres-fila__pct" data-alloc-pct="' + c.id + '">' +
-                          S.allocationPct(c.id) + ' % de lo que entra</span>' +
-                      '</span>' +
-                      '<span class="input-affix pres-fila__campo">' +
-                        '<input type="number" class="field__input" data-alloc-eur="' +
-                               esc(c.id) + '" min="0" step="10" inputmode="decimal" ' +
-                               'value="' + S.budgetFor(c.id) + '" ' +
-                               'aria-label="Límite de ' + esc(c.name) + '">' +
-                        '<span class="input-affix__suffix">€</span>' +
-                      '</span>' +
-                      '<button type="button" class="icon-btn pres-fila__quitar" ' +
-                              'data-alloc-quitar="' + esc(c.id) + '" ' +
-                              'aria-label="Quitar el límite de ' + esc(c.name) + '" ' +
-                              'data-icon="close" data-icon-size="13"></button>' +
-                    '</div>';
-                }).join("") +
-              '</div>'
+        '<div class="field" style="margin-top:var(--sp-5)">' +
+          '<button type="button" class="btn btn--ghost" id="limNuevo" style="width:100%">' +
+            icon("plus", 17) + (lims.length ? "Nuevo límite" : "Crear el primero") +
+          '</button>' +
+        '</div>' +
 
-            : emptyHtml("chart", "Sin límites, de momento",
-                "Añade abajo los gastos que quieras vigilar. Lo que no pongas " +
-                "sigue contándose, simplemente no tiene tope.")) +
-
-        (planned > 0 && sinPresupuesto.length
-          ? '<div class="field" style="margin-top:var(--sp-5)">' +
-              '<span class="field__label">' +
-                (presupuestadas.length ? "Añadir otro" : "Empieza por uno") + '</span>' +
-              '<div class="chips">' +
-                sinPresupuesto.map(function (c) {
-                  return '<button type="button" class="chip" data-alloc-add="' +
-                           esc(c.id) + '">' + esc(c.emoji || "") + ' ' +
-                           esc(c.name) + '</button>';
-                }).join("") +
-              '</div>' +
-            '</div>'
-          : "") +
-
-        (presupuestadas.length
-          ? U.tableView("tblAllocSet", ["Partida", "Al mes", "Porcentaje"],
-              presupuestadas.map(function (c) {
-                return [c.name, money(S.budgetFor(c.id)),
-                        S.allocationPct(c.id) + " %"];
-              }).concat([["Ahorro", money(Math.round(planned * savings / 100)),
-                          savings + " %"]]))
+        (lims.length
+          ? U.tableView("tblAllocSet", ["Límite", "Al " + periodo(), "Gastado", "A qué afecta"],
+              lims.map(function (e) {
+                var l = S.limitePorId(e.id);
+                return [e.name, money(e.limite), money(e.gastado),
+                        S.textoAmbitoLimite(l)];
+              }))
           : "") +
       '</section>';
 
@@ -365,7 +376,7 @@
       '</div>';
 
     mountIcons(root);
-    refreshAllocation();
+    refreshLimites();
     bindAjustes();
     requestAnimationFrame(function () {
       var seg = $("#incSeg", root);

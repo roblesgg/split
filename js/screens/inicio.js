@@ -11,7 +11,6 @@
   /* Puentes a lo que vive en otro archivo. Se resuelven en la llamada,
      así que da igual el orden en que se carguen los scripts. */
   function bigAmount() { return A.bigAmount.apply(null, arguments); }
-  function budgetRows() { return A.budgetRows.apply(null, arguments); }
   function catFace() { return A.catFace.apply(null, arguments); }
   function catOf() { return A.catOf.apply(null, arguments); }
   function deltaPct() { return A.deltaPct.apply(null, arguments); }
@@ -36,9 +35,8 @@
     var cfgRes = S.resumenCfg();
     var series = seriesEnding(curKey, 12, cfgRes.cuentas);
     var planned = S.plannedIncome();
-    var rows = budgetRows(curKey).sort(function (a, b) { return b.ratio - a.ratio; });
+    var rows = S.estadoDeLimites(curKey).sort(function (a, b) { return b.ratio - a.ratio; });
     var recent = S.state.transactions.slice(0, 6);
-    var savings = S.savingsPct();
 
     /* --- carrusel: una tarjeta por cuenta, deslizable --- */
     var accounts = S.state.accounts;
@@ -64,7 +62,7 @@
                 /* si la cuenta tiene objetivo de gasto, la barra sustituye
                    al pie de texto: es lo que se quiere mirar de un vistazo */
                 (function () {
-                  var lim = S.estadoDeLimite(a.id, curKey);
+                  var lim = S.estadoDeObjetivo(a.id, curKey);
                   return lim ? limiteEnTarjeta(lim) : "";
                 })() +
                 '<div class="paycard__foot">' +
@@ -124,30 +122,38 @@
         '<span data-icon="chevDown" data-icon-size="13"></span>' +
       '</button>';
 
-    /* Sin ningún límite puesto no se enseña ninguna de las dos tarjetas: un
-       «0 € de 0 €» y unas barras vacías no dicen nada, y encima dan la
-       impresión de que la app te está midiendo por un plan que no has
-       hecho. Quien lo quiera, lo pone en Ajustes. */
-    var budgetTotal = S.budgetTotal();
-    var hayPresupuesto = rows.length > 0 && budgetTotal > 0;
+    /* Sin ningún límite puesto no se enseña ninguna de las dos tarjetas:
+       unas barras vacías no dicen nada, y encima dan la impresión de que
+       la app te está midiendo por un plan que no has hecho. Quien lo
+       quiera, lo pone en Ajustes. */
+    var res = S.resumenDeLimites(curKey);
+    var hayLimites = rows.length > 0;
 
-    var cardBudgets = hayPresupuesto
+    var cardBudgets = hayLimites
       ? foldCard("presupuesto",
           "Límites de " + esc(nombreCiclo(curKey)),
-          esc(money(cur.expense)) + " de " + esc(money(budgetTotal)) + " asignados",
+          esc(res.cuantos === 1 ? "1 límite" : res.cuantos + " límites") +
+            (res.sinTope > 0
+              ? " · " + esc(S.moneyShort(res.sinTope)) + " fuera de todos"
+              : ""),
           '<button type="button" class="card__link" data-goto="ajustes">Editar</button>',
           rows.map(meterHtml).join(""))
       : "";
 
-    /* --- tarjeta de límite: todos los topes del mes de un vistazo --- */
-    var usedRatio = budgetTotal > 0 ? Math.min(1, cur.expense / budgetTotal) : 0;
-    var cardLimit = hayPresupuesto
+    /* --- tarjeta de límite: el que va más apurado ---
+       Solo cabe uno, y el que interesa de un vistazo es el que está a
+       punto de reventar, no el primero que se creó. Sumar todos los
+       topes no valdría: dos límites pueden solaparse y la suma daría de
+       más. */
+    var peor = S.limiteMasApurado(curKey);
+    var cardLimit = peor
       ? '<button type="button" class="limit" data-goto="ajustes">' +
-          '<span class="limit__ring" data-limit-ring="' + usedRatio + '"></span>' +
+          '<span class="limit__ring" data-limit-ring="' +
+            Math.min(1, peor.ratio) + '"></span>' +
           '<span class="limit__body">' +
-            '<span class="limit__label">Límites de ' + esc(nombreCiclo(curKey)) + '</span>' +
-            '<span class="limit__value">' + esc(S.moneyShort(cur.expense)) + ' de ' +
-              esc(S.moneyShort(budgetTotal)) + '</span>' +
+            '<span class="limit__label">' + esc(peor.emoji) + ' ' + esc(peor.name) + '</span>' +
+            '<span class="limit__value">' + esc(S.moneyShort(peor.gastado)) + ' de ' +
+              esc(S.moneyShort(peor.limite)) + '</span>' +
           '</span>' +
           '<span class="limit__chev" data-icon="chevron" data-icon-size="18"></span>' +
         '</button>'
@@ -355,20 +361,22 @@
       '</div>';
   }
 
+  /* Una barra por límite. Le llega el estado ya calculado, así que aquí
+     solo se decide cómo se pinta. */
   function meterHtml(b, i) {
-    var over = b.ratio > 1;
-    var near = b.ratio > 0.85 && !over;
-    /* el relleno lleva la severidad; el color de la partida cuando va bien */
+    var over = b.nivel === "pasado";
+    var near = b.nivel === "cerca";
+    /* el relleno lleva la severidad; el color del límite cuando va bien */
     var fill = over ? "var(--status-critical)"
              : near ? "var(--status-warning)"
-             : S.catColorVar(b);
+             : "var(--cat-" + b.color + ")";
     return '' +
       '<div class="meter">' +
         '<div class="meter__head">' +
           '<span class="meter__dot" style="background:' + fill + '"></span>' +
           '<span class="meter__label">' + esc(b.emoji || "") + ' ' + esc(b.name) + '</span>' +
-          '<span class="meter__value">' + esc(S.moneyShort(b.spent)) + ' / ' +
-            esc(S.moneyShort(b.limit)) + '</span>' +
+          '<span class="meter__value">' + esc(S.moneyShort(b.gastado)) + ' / ' +
+            esc(S.moneyShort(b.limite)) + '</span>' +
         '</div>' +
         '<div class="meter__track">' +
           '<div class="meter__fill" style="width:' + Math.min(100, b.ratio * 100).toFixed(1) + '%;' +
@@ -380,11 +388,11 @@
         (over
           ? '<p class="meter__foot">' + icon("warning", 11) + ' Te has pasado un ' +
             esc(S.pct(Math.round((b.ratio - 1) * 100))) + ' · ' +
-            esc(S.moneyShort(b.spent - b.limit)) + ' de más</p>'
+            esc(S.moneyShort(b.gastado - b.limite)) + ' de más</p>'
           : '<p class="meter__foot">' +
             (near ? icon("warning", 11) + ' Al límite: te queda ' : 'Te queda ') +
             'el ' + esc(S.pct(Math.max(0, Math.round((1 - b.ratio) * 100)))) + ' · ' +
-            esc(S.moneyShort(b.limit - b.spent)) + '</p>') +
+            esc(S.moneyShort(b.queda)) + '</p>') +
       '</div>';
   }
 

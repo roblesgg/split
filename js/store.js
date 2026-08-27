@@ -9,17 +9,16 @@
   "use strict";
 
   var D = window.Datos;
-  var CAT_COLORS = D.CAT_COLORS, DEFAULT_ALLOCATION = D.DEFAULT_ALLOCATION;
+  var CAT_COLORS = D.CAT_COLORS;
   var DEFAULT_CATEGORIES = D.DEFAULT_CATEGORIES, DOW_SHORT = D.DOW_SHORT;
   var EMOJI_SETS = D.EMOJI_SETS, MONTHS = D.MONTHS, MONTHS_SHORT = D.MONTHS_SHORT;
   var RESUMEN_POR_DEFECTO = D.RESUMEN_POR_DEFECTO, accountBalance = D.accountBalance;
   var accountUsage = D.accountUsage, addAccount = D.addAccount, addCategory = D.addCategory;
   var addGoal = D.addGoal, addGoalSaving = D.addGoalSaving, addMonths = D.addMonths;
   var addRecurring = D.addRecurring, addTag = D.addTag, addTx = D.addTx;
-  var allocationSum = D.allocationSum, applyEmojiSet = D.applyEmojiSet, applyTheme = D.applyTheme;
+  var applyEmojiSet = D.applyEmojiSet, applyTheme = D.applyTheme;
   var averageExpense = D.averageExpense, averageIncome = D.averageIncome;
-  var balance = D.balance, budgetFor = D.budgetFor, budgetTotal = D.budgetTotal;
-  var budgetedCategories = D.budgetedCategories, byCategory = D.byCategory;
+  var balance = D.balance, byCategory = D.byCategory;
   var catById = D.catById, catColorVar = D.catColorVar, catExacta = D.catExacta;
   var categoriasMadre = D.categoriasMadre, categories = D.categories, categoriesOf = D.categoriesOf;
   var categoryUsage = D.categoryUsage, clearAll = D.clearAll, confirmarPendiente = D.confirmarPendiente;
@@ -38,18 +37,14 @@
   var nombreLargo = D.nombreLargo, num2 = D.num2, parseYmd = D.parseYmd;
   var pct = D.pct, pendientes = D.pendientes, plannedIncome = D.plannedIncome;
   var projectedExpense = D.projectedExpense, raizDe = D.raizDe, recurringMonthly = D.recurringMonthly;
-  var relDayLabel = D.relDayLabel, removeAllocation = D.removeAllocation;
+  var relDayLabel = D.relDayLabel;
   var fechaLarga = D.fechaLarga;
-  var reset = D.reset, resetAllocation = D.resetAllocation, restoreTx = D.restoreTx;
+  var reset = D.reset, restoreTx = D.restoreTx;
   var resumenCfg = D.resumenCfg, runRecurring = D.runRecurring, save = D.save;
-  var savingsPct = D.savingsPct, savingsRate = D.savingsRate, setAllocation = D.setAllocation;
-  var allocationPct = D.allocationPct, allocationSumPct = D.allocationSumPct;
-  var savingsPctRedondo = D.savingsPctRedondo;
-  var setAllocationEuros = D.setAllocationEuros, setEmojiSet = D.setEmojiSet;
+  var savingsRate = D.savingsRate, setEmojiSet = D.setEmojiSet;
   var setIncome = D.setIncome, setResumen = D.setResumen, setTheme = D.setTheme;
   var signed = D.signed, tagById = D.tagById, tagUsage = D.tagUsage, toggleRecurring = D.toggleRecurring;
   var topMerchants = D.topMerchants, totalesResumen = D.totalesResumen, totals = D.totals;
-  var unbudgetedCategories = D.unbudgetedCategories;
   var ciclo = D.ciclo, cicloActual = D.cicloActual, txDeCiclo = D.txDeCiclo;
   var diaDeCiclo = D.diaDeCiclo, diasDeCiclo = D.diasDeCiclo, diasCorridos = D.diasCorridos;
   var rangoDeCiclo = D.rangoDeCiclo, etiquetaCiclo = D.etiquetaCiclo, nombreCiclo = D.nombreCiclo;
@@ -57,9 +52,20 @@
   var serieDeCiclos = D.serieDeCiclos, CICLO_DIA_MAX = D.Ciclo.DIA_MAX;
   var esDiario = D.esDiario, esSemanal = D.esSemanal;
   var cadaDe = D.cadaDe, tocaEn = D.tocaEn, proximasFechas = D.proximasFechas;
-  var limiteDe = D.limiteDe, setLimite = D.setLimite;
-  var gastoDeCuenta = D.gastoDeCuenta, estadoDeLimite = D.estadoDeLimite;
-  var cuentasConLimite = D.cuentasConLimite;
+  /* El objetivo de gasto de una cuenta: mira de DÓNDE sale el dinero. */
+  var objetivoDe = D.objetivoDe, setObjetivo = D.setObjetivo;
+  var gastoDeCuenta = D.gastoDeCuenta, estadoDeObjetivo = D.estadoDeObjetivo;
+  var cuentasConObjetivo = D.cuentasConObjetivo;
+
+  /* Los límites del mes: miran EN QUÉ se va, sin importar la cuenta. */
+  var addLimite = D.addLimite, updateLimite = D.updateLimite, deleteLimite = D.deleteLimite;
+  var limites = D.limites, limitePorId = D.limitePorId, vaciarLimites = D.vaciarLimites;
+  var estadoDeLimite = D.estadoDeLimite, estadoDeLimites = D.estadoDeLimites;
+  var gastoDeLimite = D.gastoDeLimite, limiteMasApurado = D.limiteMasApurado;
+  var resumenDeLimites = D.resumenDeLimites, pctDeLimite = D.pctDeLimite;
+  var afectaA = D.afectaA, tieneTope = D.tieneTope;
+  var textoAmbitoLimite = D.textoAmbitoLimite, AMBITOS_LIMITE = D.AMBITOS_LIMITE;
+  var textoAmbitoCortoLimite = D.textoAmbitoCortoLimite;
   var addApartado = D.addApartado, updateApartado = D.updateApartado;
   var deleteApartado = D.deleteApartado, apartadoById = D.apartadoById;
   var apartadosDe = D.apartadosDe, apartados = D.apartados, aportar = D.aportar;
@@ -101,11 +107,23 @@
     deleteAccount: deleteAccount, accountUsage: accountUsage,
 
     /* Objetivo de gasto por cuenta, que se vacía al cerrar el ciclo.
-       estadoDeLimite() trae de una vez todo lo que hay que pintar, o
+       estadoDeObjetivo() trae de una vez todo lo que hay que pintar, o
        null si esa cuenta no tiene ninguno. */
-    limiteDe: limiteDe, setLimite: setLimite,
-    gastoDeCuenta: gastoDeCuenta, estadoDeLimite: estadoDeLimite,
-    cuentasConLimite: cuentasConLimite,
+    objetivoDe: objetivoDe, setObjetivo: setObjetivo,
+    gastoDeCuenta: gastoDeCuenta, estadoDeObjetivo: estadoDeObjetivo,
+    cuentasConObjetivo: cuentasConObjetivo,
+
+    /* Los límites del mes: un tope con nombre y las categorías a las que
+       mira. estadoDeLimite() trae de una vez lo que hay que pintar de
+       uno, y estadoDeLimites() la lista entera, en su orden. */
+    addLimite: addLimite, updateLimite: updateLimite, deleteLimite: deleteLimite,
+    limites: limites, limitePorId: limitePorId, vaciarLimites: vaciarLimites,
+    estadoDeLimite: estadoDeLimite, estadoDeLimites: estadoDeLimites,
+    gastoDeLimite: gastoDeLimite, limiteMasApurado: limiteMasApurado,
+    resumenDeLimites: resumenDeLimites, pctDeLimite: pctDeLimite,
+    afectaA: afectaA, tieneTope: tieneTope,
+    textoAmbitoLimite: textoAmbitoLimite, textoAmbitoCortoLimite: textoAmbitoCortoLimite,
+    AMBITOS_LIMITE: AMBITOS_LIMITE,
 
     /* Apartados: sub-bolsas dentro de una cuenta. El saldo no se guarda,
        se calcula, así que editar o borrar un gasto nunca lo descuadra. */
@@ -153,17 +171,6 @@
 
     plannedIncome: plannedIncome, setIncome: setIncome,
     averageIncome: averageIncome, declaredIncome: declaredIncome,
-    allocationSum: allocationSum, savingsPct: savingsPct,
-    setAllocation: setAllocation, resetAllocation: resetAllocation,
-    /* El porcentaje se guarda con decimales para que los euros no se
-       muevan solos; estos tres son los que se pintan. */
-    allocationPct: allocationPct, allocationSumPct: allocationSumPct,
-    savingsPctRedondo: savingsPctRedondo,
-    setAllocationEuros: setAllocationEuros, removeAllocation: removeAllocation,
-    unbudgetedCategories: unbudgetedCategories,
-    budgetedCategories: budgetedCategories,
-    budgetFor: budgetFor, budgetTotal: budgetTotal,
-    DEFAULT_ALLOCATION: DEFAULT_ALLOCATION,
 
     /* El ciclo: el «mes» de la app, que empieza el día que diga el
        usuario. Con día 1 es el mes natural de toda la vida. */

@@ -18,6 +18,7 @@
   function pick() { return A.pick.apply(null, arguments); }
   function renderAll() { return A.renderAll.apply(null, arguments); }
   function startOnboarding() { return A.startOnboarding.apply(null, arguments); }
+  function openForm() { return A.openForm.apply(null, arguments); }
   function renderAjustes() { return A.renderAjustes.apply(null, arguments); }
 
   function themeLabel(t) {
@@ -53,46 +54,31 @@
       '</button>';
   }
 
-  /* repinta solo las partes vivas del reparto, sin perder el foco del slider */
-  function refreshAllocation() {
-    var planned = S.plannedIncome();
-    var sum = S.allocationSumPct();
-    var savings = S.savingsPctRedondo();
-    var bar = $("#allocBar");
-    var total = $("#allocTotal");
-    var summary = $("#allocSummary");
-    if (!bar) return;
-
-    var segs = S.budgetedCategories()
-      .map(function (c) {
-        return { pct: S.state.allocation[c.id] || 0, color: c.color, name: c.name };
-      })
-      .filter(function (r) { return r.pct > 0; })
-      .sort(function (a, b) { return b.pct - a.pct; });
-
-    bar.innerHTML = segs.map(function (r) {
-      return '<span class="alloc-bar__seg" style="flex:' + r.pct + ';background:' +
-             S.catColorVar(r) + '" title="' + esc(r.name) + ' · ' +
-             Math.round(r.pct) + ' %"></span>';
-    }).join("") + (savings > 0
-      ? '<span class="alloc-bar__seg alloc-bar__seg--rest" style="flex:' + savings +
-        '" title="Ahorro · ' + savings + ' %"></span>'
-      : "");
-
-    var state = sum > 100 ? "over" : sum === 100 ? "ok" : "under";
-    total.setAttribute("data-state", state);
-    total.textContent = sum + " % repartido";
-
-    summary.innerHTML = sum > 100
-      ? "Te has pasado " + (sum - 100) + " puntos. Baja alguna partida."
-      : "Quedan <strong>" + savings + " %</strong> para ahorro, " +
-        esc(S.moneyShort(Math.round(planned * savings / 100))) + " al mes.";
-
-    /* El campo en euros NO se reescribe mientras se teclea: hacerlo
-       movería el cursor a media cifra. Solo se refresca el porcentaje. */
-    $$("[data-alloc-pct]").forEach(function (n) {
-      n.textContent = S.allocationPct(n.getAttribute("data-alloc-pct")) +
-                      " % de lo que entra";
+  /* Repinta lo vivo de un límite —la barra y la línea de debajo— sin
+     tocar el campo en euros: reescribirlo mientras se teclea movería el
+     cursor a media cifra. */
+  function refreshLimites() {
+    var fila = $("#allocRows");
+    if (!fila) return;
+    S.estadoDeLimites().forEach(function (e) {
+      var caja = $('[data-lim-eur="' + e.id + '"]');
+      if (!caja) return;
+      var raiz = caja.closest(".pres-fila");
+      var fill = raiz && raiz.querySelector(".pres-fila__fill");
+      var pie = raiz && raiz.querySelector(".pres-fila__pct");
+      var num = raiz && raiz.querySelector(".pres-fila__num");
+      var lim = S.limitePorId(e.id);
+      if (fill) {
+        fill.style.width = e.pct + "%";
+        fill.style.background = e.nivel === "pasado" ? "var(--status-critical)"
+                              : e.nivel === "cerca" ? "var(--status-warning)"
+                              : "var(--cat-" + e.color + ")";
+      }
+      if (pie) pie.textContent = S.textoAmbitoCortoLimite(lim);
+      if (num) {
+        num.textContent = S.pct(e.pct);
+        num.style.color = e.nivel === "pasado" ? "var(--status-critical)" : "";
+      }
     });
   }
 
@@ -102,10 +88,10 @@
     root.addEventListener("input", function (e) {
       if (e.target.id === "incManual") {
         S.setIncome({ manual: e.target.value });
-        refreshAllocation();
-      } else if (e.target.matches("[data-alloc-eur]")) {
-        S.setAllocationEuros(e.target.getAttribute("data-alloc-eur"), e.target.value);
-        refreshAllocation();
+        refreshLimites();
+      } else if (e.target.matches("[data-lim-eur]")) {
+        S.updateLimite(e.target.getAttribute("data-lim-eur"), { importe: e.target.value });
+        refreshLimites();
       }
     });
 
@@ -119,26 +105,22 @@
         return;
       }
 
-      /* Añadir una categoría a los límites: entra con un décimo de lo
-         que cobras, una cifra redonda de la que partir en vez de un cero
-         que no dice nada. */
-      if ((node = e.target.closest("[data-alloc-add]"))) {
-        S.setAllocation(node.getAttribute("data-alloc-add"), 10);
-        renderAjustes();
+      /* Un límite nuevo, o abrir uno que ya está: el detalle —el nombre
+         y a qué categorías mira— se edita en su hoja, que es donde cabe. */
+      if (e.target.closest("#limNuevo")) {
+        openForm("limite", null);
         U.haptic("light");
         return;
       }
-
-      if ((node = e.target.closest("[data-alloc-quitar]"))) {
-        S.removeAllocation(node.getAttribute("data-alloc-quitar"));
-        renderAjustes();
+      if ((node = e.target.closest("[data-lim-abrir]"))) {
+        openForm("limite", node.getAttribute("data-lim-abrir"));
         U.haptic("light");
         return;
       }
 
       if (e.target.closest("#allocReset")) {
         if (!confirm("¿Quitar todos los límites? Los movimientos no se tocan.")) return;
-        S.resetAllocation();
+        S.vaciarLimites();
         renderAjustes();
         U.toast("Límites vaciados", { icon: "check" });
       }
@@ -252,7 +234,7 @@
   A.emojiCorto = emojiCorto;
   A.emojiHint = emojiHint;
   A.handleSetting = handleSetting;
-  A.refreshAllocation = refreshAllocation;
+  A.refreshLimites = refreshLimites;
   A.settingRow = settingRow;
   A.themeLabel = themeLabel;
   A.themeShort = themeShort;

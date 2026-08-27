@@ -44,7 +44,7 @@
         accounts.map(function (a) {
           /* Si la cuenta tiene objetivo de gasto se dice aquí: si no, hay
              que entrar en ella para enterarse de que existe. */
-          var lim = S.estadoDeLimite(a.id);
+          var lim = S.estadoDeObjetivo(a.id);
           return '<button type="button" class="account" data-cuenta="' + esc(a.id) + '" ' +
                   'style="width:100%;text-align:left">' +
               '<span class="account__badge" data-icon="' + esc(a.icon || "wallet") +

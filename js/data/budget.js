@@ -1,5 +1,10 @@
 /* ============================================================
-   split — ingresos y reparto del sueldo
+   split — de cuánto dinero se habla al mes
+
+   La cifra sobre la que se mira todo lo demás: la media de lo que entra
+   de verdad, lo que suman tus trabajos programados, o la que pongas tú.
+   Los topes de gasto ya no viven aquí: son los límites del mes, con
+   nombre y en euros, en data/limites.js.
    ============================================================ */
 
 (function () {
@@ -10,10 +15,8 @@
   /* Puentes a lo que vive en otro archivo. Se resuelven en la llamada,
      así que da igual el orden en que se carguen los scripts. */
   function addMonths() { return D.addMonths.apply(null, arguments); }
-  function categoriesOf() { return D.categoriesOf.apply(null, arguments); }
   function cicloActual() { return D.cicloActual.apply(null, arguments); }
   function mensualizar() { return D.mensualizar.apply(null, arguments); }
-  function pct() { return D.pct.apply(null, arguments); }
   function save() { return D.save.apply(null, arguments); }
   function totals() { return D.totals.apply(null, arguments); }
   function txDeCiclo() { return D.txDeCiclo.apply(null, arguments); }
@@ -78,92 +81,9 @@
     save();
   }
 
-  function allocationSum() {
-    return Object.keys(D.state.allocation).reduce(function (s, k) {
-      return s + (D.state.allocation[k] || 0);
-    }, 0);
-  }
-
-  /* lo que no se reparte entre categorías es ahorro */
-  function savingsPct() {
-    return Math.max(0, 100 - allocationSum());
-  }
-
-  /* Los dos, redondeados para pintarlos. Redondear la suma de los
-     redondeos daría 101 % con partidas que suman 100. */
-  function allocationSumPct() { return Math.round(allocationSum()); }
-  function savingsPctRedondo() { return Math.max(0, 100 - allocationSumPct()); }
-
-  /* Elegir el porcentaje a mano sí es un número redondo: nadie pide un
-     9,18 %. Poner euros es otra cosa, y va justo debajo. */
-  function setAllocation(catId, pct) {
-    D.state.allocation[catId] = Math.max(0, Math.min(100, Math.round(pct)));
-    save();
-  }
-
-  /* La gente piensa en euros, no en porcentajes: «doscientos al mes de
-     comida». Por dentro se sigue guardando el porcentaje, que es lo que
-     hace que el presupuesto se ajuste solo cuando cambia el ingreso.
-
-     El porcentaje se guarda CON DECIMALES, y esto no es un detalle: al
-     redondearlo, 200 € sobre 2.178 se guardaban como 9 %, y de ese 9 %
-     salían luego 196 €. Bastaba con repintar la lista —quitar otra
-     partida, por ejemplo— para que las cifras que habías escrito se
-     movieran solas. Con el porcentaje entero, los euros mienten. */
-  function setAllocationEuros(catId, euros) {
-    var base = plannedIncome();
-    if (!(base > 0)) return false;
-    D.state.allocation[catId] = Math.max(0, Math.min(100, (+euros || 0) / base * 100));
-    save();
-    return true;
-  }
-
-  /* El porcentaje para enseñarlo: redondeado, que es como se lee. Se
-     redondea al pintar y nunca al guardar. */
-  function allocationPct(catId) {
-    return Math.round((D.state.allocation || {})[catId] || 0);
-  }
-
-  /* Quitar una categoría del presupuesto no es lo mismo que ponerla a
-     cero: deja de aparecer en la lista. */
-  function removeAllocation(catId) {
-    delete D.state.allocation[catId];
-    save();
-  }
-
-  /* Las que aún no están presupuestadas, para poder añadirlas. */
-  function unbudgetedCategories() {
-    return categoriesOf("out").filter(function (c) {
-      return !c.sistema && D.state.allocation[c.id] == null;
-    });
-  }
-
-  /* Las que sí, en el orden en que se pusieron. */
-  function budgetedCategories() {
-    return categoriesOf("out").filter(function (c) {
-      return D.state.allocation[c.id] != null;
-    });
-  }
-
-  /* Vaciarlo, no volver a un reparto de fábrica: el presupuesto es de
-     quien lo hace, y empezar de cero es una opción legítima. */
-  function resetAllocation() {
-    D.state.allocation = {};
-    save();
-  }
-
-  /* Presupuesto en euros derivado del porcentaje. Con el porcentaje sin
-     redondear, esto devuelve exactamente los euros que se escribieron. */
-  function budgetFor(catId) {
-    var pct = (D.state.allocation || {})[catId] || 0;
-    return Math.round((pct / 100) * plannedIncome() * 100) / 100;
-  }
-
-  function budgetTotal() {
-    return Object.keys(D.state.allocation).reduce(function (s, k) {
-      return s + budgetFor(k);
-    }, 0);
-  }
+  /* El reparto por porcentajes vivía aquí. Desde la v15 son los límites
+     del mes, con nombre y en euros, y viven en data/limites.js. Lo que
+     queda en este archivo es de dónde sale la cifra que se reparte. */
 
   function addGoalSaving(goalId, amount) {
     var g = D.state.goals.find(function (x) { return x.id === goalId; });
@@ -176,21 +96,8 @@
 
   /* --- lo que se lleva el espacio común --- */
   D.addGoalSaving = addGoalSaving;
-  D.allocationSum = allocationSum;
   D.averageIncome = averageIncome;
-  D.budgetFor = budgetFor;
-  D.budgetTotal = budgetTotal;
-  D.budgetedCategories = budgetedCategories;
   D.declaredIncome = declaredIncome;
   D.plannedIncome = plannedIncome;
-  D.removeAllocation = removeAllocation;
-  D.allocationPct = allocationPct;
-  D.allocationSumPct = allocationSumPct;
-  D.savingsPctRedondo = savingsPctRedondo;
-  D.resetAllocation = resetAllocation;
-  D.savingsPct = savingsPct;
-  D.setAllocation = setAllocation;
-  D.setAllocationEuros = setAllocationEuros;
   D.setIncome = setIncome;
-  D.unbudgetedCategories = unbudgetedCategories;
 })();

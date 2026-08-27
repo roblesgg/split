@@ -85,6 +85,13 @@
             /* siempre nace dentro de una cuenta: se llega desde ella */
             accountId: (opts && opts.accountId) || accs[0].id,
             porCiclo: "", inicial: "", categoryIds: [] };
+    } else if (type === "limite") {
+      d = it
+        ? { name: it.name, emoji: it.emoji, color: it.color, importe: it.importe,
+            ambito: it.ambito, categoryIds: (it.categoryIds || []).slice() }
+        : { name: "", emoji: "🎯",
+            color: ((S.limites().length * 5) % S.CAT_COLORS) + 1,
+            importe: "", ambito: "todas", categoryIds: [] };
     } else if (type === "goal") {
       d = it ? { name: it.name, target: it.target, saved: it.saved, monthly: it.monthly }
              : { name: "", target: "", saved: 0, monthly: "" };
@@ -126,6 +133,7 @@
       resumen: "Qué cuentan estas cifras",
       category: id ? "Editar categoría" : "Nueva categoría",
       apartado: id ? "Editar apartado" : "Nuevo apartado",
+      limite: id ? "Editar límite" : "Nuevo límite",
       aportar: "Apartar o devolver"
     }[type] || "Editar";
 
@@ -139,6 +147,7 @@
     if (type === "account") return S.state.accounts.find(function (x) { return x.id === id; });
     if (type === "aportar") return null;   /* no edita una ficha */
     if (type === "apartado") return S.apartadoById(id);
+    if (type === "limite") return S.limitePorId(id);
     if (type === "goal") return S.state.goals.find(function (x) { return x.id === id; });
     return (S.state.recurring || []).find(function (x) { return x.id === id; });
   }
@@ -260,6 +269,14 @@
     if (nombre) nombre.textContent = String(ui.form.d.name || "").trim() || "Tu cuenta";
   }
 
+  /* Repinta solo la línea que resume el límite. Marcar una categoría no
+     puede repintar la hoja entera: la rejilla se movería bajo el dedo. */
+  function refreshLimiteResumen() {
+    if (ui.form.type !== "limite") return;
+    var p = $("#fLimResumen");
+    if (p) p.textContent = A.resumenLimite(ui.form.d);
+  }
+
   function wire() {
     /* --- sheet de formulario (cuentas, metas, programados) --- */
     var formBody = $("#sheetFormBody");
@@ -295,11 +312,14 @@
 
     formBody.addEventListener("input", function (e) {
       if (!readField(e.target)) return;
-      if (ui.form.type === "category") refreshCatPreview();
+      /* la vista previa la comparten la categoría, el apartado y el
+         límite: los tres tienen cara, nombre y color */
+      refreshCatPreview();
       if (ui.form.type === "account") refreshCardPreview();
       /* el aviso de «se apuntará X» se recalcula mientras se teclea, sin
          repintar: repintar dejaría el campo sin foco a media cifra */
       if (ui.form.type === "saldo") refreshAjuste();
+      if (ui.form.type === "limite") refreshLimiteResumen();
     });
 
     formBody.addEventListener("change", function (e) { readField(e.target); });
@@ -424,7 +444,19 @@
         var lista = ui.form.d.categoryIds || (ui.form.d.categoryIds = []);
         var i = lista.indexOf(cid);
         if (i >= 0) lista.splice(i, 1); else lista.push(cid);
-        node.setAttribute("aria-pressed", String(i < 0));
+        /* Marcar una madre arrastra a sus hijas, así que la rejilla
+           entera cambia de aspecto: hay que repintarla. En los apartados
+           no hay madres que arrastren y basta con la chapa. */
+        if (ui.form.type === "limite") renderForm();
+        else node.setAttribute("aria-pressed", String(i < 0));
+        U.haptic("light");
+        return;
+      }
+
+      if ((node = e.target.closest("[data-flamb]"))) {
+        ui.form.d.ambito = node.getAttribute("data-flamb");
+        /* la rejilla de categorías aparece o desaparece: hay que repintar */
+        renderForm();
         U.haptic("light");
         return;
       }

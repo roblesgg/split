@@ -104,6 +104,22 @@
       }
     }
 
+    if (t === "limite") {
+      if (!String(d.name).trim()) {
+        U.toast("Ponle un nombre al límite", { icon: "warning" }); return;
+      }
+      if (!(parseFloat(d.importe) > 0)) {
+        U.toast("Pon cuánto puedes gastar", { icon: "warning" }); return;
+      }
+      /* Un «solo estos» sin ninguna categoría marcada no contaría nunca
+         nada: una barra que jamás se mueve desconcierta más que ayuda. */
+      if (d.ambito === "solo" && !(d.categoryIds || []).length) {
+        U.toast("Marca al menos una categoría", { icon: "warning" }); return;
+      }
+      if (id) S.updateLimite(id, d); else S.addLimite(d);
+      U.toast(id ? "Límite actualizado" : "Límite creado", { icon: "check" });
+    }
+
     if (t === "goal") {
       if (!String(d.name).trim()) {
         U.toast("Ponle un nombre a la meta", { icon: "warning" }); return;
@@ -240,6 +256,12 @@
         ? "Apartado borrado · " + resAp.sueltos +
           (resAp.sueltos === 1 ? " gasto vuelve" : " gastos vuelven") + " al límite de la cuenta"
         : "Apartado borrado", { icon: "check", duration: resAp.sueltos ? 5000 : 3000 });
+    }
+
+    if (t === "limite") {
+      /* Borrar un límite no toca ni un movimiento: era solo un tope. */
+      S.deleteLimite(id);
+      U.toast("Límite borrado", { icon: "check" });
     }
 
     if (t === "goal") {

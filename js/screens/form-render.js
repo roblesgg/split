@@ -23,6 +23,7 @@
   function numField() { return A.numField.apply(null, arguments); }
   function pickField() { return A.pickField.apply(null, arguments); }
   function htmlApartado() { return A.htmlApartado.apply(null, arguments); }
+  function htmlLimite() { return A.htmlLimite.apply(null, arguments); }
   function periodo() { return A.periodo.apply(null, arguments); }
   function switchRow() { return A.switchRow.apply(null, arguments); }
 
@@ -32,6 +33,7 @@
     var html = "";
 
     if (t === "aportar" || t === "apartado") html = htmlApartado(t, d);
+    if (t === "limite") html = htmlLimite(t, d);
 
     if (t === "category") {
       var colores = [];

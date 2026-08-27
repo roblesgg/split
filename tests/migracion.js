@@ -116,14 +116,24 @@ module.exports = function () {
   var copia = JSON.parse(JSON.stringify(antes));
   var s = D.migrate(JSON.parse(JSON.stringify(antes)));
 
-  t.es("sube a la versión 14", s.version, 14);
+  t.es("sube a la versión 15", s.version, 15);
   t.es("no se pierde ningún movimiento", s.transactions.length, copia.transactions.length);
   t.es("los movimientos salen tal cual", s.transactions, copia.transactions);
   t.es("no se pierde ninguna cuenta", s.accounts, copia.accounts);
   t.es("no se pierde ninguna categoría, ni la propia", s.categories, copia.categories);
   t.es("las etiquetas siguen ahí", s.tags, copia.tags);
   t.es("las metas siguen ahí", s.goals, copia.goals);
-  t.es("el reparto no se toca", s.allocation, copia.allocation);
+  /* v15: el reparto por porcentajes se convierte en límites con nombre,
+     en euros, sobre lo que se contaba al mes en el momento de migrar.
+     Con 1.740 € manuales, el 22 % de comida son 382,80 €. */
+  t.es("el reparto se convierte en límites, uno por partida",
+       s.limites.map(function (l) { return [l.name, l.importe, l.ambito, l.categoryIds]; }),
+       [["Comida", 382.8, "solo", ["comida"]],
+        ["Gasolina", 139.2, "solo", ["gasolina"]],
+        ["Hogar", 522, "solo", ["hogar"]],
+        ["Suscripciones", 69.6, "solo", ["subs"]],
+        ["El perro", 87, "solo", ["perro"]]]);
+  t.es("y el reparto viejo ya no está", s.allocation, undefined);
   t.es("el ingreso que cuenta al mes no se toca", s.income, copia.income);
   t.es("no se pierde ningún programado", s.recurring.length, copia.recurring.length);
 
@@ -189,11 +199,22 @@ module.exports = function () {
   };
   var viejo = D.migrate(JSON.parse(JSON.stringify(v1)));
 
-  t.es("llega hasta la 14", viejo.version, 14);
+  t.es("llega hasta la 15", viejo.version, 15);
   t.es("el movimiento de hace dos años sigue ahí", viejo.transactions.length, 1);
-  t.es("el presupuesto en euros se tradujo a porcentaje",
-       [viejo.allocation.comida, viejo.allocation.hogar], [21, 32]);
-  t.es("y ya no queda rastro del formato viejo", viejo.budgets, undefined);
+  /* El presupuesto en euros de la v1 pasó a porcentaje en la v2 y vuelve
+     a euros en la v15, ya como límites con nombre. Un viaje de ida y
+     vuelta con un redondeo por medio, así que no salen los 300 y 450
+     clavados: salen los que la app llevaba años enseñando. */
+  t.es("las dos partidas que había puestas acaban siendo límites",
+       viejo.limites.filter(function (l) {
+         return l.name === "Comida" || l.name === "Hogar";
+       }).map(function (l) { return [l.name, l.importe, l.categoryIds]; }),
+       [["Hogar", 448, ["hogar"]], ["Comida", 294, ["comida"]]]);
+  /* La v1 rellenaba con el reparto de fábrica lo que no tuvieras puesto,
+     y eso sigue igual: se convierte también, no se pierde. */
+  t.es("y las de fábrica que rellenó la v2, también", viejo.limites.length, 10);
+  t.es("y ya no queda rastro de los dos formatos viejos",
+       [viejo.budgets, viejo.allocation], [undefined, undefined]);
   t.es("las categorías, que no tenía, vienen de fábrica",
        viejo.categories.length > 0, true);
   t.es("el programado de v1 sale con las tres reglas de hoy",
@@ -212,7 +233,7 @@ module.exports = function () {
   t.es("se le ponen las categorías de fábrica", roto.categories.length > 0, true);
   t.es("se le pone un ciclo", roto.ciclo, { dia: 1 });
   t.es("y una lista de apartados vacía", roto.apartados, []);
-  t.es("sin lista de programados, no falla", D.migrate({ version: 11 }).version, 14);
+  t.es("sin lista de programados, no falla", D.migrate({ version: 11 }).version, 15);
 
   /* ---------- y lo que carga la app de verdad ---------- */
 
@@ -223,10 +244,10 @@ module.exports = function () {
   guardado[D.KEY] = JSON.stringify(estadoV11());
   var cargado = D.load();
 
-  t.es("carga y migra lo que había guardado", cargado.version, 14);
+  t.es("carga y migra lo que había guardado", cargado.version, 15);
   t.es("con todos sus movimientos", cargado.transactions.length, 5);
   t.es("y deja guardado ya el formato nuevo",
-       JSON.parse(guardado[D.KEY]).version, 14);
+       JSON.parse(guardado[D.KEY]).version, 15);
   t.es("de forma que la siguiente vez no cambia nada",
        JSON.parse(guardado[D.KEY]), cargado);
 };

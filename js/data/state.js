@@ -25,6 +25,31 @@
   /* El estado entero vive en D.state: es de todos los archivos de datos
      y load() es quien lo rellena. */
 
+  /* Cuánto se contaba al mes en el momento de migrar, para pasar los
+     porcentajes a euros. No se puede llamar a plannedIncome(): migrate()
+     corre dentro de load(), antes de que D.state exista. Así que se
+     calcula aquí con lo que trae el estado y nada más. */
+  function baseAlMigrar(s) {
+    var inc = s.income || {};
+    var manual = Math.max(0, +inc.manual || 0);
+    if (inc.mode === "manual") return manual;
+
+    var dia = (s.ciclo && s.ciclo.dia) || 1;
+    var cur = D.Ciclo.de(D.ymd(new Date()), dia);
+    var meses = Math.min(12, Math.max(1, parseInt(inc.months, 10) || 3));
+    var suma = 0, contados = 0;
+
+    for (var i = 1; i <= meses; i++) {
+      var key = D.addMonths(cur, -i);
+      var t = 0;
+      (s.transactions || []).forEach(function (x) {
+        if (x.kind === "in" && D.Ciclo.de(x.date, dia) === key) t += x.amount;
+      });
+      if (t > 0) { suma += t; contados++; }
+    }
+    return contados ? Math.round((suma / contados) * 100) / 100 : manual;
+  }
+
   /* Sube un estado guardado al esquema actual sin perder nada.
      v1 tenía `budgets` en euros y no conocía los ingresos; se traduce a
      porcentajes sobre el ingreso previsto para no romper sus cifras. */
@@ -236,6 +261,41 @@
       s.version = 14;
     }
 
+    if (s.version < 15) {
+      /* v15: el reparto por porcentajes pasa a ser una lista de límites
+         con nombre. Cada partida que tuvieras se convierte en un límite
+         que mira solo su categoría y con el mismo tope en euros que
+         estaba enseñando la app: quien no toque nada ve exactamente las
+         mismas cifras que veía.
+
+         Se pasa a euros a propósito. El porcentaje era el dato y los
+         euros la lectura, y por eso las cifras que escribías se movían
+         al repintar. Ahora es al revés: el dato son los euros. */
+      if (!Array.isArray(s.limites)) s.limites = [];
+      var base = baseAlMigrar(s);
+      var vistas = {};
+      (s.categories || []).forEach(function (c) { vistas[c.id] = c; });
+
+      if (base > 0) {
+        Object.keys(s.allocation || {}).forEach(function (catId) {
+          var pct = s.allocation[catId];
+          if (!(pct > 0)) return;
+          var c = vistas[catId];
+          s.limites.push({
+            id: "lim-" + catId,
+            name: c ? c.name : catId,
+            emoji: c ? (c.emoji || "🎯") : "🎯",
+            color: c ? (c.color || 1) : 1,
+            importe: Math.round((pct / 100) * base * 100) / 100,
+            ambito: "solo",
+            categoryIds: [catId]
+          });
+        });
+      }
+      delete s.allocation;
+      s.version = 15;
+    }
+
     /* Red de seguridad, al margen de la versión: casi todo el código tira
        de las categorías por defecto cuando la lista no está, pero crear
        una necesita el array de verdad. Un estado importado a mano, o
@@ -243,6 +303,7 @@
     if (!Array.isArray(s.categories)) s.categories = DEFAULT_CATEGORIES.slice();
     if (!s.ciclo || !s.ciclo.dia) s.ciclo = { dia: 1 };
     if (!Array.isArray(s.apartados)) s.apartados = [];
+    if (!Array.isArray(s.limites)) s.limites = [];
 
     invalidateCats();
     return s;
