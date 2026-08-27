@@ -35,8 +35,8 @@
     var root = $("#view-ajustes");
     var inc = S.state.income;
     var planned = S.plannedIncome();
-    var sum = S.allocationSum();
-    var savings = S.savingsPct();
+    var sum = S.allocationSumPct();
+    var savings = S.savingsPctRedondo();
     var theme = S.getTheme();
     /* Las del sistema («Ajuste de saldo») quedan fuera del presupuesto: no
        se presupuesta lo que por definición no habías previsto. */
@@ -206,7 +206,7 @@
                       '<span class="pres-fila__texto">' +
                         '<span class="pres-fila__nombre">' + esc(c.name) + '</span>' +
                         '<span class="pres-fila__pct" data-alloc-pct="' + c.id + '">' +
-                          (S.state.allocation[c.id] || 0) + ' % de lo que entra</span>' +
+                          S.allocationPct(c.id) + ' % de lo que entra</span>' +
                       '</span>' +
                       '<span class="input-affix pres-fila__campo">' +
                         '<input type="number" class="field__input" data-alloc-eur="' +
@@ -245,7 +245,7 @@
           ? U.tableView("tblAllocSet", ["Partida", "Al mes", "Porcentaje"],
               presupuestadas.map(function (c) {
                 return [c.name, money(S.budgetFor(c.id)),
-                        (S.state.allocation[c.id] || 0) + " %"];
+                        S.allocationPct(c.id) + " %"];
               }).concat([["Ahorro", money(Math.round(planned * savings / 100)),
                           savings + " %"]]))
           : "") +

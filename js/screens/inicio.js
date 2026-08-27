@@ -61,10 +61,10 @@
                   '<p class="paycard__label">Saldo</p>' +
                   '<p class="paycard__value">' + bigAmount(S.accountBalance(a.id)) + '</p>' +
                 '</div>' +
-                /* si la cuenta tiene objetivo de gasto, la barra sustituye
+                /* si la cuenta tiene límites, la barra del general sustituye
                    al pie de texto: es lo que se quiere mirar de un vistazo */
                 (function () {
-                  var lim = S.estadoDeLimite(a.id, curKey);
+                  var lim = S.estadoPrincipalDe(a.id);
                   return lim ? limiteEnTarjeta(lim) : "";
                 })() +
                 '<div class="paycard__foot">' +

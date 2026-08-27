@@ -56,8 +56,8 @@
   /* repinta solo las partes vivas del reparto, sin perder el foco del slider */
   function refreshAllocation() {
     var planned = S.plannedIncome();
-    var sum = S.allocationSum();
-    var savings = S.savingsPct();
+    var sum = S.allocationSumPct();
+    var savings = S.savingsPctRedondo();
     var bar = $("#allocBar");
     var total = $("#allocTotal");
     var summary = $("#allocSummary");
@@ -72,7 +72,8 @@
 
     bar.innerHTML = segs.map(function (r) {
       return '<span class="alloc-bar__seg" style="flex:' + r.pct + ';background:' +
-             S.catColorVar(r) + '" title="' + esc(r.name) + ' · ' + r.pct + ' %"></span>';
+             S.catColorVar(r) + '" title="' + esc(r.name) + ' · ' +
+             Math.round(r.pct) + ' %"></span>';
     }).join("") + (savings > 0
       ? '<span class="alloc-bar__seg alloc-bar__seg--rest" style="flex:' + savings +
         '" title="Ahorro · ' + savings + ' %"></span>'
@@ -90,7 +91,7 @@
     /* El campo en euros NO se reescribe mientras se teclea: hacerlo
        movería el cursor a media cifra. Solo se refresca el porcentaje. */
     $$("[data-alloc-pct]").forEach(function (n) {
-      n.textContent = (S.state.allocation[n.getAttribute("data-alloc-pct")] || 0) +
+      n.textContent = S.allocationPct(n.getAttribute("data-alloc-pct")) +
                       " % de lo que entra";
     });
   }

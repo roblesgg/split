@@ -43,6 +43,8 @@
   var reset = D.reset, resetAllocation = D.resetAllocation, restoreTx = D.restoreTx;
   var resumenCfg = D.resumenCfg, runRecurring = D.runRecurring, save = D.save;
   var savingsPct = D.savingsPct, savingsRate = D.savingsRate, setAllocation = D.setAllocation;
+  var allocationPct = D.allocationPct, allocationSumPct = D.allocationSumPct;
+  var savingsPctRedondo = D.savingsPctRedondo;
   var setAllocationEuros = D.setAllocationEuros, setEmojiSet = D.setEmojiSet;
   var setIncome = D.setIncome, setResumen = D.setResumen, setTheme = D.setTheme;
   var signed = D.signed, tagById = D.tagById, tagUsage = D.tagUsage, toggleRecurring = D.toggleRecurring;
@@ -55,9 +57,14 @@
   var serieDeCiclos = D.serieDeCiclos, CICLO_DIA_MAX = D.Ciclo.DIA_MAX;
   var esDiario = D.esDiario, esSemanal = D.esSemanal;
   var cadaDe = D.cadaDe, tocaEn = D.tocaEn, proximasFechas = D.proximasFechas;
-  var limiteDe = D.limiteDe, setLimite = D.setLimite;
-  var gastoDeCuenta = D.gastoDeCuenta, estadoDeLimite = D.estadoDeLimite;
+  var addLimite = D.addLimite, updateLimite = D.updateLimite, deleteLimite = D.deleteLimite;
+  var limites = D.limites, limitesDe = D.limitesDe, limitePorId = D.limitePorId;
+  var limitePrincipalDe = D.limitePrincipalDe, estadoPrincipalDe = D.estadoPrincipalDe;
+  var gastoDeLimite = D.gastoDeLimite, estadoDeLimite = D.estadoDeLimite;
+  var periodoDeLimite = D.periodoDeLimite, afectaA = D.afectaA;
   var cuentasConLimite = D.cuentasConLimite;
+  var textoAmbitoLimite = D.textoAmbitoLimite, textoReinicioLimite = D.textoReinicioLimite;
+  var AMBITOS_LIMITE = D.AMBITOS_LIMITE, DIAS_SEMANA = D.DIAS_SEMANA;
   var addApartado = D.addApartado, updateApartado = D.updateApartado;
   var deleteApartado = D.deleteApartado, apartadoById = D.apartadoById;
   var apartadosDe = D.apartadosDe, apartados = D.apartados, aportar = D.aportar;
@@ -98,12 +105,18 @@
     addAccount: addAccount, updateAccount: updateAccount,
     deleteAccount: deleteAccount, accountUsage: accountUsage,
 
-    /* Objetivo de gasto por cuenta, que se vacía al cerrar el ciclo.
-       estadoDeLimite() trae de una vez todo lo que hay que pintar, o
-       null si esa cuenta no tiene ninguno. */
-    limiteDe: limiteDe, setLimite: setLimite,
-    gastoDeCuenta: gastoDeCuenta, estadoDeLimite: estadoDeLimite,
+    /* Topes de gasto con nombre. Una cuenta puede tener los que haga
+       falta, cada uno con su ámbito de categorías y su reinicio.
+       estadoDeLimite() trae de una vez todo lo que hay que pintar, y
+       estadoPrincipalDe() el de la cuenta cuando solo cabe uno. */
+    addLimite: addLimite, updateLimite: updateLimite, deleteLimite: deleteLimite,
+    limites: limites, limitesDe: limitesDe, limitePorId: limitePorId,
+    limitePrincipalDe: limitePrincipalDe, estadoPrincipalDe: estadoPrincipalDe,
+    gastoDeLimite: gastoDeLimite, estadoDeLimite: estadoDeLimite,
+    periodoDeLimite: periodoDeLimite, afectaA: afectaA,
     cuentasConLimite: cuentasConLimite,
+    textoAmbitoLimite: textoAmbitoLimite, textoReinicioLimite: textoReinicioLimite,
+    AMBITOS_LIMITE: AMBITOS_LIMITE, DIAS_SEMANA: DIAS_SEMANA,
 
     /* Apartados: sub-bolsas dentro de una cuenta. El saldo no se guarda,
        se calcula, así que editar o borrar un gasto nunca lo descuadra. */
@@ -153,6 +166,10 @@
     averageIncome: averageIncome, declaredIncome: declaredIncome,
     allocationSum: allocationSum, savingsPct: savingsPct,
     setAllocation: setAllocation, resetAllocation: resetAllocation,
+    /* El porcentaje se guarda con decimales para que los euros no se
+       muevan solos; estos tres son los que se pintan. */
+    allocationPct: allocationPct, allocationSumPct: allocationSumPct,
+    savingsPctRedondo: savingsPctRedondo,
     setAllocationEuros: setAllocationEuros, removeAllocation: removeAllocation,
     unbudgetedCategories: unbudgetedCategories,
     budgetedCategories: budgetedCategories,

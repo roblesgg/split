@@ -23,6 +23,7 @@
   function numField() { return A.numField.apply(null, arguments); }
   function pickField() { return A.pickField.apply(null, arguments); }
   function htmlApartado() { return A.htmlApartado.apply(null, arguments); }
+  function htmlLimite() { return A.htmlLimite.apply(null, arguments); }
   function periodo() { return A.periodo.apply(null, arguments); }
   function switchRow() { return A.switchRow.apply(null, arguments); }
 
@@ -32,6 +33,7 @@
     var html = "";
 
     if (t === "aportar" || t === "apartado") html = htmlApartado(t, d);
+    if (t === "limite") html = htmlLimite(t, d);
 
     if (t === "category") {
       var colores = [];
@@ -129,17 +131,9 @@
           '</div>' +
           numField("fOpening", "Saldo inicial", d.opening, 10) +
         '</div>' +
-        /* El objetivo de gasto va justo debajo del saldo porque es la otra
-           cifra que define la cuenta: cuánto hay y cuánto puedes gastar. */
-        '<div class="field">' +
-          numField("fLimite", "Objetivo de gasto por " + periodo(), d.limite, 10) +
-          '<p class="field__hint">' +
-            (parseFloat(d.limite) > 0
-              ? 'Se vacía solo cuando empieza el ' + esc(periodo()) + ' siguiente. ' +
-                'La app avisa cuando te acercas, pero no te bloquea.'
-              : 'Déjalo vacío si no quieres ponerte un tope en esta cuenta.') +
-          '</p>' +
-        '</div>' +
+        /* Los límites ya no viven aquí: una cuenta puede tener varios y
+           cada uno con su ámbito, así que se gestionan desde la ficha de
+           la cuenta y no desde este formulario. */
 
         '<div class="field">' +
           '<span class="field__label">Icono</span>' +

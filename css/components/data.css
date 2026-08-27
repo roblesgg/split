@@ -269,12 +269,18 @@
 
 .limit__chev { flex: none; color: var(--text-muted); }
 
-/* ---------- la fila de un apartado ----------
-   Vive dentro de la pantalla de una cuenta. Tres alturas: el nombre con
-   lo que queda, la barra de lo gastado y el pie que lo cuenta en euros.
-   El botón de apartar va aparte, a la derecha, porque es otra acción. */
+/* ---------- la fila de un apartado, y la de un límite ----------
+   Viven dentro de la pantalla de una cuenta y son la misma forma: el
+   nombre con su cifra, la barra y el pie que lo cuenta en euros. Van con
+   los dos nombres en vez de con uno solo porque un límite no es un
+   apartado —uno reserva dinero, el otro solo pone un tope— y en el HTML
+   tiene que poder distinguirse cuál se está pintando.
 
-.apartado {
+   El botón de apartar va aparte, a la derecha, porque es otra acción; un
+   límite no lo tiene. */
+
+.apartado,
+.limfila {
   display: flex;
   align-items: stretch;
   gap: var(--sp-3);
@@ -282,9 +288,11 @@
   border-bottom: 1px solid var(--hairline);
 }
 
-.apartado:last-child { border-bottom: 0; padding-bottom: 0; }
+.apartado:last-child,
+.limfila:last-child { border-bottom: 0; padding-bottom: 0; }
 
-.apartado__main {
+.apartado__main,
+.limfila__main {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -299,17 +307,21 @@
   cursor: pointer;
 }
 
-.apartado__main:active { transform: scale(0.995); }
+.apartado__main:active,
+.limfila__main:active { transform: scale(0.995); }
 
-.apartado__head {
+.apartado__head,
+.limfila__head {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
 }
 
-.apartado__face { flex: none; width: 30px; height: 30px; font-size: 15px; }
+.apartado__face,
+.limfila__face { flex: none; width: 30px; height: 30px; font-size: 15px; }
 
-.apartado__name {
+.apartado__name,
+.limfila__name {
   flex: 1;
   min-width: 0;
   font-size: 15px;
@@ -320,7 +332,8 @@
   text-overflow: ellipsis;
 }
 
-.apartado__saldo {
+.apartado__saldo,
+.limfila__cifra {
   flex: none;
   font-size: var(--num-m);
   font-weight: var(--w-bold);
@@ -331,7 +344,8 @@
 /* Barra propia y no la del presupuesto: va dentro de un <button>, donde
    solo caben spans, y un span en línea se come el alto. Además aquí se
    quiere más fina, porque hay varias seguidas. */
-.apartado__track {
+.apartado__track,
+.limfila__track {
   display: block;
   position: relative;
   height: 10px;
@@ -340,7 +354,8 @@
   overflow: hidden;
 }
 
-.apartado__fill {
+.apartado__fill,
+.limfila__fill {
   display: block;
   height: 100%;
   border-radius: var(--r-full);
@@ -350,7 +365,8 @@
   animation-delay: 90ms;
 }
 
-.apartado__foot {
+.apartado__foot,
+.limfila__foot {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -361,8 +377,8 @@
 .apartado__mas {
   flex: none;
   align-self: center;
-  width: 44px;
-  height: 44px;
+  width: var(--tap-min);
+  height: var(--tap-min);
   border: 0;
   border-radius: var(--r-full);
   background: var(--surface-2);

@@ -106,6 +106,20 @@ Lo que no repartes es tu ahorro, y los presupuestos en euros salen de ahí.
 No hay que configurar sueldos ni número de pagas: no todo lo que entra es una
 nómina, y no todos los meses entra lo mismo.
 
+### Los euros que escribes son los que quedan
+
+El reparto se guarda **en porcentaje**, y eso es a propósito: si el mes que
+viene cobras más, tus presupuestos suben solos sin tocar nada.
+
+Pero lo que se escribe son euros, y ahí estaba la trampa. El porcentaje se
+guardaba redondeado al entero, así que 200 € sobre 2.178 se guardaban como 9 %,
+y de ese 9 % salían luego **196 €**. Bastaba con repintar la lista —quitar otra
+partida, por ejemplo— para que las cifras que habías escrito se movieran solas.
+
+Ahora el porcentaje se guarda **con decimales** y solo se redondea al pintarlo.
+Los euros que escribes son los que quedan, y quitar una partida no toca ni un
+euro de las demás.
+
 ## Qué hay en cada pantalla
 
 | Pantalla | Qué hace |
@@ -113,24 +127,38 @@ nómina, y no todos los meses entra lo mismo.
 | **Resumen** | Tarjetas de cuenta deslizables, KPI del mes, categorías, lo que viene programado, el reparto del sueldo y el presupuesto |
 | **Movimientos** | Histórico por día, filtro ingresos/gastos, búsqueda, navegación por mes, detalle con editar y eliminar |
 | **Análisis** | Histórico con rango 3M/6M/12M, ahorro por mes, tasa de ahorro, reparto por categoría, mapa de calor y lecturas automáticas |
-| **Planes** | Cuentas con su objetivo de gasto, pagos programados y metas de ahorro, todo con crear, editar y borrar |
+| **Planes** | Cuentas con su límite general, pagos programados y metas de ahorro, todo con crear, editar y borrar |
 | **Ajustes** | El día en que empieza tu mes, ingresos, reparto por porcentajes, tema y exportar/importar |
 
-## Objetivo de gasto por cuenta
+## Límites de gasto
 
-Cada cuenta puede llevar un **objetivo de gasto** que se vacía solo cuando
-empieza el ciclo siguiente. Se pone al crearla o editarla, y dejar el campo
-vacío es no tener ninguno.
+Un límite es un **tope con nombre**: cuánto quieres gastar, en qué categorías y
+cada cuánto se vacía. Una cuenta puede llevar los que hagan falta, y cada uno va
+a lo suyo. Se crean y se editan desde dentro de la cuenta.
+
+| | |
+|---|---|
+| **Cuánto** | El tope, en euros |
+| **A qué gastos afecta** | A todos · solo a estas categorías · a todos menos estas |
+| **Cuándo se vacía** | Con el mes de la app · un día del mes (1–28) · cada semana |
+
+El caso que lo explica: «Gasto del mes», 400 €, **todo menos** los préstamos y
+las suscripciones —que no son decisiones del mes—, y aparte «Gasolina», 120 €,
+**solo** gasolina.
+
+**Cada límite manda sobre lo suyo.** Un repostaje sube la barra de todos los
+límites que incluyan gasolina, y de ninguno más. Si no quieres que cuente dos
+veces, lo excluyes del general: es explícito, se ve en su ficha y no hay que
+adivinar ninguna regla de prioridad.
 
 La cifra que manda es **el porcentaje que te queda**, no lo gastado: es lo que
-de verdad se quiere saber al mirar. Los euros van debajo, en pequeño, para
-quien quiera el detalle.
+de verdad se quiere saber al mirar. Los euros van debajo, en pequeño.
 
-- En el **Resumen**, la tarjeta de la cuenta lleva la barra llenándose y
-  «te queda el 72 % de 2000 €».
-- **Dentro de la cuenta**, el porcentaje va grande, con la barra y el detalle
-  en euros y los días que quedan de ciclo.
-- En **Planes**, la lista de cuentas dice cuáles tienen objetivo.
+- **Dentro de la cuenta**, la lista de sus límites, cada uno con su barra y un
+  pie que dice de qué cifras sale, a qué afecta y cuánto falta para que se vacíe.
+- En el **Resumen** y en **Planes** solo cabe uno, así que se enseña **el
+  general** —el primero que no sea de «solo estas categorías»—, porque «cuánto
+  me queda este mes» es lo que se viene a mirar, no el sub-tope de la gasolina.
 
 Los escalones son los mismos que los del presupuesto por categorías, para que
 «al límite» signifique lo mismo en toda la app: a partir del **85 %** avisa, y
@@ -140,9 +168,9 @@ icono y su frase.
 **No es un tope duro: la app avisa, no bloquea.** Si te impidiera apuntar el
 gasto, lo apuntarías en otro sitio y entonces la app te estaría mintiendo.
 
-Solo cuenta lo que **sale de esa cuenta como gasto**. Un traspaso a tu propia
-hucha no es gastar, así que no suma, igual que no suma en ningún otro total.
-Tampoco suma lo que sale de un apartado (ver más abajo).
+Lo que **no cuenta en ningún límite**: los traspasos —pasar dinero a tu propia
+hucha no es gastar— y lo que sale de un apartado, que ya lo habías separado
+(ver más abajo).
 
 ## Apartados
 
@@ -167,7 +195,7 @@ color. Cada uno lleva:
 
 ### La regla que lo hace útil
 
-Un gasto que sale de un apartado **no cuenta en el objetivo de gasto de la
+Un gasto que sale de un apartado **no cuenta en ningún límite de la
 cuenta ni en el presupuesto por categorías**. Ese dinero ya lo habías separado:
 si contara otra vez, lo estarías gastando dos veces.
 
@@ -441,7 +469,7 @@ js/
   data/             un archivo por tema, todos cuelgan de window.Datos
     ciclo.js        el día de corte configurado, atado a la matemática
     apartados.js    sub-bolsas dentro de una cuenta
-    limites.js      el objetivo de gasto de una cuenta
+    limites.js      los topes de gasto: ámbito, periodo y estado
     catalog.js      categorías de fábrica, colores y búsqueda por id
     demo.js         los datos de ejemplo, con semilla fija
     state.js        con qué arranca, cómo se guarda y las migraciones
@@ -474,12 +502,14 @@ js/
   screens/          una pantalla u hoja por archivo, con su cableado al lado
     inicio.js  movs.js  analisis.js  planes.js
     ajustes.js  ajustes-render.js
-    form.js  form-guardar.js  form-render.js  form-apartado.js
+    form.js  form-guardar.js  form-render.js
+    form-apartado.js  form-limite.js
     add.js   add-render.js     hoja de añadir movimiento
     detail.js  pick.js  cuenta.js  cobro.js  onboard.js
 tests/              sin dependencias: node tests/run.js
   ayuda.js          cuarenta líneas en vez de un framework
   ciclo.js  limites.js  apartados.js  programados.js  cuentas.js
+  presupuesto.js    que los euros del reparto no se muevan solos
   migracion.js      de una versión publicada a la de hoy, de punta a punta
 packaging/          convierte la app en un APK; si lo borras, la app sigue igual
 ```

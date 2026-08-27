@@ -90,9 +90,13 @@
      su frase, igual que en las barras del presupuesto.
      ============================================================ */
 
+  /* Cada límite lleva su color, pero los dos escalones de aviso mandan
+     sobre él: en rojo o en ámbar, el color deja de ser decoración y pasa
+     a significar algo. */
   function colorDeLimite(est, cuenta) {
     if (est.nivel === "pasado") return "var(--status-critical)";
     if (est.nivel === "cerca") return "var(--status-warning)";
+    if (est && est.color) return "var(--cat-" + est.color + ")";
     return S.catColorVar(cuenta);
   }
 
@@ -132,6 +136,48 @@
       '</div>';
   }
 
+  /* Una fila por límite, para la lista de dentro de una cuenta. Lo que
+     se lee de un vistazo es el porcentaje que queda; el pie dice de qué
+     cifras sale, a qué categorías afecta y cuánto falta para que se
+     vacíe, que es todo lo que hay que saber sin abrirlo. */
+  function limiteFilaHtml(est) {
+    var fill = colorDeLimite(est);
+    var pasado = est.nivel === "pasado";
+    var lim = S.limitePorId(est.id);
+
+    var cifra = pasado ? "+" + S.pct(Math.round((est.ratio - 1) * 100))
+                       : S.pct(est.pctQueda);
+    var dias = est.diasQuedan === 0 ? "último día"
+             : est.diasQuedan === 1 ? "queda 1 día"
+             : "quedan " + est.diasQuedan + " días";
+
+    return '' +
+      '<div class="limfila">' +
+        '<button type="button" class="limfila__main" data-form="limite" ' +
+                'data-form-id="' + esc(est.id) + '">' +
+          '<span class="limfila__head">' +
+            '<span class="cat-face limfila__face" ' +
+                  'style="--cat-color:var(--cat-' + est.color + ')">' +
+              esc(est.emoji) + '</span>' +
+            '<span class="limfila__name">' + esc(est.name) + '</span>' +
+            '<span class="limfila__cifra"' + (pasado ? ' style="color:' + fill + '"' : "") +
+              '>' + esc(cifra) + '</span>' +
+          '</span>' +
+          '<span class="limfila__track">' +
+            '<span class="limfila__fill" style="width:' + est.pct + '%;background:' +
+              fill + '"></span>' +
+          '</span>' +
+          '<span class="limfila__foot">' +
+            (pasado ? icon("warning", 11) + " " : est.nivel === "cerca"
+              ? icon("warning", 11) + " Al límite · " : "") +
+            esc(S.moneyShort(est.gastado) + " de " + S.moneyShort(est.limite)) +
+            ' · ' + esc(lim ? S.textoAmbitoLimite(lim) : "") +
+            ' · ' + esc(dias) +
+          '</span>' +
+        '</button>' +
+      '</div>';
+  }
+
   /* Y la de dentro de la tarjeta de cuenta del Resumen, que va sobre el
      color de la cuenta y en blanco: ahí la severidad la lleva el texto,
      porque una barra roja sobre un fondo de color no se lee. */
@@ -152,6 +198,7 @@
   /* --- lo que usan otros archivos --- */
   A.accName = accName;
   A.limiteHtml = limiteHtml;
+  A.limiteFilaHtml = limiteFilaHtml;
   A.limiteEnTarjeta = limiteEnTarjeta;
   A.accountSelect = accountSelect;
   A.emptyHtml = emptyHtml;

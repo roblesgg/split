@@ -14,7 +14,7 @@
   function emptyHtml() { return A.emptyHtml.apply(null, arguments); }
   function goTo() { return A.goTo.apply(null, arguments); }
   function nombreCiclo() { return A.nombreCiclo.apply(null, arguments); }
-  function limiteHtml() { return A.limiteHtml.apply(null, arguments); }
+  function limiteFilaHtml() { return A.limiteFilaHtml.apply(null, arguments); }
   function periodo() { return A.periodo.apply(null, arguments); }
   function mountIcons() { return A.mountIcons.apply(null, arguments); }
   function openAdd() { return A.openAdd.apply(null, arguments); }
@@ -105,7 +105,7 @@
     });
 
     var ultimos = propios.slice(0, 5);
-    var lim = S.estadoDeLimite(a.id, curKey);
+    var lims = S.limitesDe(a.id);
     var aps = S.apartadosDe(a.id);
     var reservado = S.reservadoDe(a.id);
     var uso = S.accountUsage(a.id);
@@ -134,18 +134,19 @@
           : "") +
       '</div>' +
 
-      /* Si hay objetivo de gasto, lo primero al abrir la cuenta es cuánto
-         te queda: es lo que se viene a mirar. */
-      (lim
-        ? '<div class="card" style="margin-top:var(--sp-5)">' +
-            '<div class="card__head">' +
-              '<h3 class="card__title">Tu objetivo de gasto</h3>' +
-              '<button type="button" class="card__link" data-form="account" ' +
-                'data-form-id="' + esc(a.id) + '">Cambiar</button>' +
-            '</div>' +
-            limiteHtml(lim, a) +
-          '</div>'
-        : "") +
+      /* Los límites, lo primero al abrir la cuenta: cuánto te queda es lo
+         que se viene a mirar. Uno o cinco, la lista es la misma. */
+      '<div class="card" style="margin-top:var(--sp-5)">' +
+        '<div class="card__head">' +
+          '<h3 class="card__title">Límites de gasto</h3>' +
+          '<button type="button" class="card__link" id="cuentaLimite">+ Nuevo</button>' +
+        '</div>' +
+        (lims.length
+          ? lims.map(function (l) { return limiteFilaHtml(S.estadoDeLimite(l.id)); }).join("")
+          : '<p class="card__sub">Un límite es un tope con nombre: cuánto quieres ' +
+            'gastar y en qué categorías. Puedes tener los que quieras — uno para ' +
+            'el mes entero y otro solo para la gasolina, cada uno a lo suyo.</p>') +
+      '</div>' +
 
       '<p class="field__label" style="margin-top:var(--sp-5)">En ' +
         esc(nombreCiclo(curKey)) + '</p>' +
@@ -242,8 +243,15 @@
         return;
       }
 
-      /* Los apartados se crean y se editan sin salir de la cuenta: al
-         cerrar el formulario se vuelve aquí con lo que hayas hecho. */
+      /* Los límites y los apartados se crean y se editan sin salir de la
+         cuenta: al cerrar el formulario se vuelve aquí con lo que hayas
+         hecho. Los que ya existen van por [data-form], más abajo. */
+      if (e.target.closest("#cuentaLimite")) {
+        ui.cuentaReturn = id;
+        sheets.cuenta.close();
+        setTimeout(function () { openForm("limite", null, { accountId: id }); }, 220);
+        return;
+      }
       if (e.target.closest("#cuentaApartado")) {
         ui.cuentaReturn = id;
         sheets.cuenta.close();

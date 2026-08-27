@@ -89,6 +89,13 @@
     return Math.max(0, 100 - allocationSum());
   }
 
+  /* Los dos, redondeados para pintarlos. Redondear la suma de los
+     redondeos daría 101 % con partidas que suman 100. */
+  function allocationSumPct() { return Math.round(allocationSum()); }
+  function savingsPctRedondo() { return Math.max(0, 100 - allocationSumPct()); }
+
+  /* Elegir el porcentaje a mano sí es un número redondo: nadie pide un
+     9,18 %. Poner euros es otra cosa, y va justo debajo. */
   function setAllocation(catId, pct) {
     D.state.allocation[catId] = Math.max(0, Math.min(100, Math.round(pct)));
     save();
@@ -96,14 +103,25 @@
 
   /* La gente piensa en euros, no en porcentajes: «doscientos al mes de
      comida». Por dentro se sigue guardando el porcentaje, que es lo que
-     hace que el presupuesto se ajuste solo cuando cambia el ingreso. */
+     hace que el presupuesto se ajuste solo cuando cambia el ingreso.
+
+     El porcentaje se guarda CON DECIMALES, y esto no es un detalle: al
+     redondearlo, 200 € sobre 2.178 se guardaban como 9 %, y de ese 9 %
+     salían luego 196 €. Bastaba con repintar la lista —quitar otra
+     partida, por ejemplo— para que las cifras que habías escrito se
+     movieran solas. Con el porcentaje entero, los euros mienten. */
   function setAllocationEuros(catId, euros) {
     var base = plannedIncome();
     if (!(base > 0)) return false;
-    var pct = Math.max(0, Math.min(100, Math.round((+euros || 0) / base * 100)));
-    D.state.allocation[catId] = pct;
+    D.state.allocation[catId] = Math.max(0, Math.min(100, (+euros || 0) / base * 100));
     save();
     return true;
+  }
+
+  /* El porcentaje para enseñarlo: redondeado, que es como se lee. Se
+     redondea al pintar y nunca al guardar. */
+  function allocationPct(catId) {
+    return Math.round((D.state.allocation || {})[catId] || 0);
   }
 
   /* Quitar una categoría del presupuesto no es lo mismo que ponerla a
@@ -134,10 +152,11 @@
     save();
   }
 
-  /* presupuesto en euros derivado del porcentaje */
+  /* Presupuesto en euros derivado del porcentaje. Con el porcentaje sin
+     redondear, esto devuelve exactamente los euros que se escribieron. */
   function budgetFor(catId) {
     var pct = (D.state.allocation || {})[catId] || 0;
-    return Math.round((pct / 100) * plannedIncome());
+    return Math.round((pct / 100) * plannedIncome() * 100) / 100;
   }
 
   function budgetTotal() {
@@ -165,6 +184,9 @@
   D.declaredIncome = declaredIncome;
   D.plannedIncome = plannedIncome;
   D.removeAllocation = removeAllocation;
+  D.allocationPct = allocationPct;
+  D.allocationSumPct = allocationSumPct;
+  D.savingsPctRedondo = savingsPctRedondo;
   D.resetAllocation = resetAllocation;
   D.savingsPct = savingsPct;
   D.setAllocation = setAllocation;

@@ -104,13 +104,29 @@
       }
     }
 
-    if (t === "apartado") {
-      var resAp = S.deleteApartado(id);
-      U.toast(resAp.sueltos
-        ? "Apartado borrado · " + resAp.sueltos +
-          (resAp.sueltos === 1 ? " gasto vuelve" : " gastos vuelven") + " al límite de la cuenta"
-        : "Apartado borrado", { icon: "check", duration: resAp.sueltos ? 5000 : 3000 });
+    if (t === "limite") {
+      if (!String(d.name).trim()) {
+        U.toast("Ponle un nombre al límite", { icon: "warning" }); return;
+      }
+      if (!(parseFloat(d.importe) > 0)) {
+        U.toast("Pon cuánto puedes gastar", { icon: "warning" }); return;
+      }
+      /* Un límite «solo estas» sin ninguna marcada no contaría nunca
+         nada: es una barra que jamás se mueve, y eso desconcierta más
+         que ayuda. */
+      if (d.ambito === "solo" && !(d.categoryIds || []).length) {
+        U.toast("Marca al menos una categoría", { icon: "warning" }); return;
+      }
+      var datosLim = {
+        name: d.name, emoji: d.emoji, color: d.color,
+        accountId: d.accountId, importe: d.importe,
+        ambito: d.ambito, categoryIds: d.categoryIds,
+        reinicio: { modo: d.reinicio, dia: d.reinicioDia }
+      };
+      if (id) S.updateLimite(id, datosLim); else S.addLimite(datosLim);
+      U.toast(id ? "Límite actualizado" : "Límite creado", { icon: "check" });
     }
+
     if (t === "goal") {
       if (!String(d.name).trim()) {
         U.toast("Ponle un nombre a la meta", { icon: "warning" }); return;
@@ -239,6 +255,22 @@
       U.toast(res.use && res.use.total ? "Cuenta eliminada con todo lo suyo"
                                        : "Cuenta eliminada", { icon: "check" });
     }
+    /* Estaba metido dentro de saveForm, así que guardar un apartado ya
+       editado lo borraba acto seguido. Aquí es donde va. */
+    if (t === "apartado") {
+      var resAp = S.deleteApartado(id);
+      U.toast(resAp.sueltos
+        ? "Apartado borrado · " + resAp.sueltos +
+          (resAp.sueltos === 1 ? " gasto vuelve" : " gastos vuelven") + " al límite de la cuenta"
+        : "Apartado borrado", { icon: "check", duration: resAp.sueltos ? 5000 : 3000 });
+    }
+
+    if (t === "limite") {
+      /* Borrar un límite no toca ni un movimiento: era solo un tope. */
+      S.deleteLimite(id);
+      U.toast("Límite borrado", { icon: "check" });
+    }
+
     if (t === "goal") {
       if (!confirm("¿Eliminar esta meta?")) return;
       S.deleteGoal(id);

@@ -64,11 +64,9 @@
     } else if (type === "account") {
       d = it
         ? { name: it.name, type: it.type, opening: it.opening,
-            icon: it.icon || "wallet", color: it.color || 1,
-            /* vacío, no cero: el campo en blanco es «sin límite» */
-            limite: it.limite != null ? it.limite : "" }
+            icon: it.icon || "wallet", color: it.color || 1 }
         : { name: "", type: "Banco", opening: 0, icon: "wallet",
-            color: ((S.state.accounts.length * 5) % S.CAT_COLORS) + 1, limite: "" };
+            color: ((S.state.accounts.length * 5) % S.CAT_COLORS) + 1 };
     } else if (type === "aportar") {
       /* Mover dinero entre la cuenta y uno de sus apartados. No es un
          movimiento: nada sale de la cuenta, solo cambia lo reservado. */
@@ -85,6 +83,20 @@
             /* siempre nace dentro de una cuenta: se llega desde ella */
             accountId: (opts && opts.accountId) || accs[0].id,
             porCiclo: "", inicial: "", categoryIds: [] };
+    } else if (type === "limite") {
+      d = it
+        ? { name: it.name, emoji: it.emoji, color: it.color,
+            accountId: it.accountId, importe: it.importe,
+            ambito: it.ambito,
+            categoryIds: (it.categoryIds || []).slice(),
+            reinicio: it.reinicio && it.reinicio.modo ? it.reinicio.modo : "ciclo",
+            reinicioDia: it.reinicio && it.reinicio.dia != null ? it.reinicio.dia : 1 }
+        : { name: "", emoji: "🎯",
+            color: ((S.limites().length * 5) % S.CAT_COLORS) + 1,
+            /* siempre nace dentro de una cuenta: se llega desde ella */
+            accountId: (opts && opts.accountId) || accs[0].id,
+            importe: "", ambito: "todas", categoryIds: [],
+            reinicio: "ciclo", reinicioDia: 1 };
     } else if (type === "goal") {
       d = it ? { name: it.name, target: it.target, saved: it.saved, monthly: it.monthly }
              : { name: "", target: "", saved: 0, monthly: "" };
@@ -126,6 +138,7 @@
       resumen: "Qué cuentan estas cifras",
       category: id ? "Editar categoría" : "Nueva categoría",
       apartado: id ? "Editar apartado" : "Nuevo apartado",
+      limite: id ? "Editar límite" : "Nuevo límite",
       aportar: "Apartar o devolver"
     }[type] || "Editar";
 
@@ -139,6 +152,7 @@
     if (type === "account") return S.state.accounts.find(function (x) { return x.id === id; });
     if (type === "aportar") return null;   /* no edita una ficha */
     if (type === "apartado") return S.apartadoById(id);
+    if (type === "limite") return S.limitePorId(id);
     if (type === "goal") return S.state.goals.find(function (x) { return x.id === id; });
     return (S.state.recurring || []).find(function (x) { return x.id === id; });
   }
@@ -260,6 +274,14 @@
     if (nombre) nombre.textContent = String(ui.form.d.name || "").trim() || "Tu cuenta";
   }
 
+  /* Repinta solo la línea que resume el límite. Marcar una categoría no
+     puede repintar la hoja entera: la rejilla se movería bajo el dedo. */
+  function refreshLimite() {
+    if (ui.form.type !== "limite") return;
+    var p = $("#fLimResumen");
+    if (p) p.textContent = A.resumenLimite(ui.form.d);
+  }
+
   function wire() {
     /* --- sheet de formulario (cuentas, metas, programados) --- */
     var formBody = $("#sheetFormBody");
@@ -295,11 +317,14 @@
 
     formBody.addEventListener("input", function (e) {
       if (!readField(e.target)) return;
-      if (ui.form.type === "category") refreshCatPreview();
+      /* la vista previa la comparten la categoría, el apartado y el
+         límite: los tres tienen cara, nombre y color */
+      refreshCatPreview();
       if (ui.form.type === "account") refreshCardPreview();
       /* el aviso de «se apuntará X» se recalcula mientras se teclea, sin
          repintar: repintar dejaría el campo sin foco a media cifra */
       if (ui.form.type === "saldo") refreshAjuste();
+      if (ui.form.type === "limite") refreshLimite();
     });
 
     formBody.addEventListener("change", function (e) { readField(e.target); });
@@ -425,6 +450,36 @@
         var i = lista.indexOf(cid);
         if (i >= 0) lista.splice(i, 1); else lista.push(cid);
         node.setAttribute("aria-pressed", String(i < 0));
+        refreshLimite();
+        U.haptic("light");
+        return;
+      }
+
+      /* --- los tres botones del límite --- */
+      if ((node = e.target.closest("[data-flamb]"))) {
+        ui.form.d.ambito = node.getAttribute("data-flamb");
+        /* la rejilla de categorías aparece o desaparece: hay que repintar */
+        renderForm();
+        U.haptic("light");
+        return;
+      }
+      if ((node = e.target.closest("[data-flrei]"))) {
+        var modo = node.getAttribute("data-flrei");
+        ui.form.d.reinicio = modo;
+        /* el día por defecto de cada modo: lunes si va por semanas, y el
+           1 si va por días del mes. Un 6 heredado de «sábado» sería un
+           día del mes que nadie ha elegido. */
+        ui.form.d.reinicioDia = modo === "semana" ? 0 : 1;
+        renderForm();
+        U.haptic("light");
+        return;
+      }
+      if ((node = e.target.closest("[data-flreidia]"))) {
+        ui.form.d.reinicioDia = +node.getAttribute("data-flreidia");
+        $$("[data-flreidia]", formBody).forEach(function (b) {
+          b.setAttribute("aria-pressed", String(b === node));
+        });
+        refreshLimite();
         U.haptic("light");
         return;
       }
