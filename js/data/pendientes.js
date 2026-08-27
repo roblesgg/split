@@ -224,38 +224,31 @@
     return ymd(new Date(hoy.getFullYear(), hoy.getMonth(), 1));
   }
 
-  function txDelResumen() {
+  /* La cuenta ya no se elige aquí: la elige el carrusel del Resumen, que
+     es donde se ve cuál estás mirando. Aquí solo queda el periodo. */
+  function txDelResumen(accId) {
     var cfg = resumenCfg();
     var desde = desdeDelResumen(cfg);
     var hasta = ymd(new Date());
 
     return D.state.transactions.filter(function (t) {
       if (desde && (t.date < desde || t.date > hasta)) return false;
-      if (!cfg.cuentas) return true;
-      /* de un traspaso solo cuenta la punta que esté dentro del filtro, y
-         como los traspasos no son ni ingreso ni gasto, da igual: totals()
-         ya los ignora */
-      return cfg.cuentas.indexOf(t.accountId) >= 0 ||
-             (t.toAccountId && cfg.cuentas.indexOf(t.toAccountId) >= 0);
+      if (!accId) return true;
+      /* de un traspaso cuenta la punta que sea de esta cuenta, y como no
+         son ni ingreso ni gasto da igual: totals() ya los ignora */
+      return t.accountId === accId || t.toAccountId === accId;
     });
   }
 
-  function totalesResumen() { return totals(txDelResumen()); }
+  function totalesResumen(accId) { return totals(txDelResumen(accId)); }
 
-  /* Cómo se lee el filtro puesto, para escribirlo debajo de las cifras. */
+  /* Cómo se lee el periodo puesto, para escribirlo debajo de las cifras. */
   function etiquetaResumen() {
     var cfg = resumenCfg();
-    var cuando = cfg.periodo === "ano" ? "Este año"
-               : cfg.periodo === "todo" ? "Desde el principio"
-               : cfg.periodo === "dias" ? "Últimos " + cfg.dias + " días"
-               : "Este mes";
-
-    if (!cfg.cuentas) return cuando;
-    if (cfg.cuentas.length === 1) {
-      var a = D.state.accounts.find(function (x) { return x.id === cfg.cuentas[0]; });
-      return cuando + " · " + (a ? a.name : "una cuenta");
-    }
-    return cuando + " · " + cfg.cuentas.length + " cuentas";
+    return cfg.periodo === "ano" ? "Este año"
+         : cfg.periodo === "todo" ? "Desde el principio"
+         : cfg.periodo === "dias" ? "Últimos " + cfg.dias + " días"
+         : "Este mes";
   }
 
   /* ---------- corregir el saldo ----------

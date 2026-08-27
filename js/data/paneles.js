@@ -26,7 +26,7 @@
      cuenta: los límites del mes son de todas, y los apartados y el
      objetivo de gasto son de una. */
   var POR_DEFECTO_TODAS = [
-    "acciones", "kpis", "limites", "categorias", "recientes", "proximos"
+    "acciones", "kpis", "apurado", "limites", "categorias", "recientes", "proximos"
   ];
   var POR_DEFECTO_CUENTA = [
     "acciones", "kpis", "objetivo", "apartados", "categorias", "recientes"

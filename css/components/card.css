@@ -407,3 +407,89 @@
 
 /* el límite va en su propia fila, entre el saldo y el pie */
 .paycard__limite { margin-top: auto; padding-top: var(--sp-3); }
+
+/* ---------- el panel del Resumen ----------
+   La tarjeta centrada del carrusel manda sobre todo lo que va debajo, y
+   los bloques son los que cada cuenta tenga puestos. */
+
+.paycard--todas {
+  /* La de «todo tu dinero» no es una cuenta: se distingue por el acento
+     y por no llevar tipo de banco, no por ser de otra forma. */
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--accent) 82%, #10131a),
+    color-mix(in srgb, var(--accent) 55%, #10131a));
+}
+
+.panel-editar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  border: 1.5px dashed var(--border);
+  background: none;
+  color: var(--text-secondary);
+  font-size: var(--t-body);
+  font-weight: var(--w-medium);
+  cursor: pointer;
+}
+.panel-editar:active { background: var(--surface-2); }
+
+/* El hueco donde va un gráfico dentro de un bloque. */
+.chart-box { width: 100%; }
+
+/* ---------- elegir y ordenar los bloques ---------- */
+
+.pbloques { display: flex; flex-direction: column; gap: var(--sp-2); }
+
+.pbloque {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: var(--sp-3) var(--sp-4);
+  border: 0;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+.pbloque--add { cursor: pointer; }
+.pbloque--add:active { background: var(--surface-3); }
+
+.pbloque__texto { flex: 1; min-width: 0; }
+
+.pbloque__nombre {
+  display: block;
+  font-size: var(--t-body);
+  font-weight: var(--w-semi);
+}
+
+.pbloque__sub {
+  display: block;
+  margin-top: 1px;
+  font-size: var(--t-min);
+  color: var(--text-secondary);
+}
+
+.pbloque__flechas { flex: none; display: flex; gap: 2px; }
+.pbloque__flechas .icon-btn:disabled { opacity: 0.3; }
+
+.pbloque__quitar { flex: none; color: var(--text-muted); }
+
+.pbloque__mas {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-full);
+  background: var(--surface-raised);
+  color: var(--accent);
+}

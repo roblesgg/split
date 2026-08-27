@@ -18,7 +18,7 @@
   var addRecurring = D.addRecurring, addTag = D.addTag, addTx = D.addTx;
   var applyEmojiSet = D.applyEmojiSet, applyTheme = D.applyTheme;
   var averageExpense = D.averageExpense, averageIncome = D.averageIncome;
-  var balance = D.balance, byCategory = D.byCategory;
+  var balance = D.balance, byCategory = D.byCategory, delCiclo = D.delCiclo;
   var catById = D.catById, catColorVar = D.catColorVar, catExacta = D.catExacta;
   var categoriasMadre = D.categoriasMadre, categories = D.categories, categoriesOf = D.categoriesOf;
   var categoryUsage = D.categoryUsage, clearAll = D.clearAll, confirmarPendiente = D.confirmarPendiente;
@@ -66,6 +66,12 @@
   var afectaA = D.afectaA, tieneTope = D.tieneTope;
   var textoAmbitoLimite = D.textoAmbitoLimite, AMBITOS_LIMITE = D.AMBITOS_LIMITE;
   var textoAmbitoCortoLimite = D.textoAmbitoCortoLimite;
+
+  /* El panel de cada cuenta: qué bloques y en qué orden. */
+  var panelDe = D.panelDe, setPanel = D.setPanel, resetPanel = D.resetPanel;
+  var panelTocado = D.panelTocado, ponerBloque = D.ponerBloque;
+  var quitarBloque = D.quitarBloque, moverBloque = D.moverBloque;
+  var PANEL_TODAS = D.PANEL_TODAS;
   var addApartado = D.addApartado, updateApartado = D.updateApartado;
   var deleteApartado = D.deleteApartado, apartadoById = D.apartadoById;
   var apartadosDe = D.apartadosDe, apartados = D.apartados, aportar = D.aportar;
@@ -124,6 +130,14 @@
     afectaA: afectaA, tieneTope: tieneTope,
     textoAmbitoLimite: textoAmbitoLimite, textoAmbitoCortoLimite: textoAmbitoCortoLimite,
     AMBITOS_LIMITE: AMBITOS_LIMITE,
+
+    /* El Resumen es un panel de bloques y cada cuenta tiene el suyo.
+       Aquí solo se guardan nombres y su orden: qué pinta cada bloque lo
+       sabe la capa de pantallas, que es quien los registra. */
+    panelDe: panelDe, setPanel: setPanel, resetPanel: resetPanel,
+    panelTocado: panelTocado, ponerBloque: ponerBloque,
+    quitarBloque: quitarBloque, moverBloque: moverBloque,
+    PANEL_TODAS: PANEL_TODAS,
 
     /* Apartados: sub-bolsas dentro de una cuenta. El saldo no se guarda,
        se calcula, así que editar o borrar un gasto nunca lo descuadra. */
@@ -191,7 +205,7 @@
     totals: totals,
     balance: balance,
     accountBalance: accountBalance,
-    byCategory: byCategory,
+    byCategory: byCategory, delCiclo: delCiclo,
     serieDeCiclos: serieDeCiclos,
     dailySpend: dailySpend,
     savingsRate: savingsRate,

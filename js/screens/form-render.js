@@ -157,8 +157,9 @@
     }
 
     if (t === "resumen") {
-      var todas = d.cuentas.length === S.state.accounts.length;
-
+      /* Solo el periodo. La cuenta la elige el carrusel del Resumen, que
+         es donde se ve cuál estás mirando: tenerlo en dos sitios era la
+         forma segura de que un día no cuadraran. */
       html =
         '<div class="field">' +
           '<span class="field__label">De cuándo</span>' +
@@ -179,32 +180,8 @@
             '</div>'
           : "") +
 
-        '<div class="field" style="margin-top:var(--sp-6)">' +
-          '<div class="card__head" style="margin-bottom:var(--sp-3)">' +
-            '<span class="field__label" style="margin:0">De qué cuentas</span>' +
-            '<button type="button" class="card__link" id="fTodasCuentas">' +
-              (todas ? "Ninguna" : "Todas") + '</button>' +
-          '</div>' +
-          S.state.accounts.map(function (a) {
-            var puesta = d.cuentas.indexOf(a.id) >= 0;
-            return '<button type="button" class="pick" data-fcuenta="' + esc(a.id) + '" ' +
-                     'aria-pressed="' + puesta + '">' +
-                '<span class="pick__punto" style="background:' +
-                  S.catColorVar(a) + '"></span>' +
-                '<span class="pick__texto">' +
-                  '<span class="pick__nombre">' + esc(a.name) + '</span>' +
-                  '<span class="pick__sub">' + esc(a.type) + '</span>' +
-                '</span>' +
-                (puesta
-                  ? '<span class="pick__tick" data-icon="check" data-icon-size="16"></span>'
-                  : '') +
-              '</button>';
-          }).join("") +
-          (d.cuentas.length
-            ? ""
-            : '<p class="field__hint">' + icon("warning", 12) +
-              ' Marca al menos una, o no habrá nada que contar.</p>') +
-        '</div>';
+        '<p class="field__hint">Vale para las tres cifras de la cuenta que estés ' +
+          'mirando. Para cambiar de cuenta, desliza las tarjetas de arriba.</p>';
     }
 
     if (t === "saldo") {

@@ -176,6 +176,18 @@
     <div class="sheet__body" id="sheetPickBody"></div>
   </div>
 
+  <!-- qué bloques enseña el Resumen de una cuenta, y en qué orden -->
+  <div class="sheet" id="sheetPanel" data-open="false" role="dialog" aria-modal="true"
+       aria-labelledby="sheetPanelTitle" aria-hidden="true">
+    <div class="sheet__grabber" aria-hidden="true"></div>
+    <div class="sheet__head">
+      <h2 class="sheet__title" id="sheetPanelTitle">Personalizar</h2>
+      <button type="button" class="icon-btn" data-sheet-close aria-label="Cerrar"
+              data-icon="close" data-icon-size="16"></button>
+    </div>
+    <div class="sheet__body" id="sheetPanelBody"></div>
+  </div>
+
   <!-- una cuenta por dentro: saldo, su mes y sus últimos movimientos -->
   <div class="sheet" id="sheetCuenta" data-open="false" role="dialog" aria-modal="true"
        aria-labelledby="sheetCuentaTitle" aria-hidden="true">
@@ -239,6 +251,7 @@
 <script src="js/data/apartados.js"></script>
 <script src="js/data/objetivo.js"></script>
 <script src="js/data/limites.js"></script>
+<script src="js/data/paneles.js"></script>
 <script src="js/data/select.js"></script>
 <script src="js/data/prefs.js"></script>
 <script src="js/store.js"></script>
@@ -263,6 +276,7 @@
 <script src="js/app/shell.js"></script>
 
 <!-- una pantalla u hoja por archivo; cada una se registra sola -->
+<script src="js/screens/bloques.js"></script>
 <script src="js/screens/inicio.js"></script>
 <script src="js/screens/movs.js"></script>
 <script src="js/screens/analisis.js"></script>
@@ -281,6 +295,7 @@
 <script src="js/screens/pick.js"></script>
 <script src="js/screens/cuenta.js"></script>
 <script src="js/screens/cobro.js"></script>
+<script src="js/screens/personalizar.js"></script>
 <script src="js/screens/onboard.js"></script>
 
 <!-- el último: monta las hojas, engancha el cableado y pinta -->

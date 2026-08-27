@@ -40,14 +40,9 @@
 
     if (type === "resumen") {
       var cfg = S.resumenCfg();
-      d = {
-        periodo: cfg.periodo,
-        dias: cfg.dias,
-        /* null en el estado significa «todas»; aquí se materializa la
-           lista para poder ir marcando y desmarcando */
-        cuentas: cfg.cuentas ? cfg.cuentas.slice()
-                             : S.state.accounts.map(function (a) { return a.id; })
-      };
+      /* Las cuentas ya no se eligen aquí: las elige el carrusel del
+         Resumen, que es donde se ve cuál estás mirando. */
+      d = { periodo: cfg.periodo, dias: cfg.dias };
     } else if (type === "saldo") {
       /* No se edita nada de la cuenta: solo se dice cuánto hay de verdad
          y la app apunta la diferencia. */
@@ -333,18 +328,6 @@
       }
       if ((node = e.target.closest("[data-fperiodo]"))) {
         ui.form.d.periodo = node.getAttribute("data-fperiodo");
-        renderForm(); U.haptic("light"); return;
-      }
-      if ((node = e.target.closest("[data-fcuenta]"))) {
-        var idC = node.getAttribute("data-fcuenta");
-        var iC = ui.form.d.cuentas.indexOf(idC);
-        if (iC >= 0) ui.form.d.cuentas.splice(iC, 1); else ui.form.d.cuentas.push(idC);
-        renderForm(); U.haptic("light"); return;
-      }
-      if (e.target.closest("#fTodasCuentas")) {
-        ui.form.d.cuentas = ui.form.d.cuentas.length === S.state.accounts.length
-          ? []
-          : S.state.accounts.map(function (a) { return a.id; });
         renderForm(); U.haptic("light"); return;
       }
       if ((node = e.target.closest("[data-fmodo]"))) {

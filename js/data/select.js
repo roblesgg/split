@@ -88,10 +88,24 @@
      estaba separado y no puede volver a consumir el reparto del sueldo.
      Los gráficos NO lo pasan, porque ahí la pregunta es otra —en qué se
      te va el dinero— y ese gasto existió igual. */
-  function byCategory(key, kind, sinApartados) {
+  /* Casi todo lo de aquí abajo admite una cuenta al final: null es
+     «todas», que es como se ha comportado siempre. Es lo que hace que el
+     Resumen pueda ser el panel de una cuenta sin duplicar un solo
+     cálculo. Un traspaso cuenta si cualquiera de sus dos puntas es de la
+     cuenta; da igual, porque totals() y estos selectores solo miran
+     ingresos y gastos. */
+  function delCiclo(key, accId) {
+    var tx = txDeCiclo(key);
+    if (!accId) return tx;
+    return tx.filter(function (t) {
+      return t.accountId === accId || t.toAccountId === accId;
+    });
+  }
+
+  function byCategory(key, kind, sinApartados, accId) {
     var want = kind || "out";
     var sums = {};
-    txDeCiclo(key).forEach(function (t) {
+    delCiclo(key, accId).forEach(function (t) {
       if (t.kind !== want) return;
       if (sinApartados && t.apartadoId) return;
       var raiz = raizDe(t.categoryId);
@@ -111,12 +125,12 @@
   }
 
   /* serie de los últimos n ciclos */
-  function serieDeCiclos(n) {
+  function serieDeCiclos(n, accId) {
     var out = [];
     var cur = cicloActual();
     for (var i = n - 1; i >= 0; i--) {
       var key = addMonths(cur, -i);
-      var t = totals(txDeCiclo(key));
+      var t = totals(delCiclo(key, accId));
       out.push({
         key: key,
         label: etiquetaCiclo(key, "short"),
@@ -132,12 +146,12 @@
   /* gasto día a día del ciclo, para el heatmap. Las celdas van seguidas
      desde el primer día del ciclo, así que con un corte a mitad de mes la
      rejilla empieza por el 25 y sigue hasta el 24 del siguiente. */
-  function dailySpend(key) {
+  function dailySpend(key, accId) {
     var n = diasDeCiclo(key);
     var desde = parseYmd(rangoDeCiclo(key).desde);
     var days = [];
     for (var d = 0; d < n; d++) days.push(0);
-    txDeCiclo(key).forEach(function (t) {
+    delCiclo(key, accId).forEach(function (t) {
       if (t.kind !== "out") return;
       var i = diaDeCiclo(t.date, key) - 1;
       if (i >= 0 && i < n) days[i] += t.amount;
@@ -154,16 +168,16 @@
   }
 
   /* tasa de ahorro = neto / ingresos */
-  function savingsRate(key) {
-    var t = totals(txDeCiclo(key));
+  function savingsRate(key, accId) {
+    var t = totals(delCiclo(key, accId));
     if (t.income <= 0) return 0;
     return (t.net / t.income) * 100;
   }
 
   /* comercios más frecuentes por importe */
-  function topMerchants(key, limit) {
+  function topMerchants(key, limit, accId) {
     var sums = {};
-    txDeCiclo(key).forEach(function (t) {
+    delCiclo(key, accId).forEach(function (t) {
       if (t.kind !== "out") return;
       var k = t.note || "Sin concepto";
       if (!sums[k]) sums[k] = { name: k, value: 0, count: 0, categoryId: t.categoryId };
@@ -236,6 +250,7 @@
   D.byCategory = byCategory;
   D.serieDeCiclos = serieDeCiclos;
   D.dailySpend = dailySpend;
+  D.delCiclo = delCiclo;
   D.expenseShapeFraction = expenseShapeFraction;
   D.projectedExpense = projectedExpense;
   D.savingsRate = savingsRate;

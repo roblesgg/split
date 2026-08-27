@@ -43,16 +43,7 @@
     }
 
     if (t === "resumen") {
-      if (!d.cuentas.length) {
-        U.toast("Marca al menos una cuenta", { icon: "warning" }); return;
-      }
-      S.setResumen({
-        periodo: d.periodo,
-        dias: parseInt(d.dias, 10) || 30,
-        /* todas marcadas se guarda como «todas», no como la lista: así
-           una cuenta nueva entra sola en vez de quedarse fuera */
-        cuentas: d.cuentas.length === S.state.accounts.length ? null : d.cuentas
-      });
+      S.setResumen({ periodo: d.periodo, dias: parseInt(d.dias, 10) || 30 });
       U.toast("Hecho", { icon: "check" });
     }
 

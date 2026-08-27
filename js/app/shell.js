@@ -185,6 +185,24 @@
       if ((node = e.target.closest("[data-tx]"))) { openDetail(node.getAttribute("data-tx")); return; }
       if ((node = e.target.closest("[data-goto]"))) { goTo(node.getAttribute("data-goto")); return; }
 
+      /* Las tarjetas del carrusel hacen dos cosas, y en este orden: la
+         que no está centrada se centra, y la que ya lo está se abre.
+         Deslizar elige, tocar la que miras entra: es lo que se espera de
+         unas tarjetas, y sin esto no habría forma de llegar a una cuenta
+         desde el Resumen. */
+      if ((node = e.target.closest("[data-panel]"))) {
+        var idP = node.getAttribute("data-panel") || null;
+        if (idP !== ui.panelCuenta) {
+          ui.panelCuenta = idP;
+          A.renderInicio();
+          U.haptic("light");
+        } else if (idP) {
+          openCuenta(idP);
+        } else {
+          goTo("planes");
+        }
+        return;
+      }
       if ((node = e.target.closest("[data-cuenta]"))) {
         openCuenta(node.getAttribute("data-cuenta"));
         return;
@@ -194,6 +212,7 @@
         return;
       }
       if (e.target.closest("#kpiFiltro")) { openForm("resumen"); return; }
+      if (e.target.closest("#panelEditar")) { A.abrirPanel(ui.panelCuenta); return; }
       if (e.target.closest("#colaAbrir")) { abrirCobros(); return; }
       if ((node = e.target.closest("[data-rec-toggle]"))) {
         var r = S.toggleRecurring(node.getAttribute("data-rec-toggle"));
@@ -206,7 +225,11 @@
       }
       if ((node = e.target.closest("[data-quick]"))) {
         var q = node.getAttribute("data-quick");
-        openAdd(q === "ingreso" ? "in" : q === "traspaso" ? "transfer" : "out");
+        /* Con una cuenta abierta en el panel, lo que apuntes va a ella:
+           es lo que espera cualquiera que esté mirándola. */
+        var cuandoCuenta = node.getAttribute("data-quick-cuenta");
+        openAdd(q === "ingreso" ? "in" : q === "traspaso" ? "transfer" : "out", null,
+                cuandoCuenta ? { accountId: cuandoCuenta } : null);
         return;
       }
       if ((node = e.target.closest("[data-kind]"))) {

@@ -32,6 +32,7 @@
     close:    '<path d="m6.5 6.5 11 11M17.5 6.5l-11 11"/>',
     chevron:  '<path d="m9 5.5 6.5 6.5L9 18.5"/>',
     chevDown: '<path d="m5.5 9 6.5 6.5L18.5 9"/>',
+    chevUp:   '<path d="m5.5 15 6.5-6.5L18.5 15"/>',
     arrowUp:  '<path d="M12 19V5"/><path d="m6 11 6-6 6 6"/>',
     arrowDown:'<path d="M12 5v14"/><path d="m6 13 6 6 6-6"/>',
     trend:    '<path d="m3 16 5.5-5.5 3.5 3.5L21 5"/><path d="M15.5 5H21v5.5"/>',

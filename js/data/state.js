@@ -296,6 +296,20 @@
       s.version = 15;
     }
 
+    if (s.version < 16) {
+      /* v16: el Resumen pasa a ser un panel de bloques por cuenta. Nace
+         vacío a propósito: sin nada guardado, cada panel sale con los
+         bloques de fábrica, que son justo lo que la app enseñaba antes.
+         Quien no toque nada no nota la diferencia.
+
+         El filtro de cuentas del resumen se cae: ahora la cuenta la
+         elige el carrusel, y tenerlo en dos sitios era la forma segura
+         de que un día no cuadraran. */
+      if (!s.paneles || typeof s.paneles !== "object") s.paneles = {};
+      if (s.resumen) delete s.resumen.cuentas;
+      s.version = 16;
+    }
+
     /* Red de seguridad, al margen de la versión: casi todo el código tira
        de las categorías por defecto cuando la lista no está, pero crear
        una necesita el array de verdad. Un estado importado a mano, o
@@ -304,6 +318,7 @@
     if (!s.ciclo || !s.ciclo.dia) s.ciclo = { dia: 1 };
     if (!Array.isArray(s.apartados)) s.apartados = [];
     if (!Array.isArray(s.limites)) s.limites = [];
+    if (!s.paneles || typeof s.paneles !== "object") s.paneles = {};
 
     invalidateCats();
     return s;

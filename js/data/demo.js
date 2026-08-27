@@ -193,7 +193,7 @@
   function defaultState() {
     var today = ymd(new Date());
     return {
-      version: 15,
+      version: 16,
       createdAt: today,
       categories: cloneCategories(),
       tags: [],
@@ -241,13 +241,14 @@
   function freshState() {
     var today = ymd(new Date());
     return {
-      version: 15,
+      version: 16,
       createdAt: today,
       categories: cloneCategories(),
       tags: [],
       ciclo: { dia: 1 },
       apartados: [],
       limites: [],
+      paneles: {},
       income: { mode: "auto", manual: 0, months: 3 },
       /* Sin ningún límite a propósito. Traer diez topes que nadie ha
          elegido hace que Ajustes parezca de otro y que el Resumen enseñe

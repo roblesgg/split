@@ -38,6 +38,8 @@ window.App = (function () {
     form: null,             /* formulario abierto: { type, id, d } */
     ob: null,               /* cuestionario de bienvenida a medias */
     cuentaAbierta: null,    /* qué cuenta se está mirando por dentro */
+    panelCuenta: null,      /* qué tarjeta manda en el Resumen; null = todo */
+    panelEditando: null,    /* de qué panel se están eligiendo los bloques */
     pickPendiente: null,    /* quién espera una elección: { resolver } */
     cobro: "",              /* lo tecleado al confirmar un cobro, en céntimos */
     avisadoDeAlarmas: false /* el aviso de «las alarmas llegan tarde», una vez */

@@ -19,6 +19,7 @@ console.log("\nsplit — pruebas");
  ["Apartados", "./apartados"],
  ["Programados", "./programados"],
  ["Borrar una cuenta", "./cuentas"],
+ ["El panel de cada cuenta", "./paneles"],
  ["La migración", "./migracion"]].forEach(function (par) {
   console.log("\n" + par[0]);
   console.log("─".repeat(par[0].length));

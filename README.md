@@ -177,15 +177,73 @@ icono y su frase.
 **No es un tope duro: la app avisa, no bloquea.** Si te impidiera apuntar el
 gasto, lo apuntarías en otro sitio y entonces la app te estaría mintiendo.
 
+## El Resumen es un panel, y cada cuenta tiene el suyo
+
+Arriba, el carrusel de tarjetas. La primera es **«Todo tu dinero»** —el saldo de
+todas juntas— y detrás va una por cuenta. **La tarjeta centrada manda sobre todo
+lo que hay debajo:** las cifras, los gráficos, los movimientos. Deslizas y el
+panel entero cambia de cuenta.
+
+Tocar hace dos cosas, en este orden: la tarjeta que no está centrada se centra,
+y la que ya lo está se abre. Deslizar elige, tocar la que miras entra.
+
+### Los bloques los eliges tú
+
+Debajo del panel hay un botón para **personalizarlo**: qué bloques se ven y en
+qué orden. Cada cuenta tiene los suyos, así que la del día a día puede llevar
+límites y gasto por categoría mientras la hucha lleva la evolución del saldo.
+
+Se ordena con flechas y no arrastrando: un arrastre dentro de una lista que ya se
+desplaza es de las cosas que peor van en un móvil, y así además se puede usar sin
+ver. El Resumen de detrás se repinta a la vez, porque estás eligiendo qué ver y
+verlo mientras eliges es la mitad de la gracia.
+
+| Bloque | Qué enseña | |
+|---|---|---|
+| **Botones rápidos** | Apuntar un gasto o un ingreso, y el atajo a Análisis | |
+| **Ingresos, gastos y ahorro** | Las tres cifras del periodo, con su tendencia | |
+| **El límite más apurado** | El anillo del que está por reventar | solo en «todo» |
+| **Límites del mes** | Una barra por límite | solo en «todo» |
+| **Objetivo de gasto** | El tope de esa cuenta | solo en una cuenta |
+| **Apartados** | El dinero reservado dentro de esa cuenta | solo en una cuenta |
+| **En qué se te va** | Las cuatro categorías con más gasto | |
+| **Gasto por categoría** | El anillo con el reparto | |
+| **Mes a mes** | Ingresos contra gastos de los últimos seis ciclos | |
+| **Día a día** | Un cuadradito por día: cuanto más oscuro, más gastaste | |
+| **Dónde más gastas** | Los conceptos que más se repiten | |
+| **Últimos movimientos** | Lo último apuntado | |
+| **Lo que viene** | Los próximos pagos y cobros programados | |
+
+Los que están marcados no se ofrecen en el otro lado, y con razón: los límites
+del mes son de todo tu dinero, y los apartados son de una cuenta concreta.
+
+**Un bloque sin nada que enseñar no ocupa hueco.** Un panel con seis huecos
+vacíos da la impresión de que la app está rota.
+
+### Por dentro
+
+Tres piezas que no se conocen entre ellas:
+
+- `js/data/paneles.js` guarda **qué bloques y en qué orden**, por cuenta. No sabe
+  qué bloques existen: guarda nombres. Un panel que nombre uno que ya se quitó
+  del código se ignora al pintar, así que quitar un bloque nunca deja el Resumen
+  de nadie roto.
+- `js/screens/bloques.js` es **el catálogo**: qué existe y qué pinta cada uno.
+  Todos reciben el mismo contexto —la cuenta, el ciclo— y ninguno sabe de los
+  demás. **Añadir un bloque es escribir una función ahí y nada más:** ni el
+  Resumen ni la pantalla de personalizar hay que tocarlos, porque las dos leen
+  del catálogo.
+- `js/screens/inicio.js` solo elige la cuenta, monta el contexto y pinta la lista.
+
 ## Qué hay en cada pantalla
 
 | Pantalla | Qué hace |
 |---|---|
-| **Resumen** | Tarjetas de cuenta deslizables, KPI del mes, categorías, lo que viene programado, el reparto del sueldo y los límites |
+| **Resumen** | El panel de la cuenta que estés mirando: los bloques que le hayas puesto, en el orden que quieras |
 | **Movimientos** | Histórico por día, filtro ingresos/gastos, búsqueda, navegación por mes, detalle con editar y eliminar |
 | **Análisis** | Histórico con rango 3M/6M/12M, ahorro por mes, tasa de ahorro, reparto por categoría, mapa de calor y lecturas automáticas |
 | **Planes** | Cuentas con su objetivo de gasto, pagos programados y metas de ahorro, todo con crear, editar y borrar |
-| **Ajustes** | El día en que empieza tu mes, ingresos, reparto por porcentajes, tema y exportar/importar |
+| **Ajustes** | El día en que empieza tu mes, cuánto cuentas al mes, los límites, categorías, tema y exportar/importar |
 
 ## Objetivo de gasto por cuenta
 
@@ -537,6 +595,7 @@ js/
     apartados.js    sub-bolsas dentro de una cuenta
     limites.js      los topes del mes: ámbito, gasto y estado
     objetivo.js     el objetivo de gasto de una cuenta
+    paneles.js      qué bloques enseña el Resumen de cada cuenta
     catalog.js      categorías de fábrica, colores y búsqueda por id
     demo.js         los datos de ejemplo, con semilla fija
     state.js        con qué arranca, cómo se guarda y las migraciones
@@ -567,7 +626,10 @@ js/
     shell.js        router, barra de arriba, botón atrás y tema
     init.js         arranque: monta las hojas, engancha y pinta
   screens/          una pantalla u hoja por archivo, con su cableado al lado
-    inicio.js  movs.js  analisis.js  planes.js
+    inicio.js         el Resumen: carrusel y bucle de bloques
+    bloques.js        el catálogo: qué bloques hay y qué pinta cada uno
+    personalizar.js   elegir y ordenar los bloques de un panel
+    movs.js  analisis.js  planes.js
     ajustes.js  ajustes-render.js
     form.js  form-guardar.js  form-render.js
     form-apartado.js  form-limite.js  form-ident.js
@@ -576,6 +638,7 @@ js/
 tests/              sin dependencias: node tests/run.js
   ayuda.js          cuarenta líneas en vez de un framework
   ciclo.js  limites.js  apartados.js  programados.js  cuentas.js
+  paneles.js        los bloques de cada cuenta
   migracion.js      de una versión publicada a la de hoy, de punta a punta
 packaging/          convierte la app en un APK; si lo borras, la app sigue igual
 ```

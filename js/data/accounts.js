@@ -11,6 +11,7 @@
   /* Puentes a lo que vive en otro archivo. Se resuelven en la llamada,
      así que da igual el orden en que se carguen los scripts. */
   function normalizeColor() { return D.normalizeColor.apply(null, arguments); }
+  function olvidarPanel() { return D.olvidarPanel.apply(null, arguments); }
   function save() { return D.save.apply(null, arguments); }
 
   /* ============================================================
@@ -132,6 +133,7 @@
     }
 
     D.state.accounts = D.state.accounts.filter(function (a) { return a.id !== id; });
+    olvidarPanel(id);
     save();
     return { ok: true, use: use };
   }

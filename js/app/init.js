@@ -53,6 +53,7 @@
     sheets.cobro = new U.Sheet($("#sheetCobro"), $("#scrim"));
     sheets.cuenta = new U.Sheet($("#sheetCuenta"), $("#scrim"));
     sheets.pick = new U.Sheet($("#sheetPick"), $("#scrim"));
+    sheets.panel = new U.Sheet($("#sheetPanel"), $("#scrim"));
 
 
     mountIcons(document);

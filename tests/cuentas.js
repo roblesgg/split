@@ -30,7 +30,8 @@ var REAL = Date;
 
 var win = t.cargar(
   ["js/core/dates.js", "js/data/ciclo.js", "js/data/catalog.js",
-   "js/data/accounts.js", "js/data/apartados.js", "js/data/limites.js",
+   "js/data/accounts.js", "js/data/apartados.js", "js/data/paneles.js",
+   "js/data/objetivo.js",
    "js/data/tx.js", "js/data/select.js"],
   { Datos: { MONTHS: MESES, MONTHS_SHORT: CORTOS, state: null, save: function () {} } });
 var D = win.Datos;
