@@ -72,36 +72,68 @@
     return a;
   }
 
-  /* No se borra una cuenta con movimientos: dejaría importes huérfanos
-     y descuadraría el saldo total. Se avisa y se deja al usuario decidir. */
+  /* Todo lo que cuelga de una cuenta. Se cuenta antes de borrarla para
+     poder decir en el aviso qué se va exactamente: «esta cuenta tiene
+     cosas» no le sirve a nadie para decidir. */
   function accountUsage(id) {
-    var tx = D.state.transactions.filter(function (t) {
-      return t.accountId === id || t.toAccountId === id;
+    var tocaLa = function (x) { return x.accountId === id || x.toAccountId === id; };
+
+    var movs = D.state.transactions.filter(tocaLa);
+    var rec = (D.state.recurring || []).filter(tocaLa).length;
+    var pend = (D.state.pendientes || []).filter(tocaLa).length;
+    var apart = (D.state.apartados || []).filter(function (ap) {
+      return ap.accountId === id;
     }).length;
-    var rec = (D.state.recurring || []).filter(function (r) {
-      return r.accountId === id || r.toAccountId === id;
-    }).length;
-    return { transactions: tx, recurring: rec };
+
+    /* Un traspaso tiene dos cuentas. Al borrar esta, el traspaso se va
+       entero y el saldo de la otra cambia también, y eso hay que decirlo:
+       es dinero de una cuenta que el usuario no está borrando. */
+    var traspasos = movs.filter(function (t) { return t.kind === "transfer"; }).length;
+
+    return {
+      transactions: movs.length,
+      recurring: rec,
+      pendientes: pend,
+      apartados: apart,
+      traspasos: traspasos,
+      total: movs.length + rec + pend + apart
+    };
   }
 
-  function deleteAccount(id) {
+  /* Borrar una cuenta se lleva por delante todo lo suyo, así que por su
+     cuenta no borra nada: cuenta lo que hay y lo devuelve para que quien
+     llame pregunte. Con `conTodo` ya se ha preguntado y se hace.
+
+     Se va todo junto a propósito. Dejar los movimientos de una cuenta que
+     ya no existe descuadraría el saldo total y los dejaría fuera de todas
+     las pantallas, que es peor que borrarlos: seguirían contando en las
+     cifras sin poder verlos ni arreglarlos. */
+  function deleteAccount(id, opciones) {
     if (D.state.accounts.length <= 1) {
-      return { ok: false, reason: "Tiene que quedar al menos una cuenta." };
+      return { ok: false, ultima: true,
+               reason: "Tiene que quedar al menos una cuenta." };
     }
     var use = accountUsage(id);
-    if (use.transactions || use.recurring) {
-      return {
-        ok: false,
-        reason: "Esta cuenta tiene " + use.transactions + " movimiento" +
-                (use.transactions === 1 ? "" : "s") +
-                (use.recurring ? " y " + use.recurring + " programado" +
-                  (use.recurring === 1 ? "" : "s") : "") +
-                ". Muévelos o bórralos antes."
-      };
+    if (use.total && !(opciones && opciones.conTodo)) {
+      return { ok: false, confirmar: true, use: use,
+               reason: "Esta cuenta no está vacía." };
     }
+
+    if (use.total) {
+      var noTocaLa = function (x) { return x.accountId !== id && x.toAccountId !== id; };
+      D.state.transactions = D.state.transactions.filter(noTocaLa);
+      if (Array.isArray(D.state.recurring)) D.state.recurring = D.state.recurring.filter(noTocaLa);
+      if (Array.isArray(D.state.pendientes)) D.state.pendientes = D.state.pendientes.filter(noTocaLa);
+      if (Array.isArray(D.state.apartados)) {
+        D.state.apartados = D.state.apartados.filter(function (ap) {
+          return ap.accountId !== id;
+        });
+      }
+    }
+
     D.state.accounts = D.state.accounts.filter(function (a) { return a.id !== id; });
     save();
-    return { ok: true };
+    return { ok: true, use: use };
   }
 
 

@@ -202,11 +202,15 @@
         '<button type="button" class="btn btn--ghost" id="cuentaEditar" style="flex:1">' +
           icon("edit", 16) + 'Editar</button>' +
       '</div>' +
+      /* Lo mismo que cuenta el aviso al borrarla, para que no digan cosas
+         distintas: si aquí pone tres apartados, el aviso también. */
       '<p class="field__hint" style="text-align:center">' +
-        (uso.transactions === 1 ? "1 movimiento" : uso.transactions + " movimientos") +
-        (uso.recurring
-          ? " · " + (uso.recurring === 1 ? "1 programado" : uso.recurring + " programados")
-          : "") + '</p>';
+        [(uso.transactions === 1 ? "1 movimiento" : uso.transactions + " movimientos"),
+         uso.recurring
+           ? (uso.recurring === 1 ? "1 programado" : uso.recurring + " programados") : "",
+         uso.apartados
+           ? (uso.apartados === 1 ? "1 apartado" : uso.apartados + " apartados") : ""]
+          .filter(Boolean).join(" · ") + '</p>';
 
     mountIcons(body);
   }

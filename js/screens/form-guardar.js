@@ -170,6 +170,40 @@
     if (t === "recurring" && hayPendientes()) setTimeout(abrirCobros, 380);
   }
 
+  /* El aviso antes de borrar una cuenta. Lleva las cifras porque son lo
+     único que permite decidir: «tiene cosas dentro» no dice si son dos
+     movimientos de prueba o el año entero. */
+  function avisoDeBorrado(id, use) {
+    var acc = S.state.accounts.find(function (a) { return a.id === id; });
+    var nombre = acc ? acc.name : "esta cuenta";
+
+    var plural = function (n, uno, varios) {
+      return n + " " + (n === 1 ? uno : varios);
+    };
+    var lineas = [];
+    if (use.transactions) lineas.push(plural(use.transactions, "movimiento", "movimientos"));
+    if (use.recurring) lineas.push(plural(use.recurring, "programado", "programados"));
+    if (use.apartados) lineas.push(plural(use.apartados, "apartado", "apartados"));
+    if (use.pendientes) lineas.push(plural(use.pendientes, "movimiento por confirmar",
+                                                          "movimientos por confirmar"));
+
+    var txt = "¿Borrar «" + nombre + "» y todo lo suyo?\n\n" +
+              "Se va con ella:\n" +
+              lineas.map(function (l) { return "· " + l; }).join("\n");
+
+    /* Un traspaso toca dos cuentas: al irse cambia el saldo de la otra,
+       que es dinero que no se está borrando y nadie espera que se mueva. */
+    if (use.traspasos) {
+      txt += use.traspasos === 1
+        ? "\n\nEntre ellos hay un traspaso con otra cuenta: al irse, el saldo de " +
+          "esa cuenta también cambia."
+        : "\n\nEntre ellos hay " + use.traspasos + " traspasos con otras cuentas: " +
+          "al irse, el saldo de esas cuentas también cambia.";
+    }
+
+    return txt + "\n\nNo se puede deshacer.";
+  }
+
   function deleteForm() {
     var t = ui.form.type, id = ui.form.id;
 
@@ -194,8 +228,16 @@
 
     if (t === "account") {
       var res = S.deleteAccount(id);
+      /* No está vacía: se pregunta con las cifras delante y, si dice que
+         sí, se borra entera. Antes aquí se plantaba y le mandaba a mover
+         a mano ciento y pico movimientos, que no lo hace nadie. */
+      if (!res.ok && res.confirmar) {
+        if (!confirm(avisoDeBorrado(id, res.use))) return;
+        res = S.deleteAccount(id, { conTodo: true });
+      }
       if (!res.ok) { U.toast(res.reason, { icon: "warning", duration: 5500 }); return; }
-      U.toast("Cuenta eliminada", { icon: "check" });
+      U.toast(res.use && res.use.total ? "Cuenta eliminada con todo lo suyo"
+                                       : "Cuenta eliminada", { icon: "check" });
     }
     if (t === "goal") {
       if (!confirm("¿Eliminar esta meta?")) return;

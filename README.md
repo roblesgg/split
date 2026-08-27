@@ -345,9 +345,22 @@ todas cada vez que se abre la app.
 
 Ambas se crean, editan y borran desde **Planes**.
 
-Una cuenta **no se puede borrar si tiene movimientos**: dejaría importes
-huérfanos y descuadraría el saldo total, así que la app avisa de cuántos hay en
-lugar de borrar a ciegas. Tampoco deja quedarse sin ninguna cuenta.
+Borrar una cuenta que tiene cosas dentro **pregunta antes, con las cifras
+delante**: «¿Borrar «Efectivo» y todo lo suyo? Se va con ella: 128 movimientos,
+3 programados, 1 apartado». Si dices que sí, se va todo junto.
+
+Se va todo a propósito. Dejar los movimientos de una cuenta que ya no existe
+descuadraría el saldo total y los dejaría fuera de todas las pantallas, que es
+peor que borrarlos: seguirían contando en las cifras sin poder verlos ni
+arreglarlos.
+
+El aviso dice además una cosa que no se ve venir: si entre esos movimientos hay
+**traspasos**, el traspaso tiene dos cuentas, así que al irse cambia también el
+saldo de la otra — dinero que no estabas borrando. Las imágenes de los tickets
+que colgaran de esos movimientos se limpian solas en el siguiente arranque.
+
+Una cuenta vacía se borra sin preguntar, que no hay nada que perder. Y no deja
+quedarse sin ninguna cuenta.
 
 Cada cuenta lleva **su color**, de la misma paleta de 16 que las categorías, y
 se ve como una tarjeta en el carrusel del Resumen. El color va mezclado con
@@ -466,7 +479,7 @@ js/
     detail.js  pick.js  cuenta.js  cobro.js  onboard.js
 tests/              sin dependencias: node tests/run.js
   ayuda.js          cuarenta líneas en vez de un framework
-  ciclo.js  limites.js  apartados.js  programados.js
+  ciclo.js  limites.js  apartados.js  programados.js  cuentas.js
   migracion.js      de una versión publicada a la de hoy, de punta a punta
 packaging/          convierte la app en un APK; si lo borras, la app sigue igual
 ```

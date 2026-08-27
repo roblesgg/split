@@ -18,6 +18,7 @@ console.log("\nsplit — pruebas");
  ["Límites de cuenta", "./limites"],
  ["Apartados", "./apartados"],
  ["Programados", "./programados"],
+ ["Borrar una cuenta", "./cuentas"],
  ["La migración", "./migracion"]].forEach(function (par) {
   console.log("\n" + par[0]);
   console.log("─".repeat(par[0].length));
