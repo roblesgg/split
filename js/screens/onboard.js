@@ -314,7 +314,7 @@
       '<ul class="ob-lista">' +
         [["plus", "Apuntar un gasto",
           "El botón grande de abajo. Es lo que más vas a usar."],
-         ["sliders", "Categorías y presupuesto",
+         ["sliders", "Categorías y límites",
           "En Ajustes, cuando te apetezca. Nada viene puesto de fábrica."],
          ["repeat", "Recibos y préstamos",
           "En Mi dinero → Programados se apuntan solos cada mes."]]

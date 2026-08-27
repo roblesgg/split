@@ -61,10 +61,10 @@
                   '<p class="paycard__label">Saldo</p>' +
                   '<p class="paycard__value">' + bigAmount(S.accountBalance(a.id)) + '</p>' +
                 '</div>' +
-                /* si la cuenta tiene límites, la barra del general sustituye
+                /* si la cuenta tiene objetivo de gasto, la barra sustituye
                    al pie de texto: es lo que se quiere mirar de un vistazo */
                 (function () {
-                  var lim = S.estadoPrincipalDe(a.id);
+                  var lim = S.estadoDeLimite(a.id, curKey);
                   return lim ? limiteEnTarjeta(lim) : "";
                 })() +
                 '<div class="paycard__foot">' +
@@ -124,7 +124,7 @@
         '<span data-icon="chevDown" data-icon-size="13"></span>' +
       '</button>';
 
-    /* Sin presupuesto puesto no se enseña ninguna de las dos tarjetas: un
+    /* Sin ningún límite puesto no se enseña ninguna de las dos tarjetas: un
        «0 € de 0 €» y unas barras vacías no dicen nada, y encima dan la
        impresión de que la app te está midiendo por un plan que no has
        hecho. Quien lo quiera, lo pone en Ajustes. */
@@ -133,19 +133,19 @@
 
     var cardBudgets = hayPresupuesto
       ? foldCard("presupuesto",
-          "Presupuesto de " + esc(nombreCiclo(curKey)),
+          "Límites de " + esc(nombreCiclo(curKey)),
           esc(money(cur.expense)) + " de " + esc(money(budgetTotal)) + " asignados",
           '<button type="button" class="card__link" data-goto="ajustes">Editar</button>',
           rows.map(meterHtml).join(""))
       : "";
 
-    /* --- tarjeta de límite: el presupuesto del mes de un vistazo --- */
+    /* --- tarjeta de límite: todos los topes del mes de un vistazo --- */
     var usedRatio = budgetTotal > 0 ? Math.min(1, cur.expense / budgetTotal) : 0;
     var cardLimit = hayPresupuesto
       ? '<button type="button" class="limit" data-goto="ajustes">' +
           '<span class="limit__ring" data-limit-ring="' + usedRatio + '"></span>' +
           '<span class="limit__body">' +
-            '<span class="limit__label">Presupuesto de ' + esc(nombreCiclo(curKey)) + '</span>' +
+            '<span class="limit__label">Límites de ' + esc(nombreCiclo(curKey)) + '</span>' +
             '<span class="limit__value">' + esc(S.moneyShort(cur.expense)) + ' de ' +
               esc(S.moneyShort(budgetTotal)) + '</span>' +
           '</span>' +

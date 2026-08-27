@@ -38,8 +38,8 @@
     var sum = S.allocationSumPct();
     var savings = S.savingsPctRedondo();
     var theme = S.getTheme();
-    /* Las del sistema («Ajuste de saldo») quedan fuera del presupuesto: no
-       se presupuesta lo que por definición no habías previsto. */
+    /* Las del sistema («Ajuste de saldo») quedan fuera: no se le pone tope
+       a lo que por definición no habías previsto. */
     var presupuestadas = S.budgetedCategories().filter(function (c) {
       return !c.sistema;
     });
@@ -168,18 +168,21 @@
             '</div>') +
       '</section>' +
 
-      /* ---- presupuesto por categoría ----
-         Esto NO son las cuentas: son los tipos de gasto. La confusión es
-         fácil de tener, así que lo dice el subtítulo. Y no viene nada
-         puesto de fábrica: se añade lo que a cada uno le interese
-         vigilar, y lo demás ni aparece. */
+      /* ---- límites por tipo de gasto ----
+         Se llama «Límites de cuenta» y por dentro sigue siendo un tope por
+         tipo de gasto, no por cuenta: el nombre va por delante de lo que
+         hace todavía, y se irá moviendo hacia ahí con el uso. Mientras
+         tanto el subtítulo dice lo que de verdad mira, que es lo único
+         que no se puede maquillar.
+
+         No viene nada puesto de fábrica: se añade lo que a cada uno le
+         interese vigilar, y lo demás ni aparece. */
       '<section class="card">' +
         '<div class="card__head">' +
           '<div>' +
-            '<h2 class="card__title">Presupuesto del ' +
-            esc(periodo()) + '</h2>' +
+            '<h2 class="card__title">Límites de cuenta</h2>' +
             '<p class="card__sub">Cuánto quieres gastar como mucho en cada tipo de ' +
-              'gasto. No son tus cuentas.</p>' +
+              'gasto. Se vacían al empezar el ' + esc(periodo()) + ' siguiente.</p>' +
           '</div>' +
           (presupuestadas.length
             ? '<button type="button" class="card__link" id="allocReset">Vaciar</button>'
@@ -212,18 +215,18 @@
                         '<input type="number" class="field__input" data-alloc-eur="' +
                                esc(c.id) + '" min="0" step="10" inputmode="decimal" ' +
                                'value="' + S.budgetFor(c.id) + '" ' +
-                               'aria-label="Presupuesto de ' + esc(c.name) + '">' +
+                               'aria-label="Límite de ' + esc(c.name) + '">' +
                         '<span class="input-affix__suffix">€</span>' +
                       '</span>' +
                       '<button type="button" class="icon-btn pres-fila__quitar" ' +
                               'data-alloc-quitar="' + esc(c.id) + '" ' +
-                              'aria-label="Quitar ' + esc(c.name) + ' del presupuesto" ' +
+                              'aria-label="Quitar el límite de ' + esc(c.name) + '" ' +
                               'data-icon="close" data-icon-size="13"></button>' +
                     '</div>';
                 }).join("") +
               '</div>'
 
-            : emptyHtml("chart", "Sin presupuesto, de momento",
+            : emptyHtml("chart", "Sin límites, de momento",
                 "Añade abajo los gastos que quieras vigilar. Lo que no pongas " +
                 "sigue contándose, simplemente no tiene tope.")) +
 

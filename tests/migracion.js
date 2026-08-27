@@ -6,7 +6,7 @@
    sus datos dentro, y no hay vuelta atrás.
 
    Así que no se comprueba paso a paso, sino de punta a punta: un estado
-   real de la versión publicada (v11) entra, sale en v15, y se cuenta que
+   real de la versión publicada (v11) entra, sale en v14, y se cuenta que
    siga estando todo. Más el camino largo desde v1, que es lo que tiene
    quien no actualiza desde hace un año.
    ============================================================ */
@@ -63,7 +63,7 @@ function estadoV11() {
     income: { mode: "manual", manual: 1740, months: 3 },
     allocation: { comida: 22, gasolina: 8, hogar: 30, subs: 4, perro: 5 },
     accounts: [
-      { id: "banco", name: "Cuenta corriente", type: "Banco", slot: 1, color: 1, icon: "wallet", opening: 812.44, limite: 600 },
+      { id: "banco", name: "Cuenta corriente", type: "Banco", slot: 1, color: 1, icon: "wallet", opening: 812.44 },
       { id: "efvo", name: "Efectivo", type: "Efectivo", slot: 4, color: 15, icon: "cash", opening: 45 },
       { id: "ahorro", name: "Hucha", type: "Ahorro", slot: 3, color: 3, icon: "piggy", opening: 2100 }
     ],
@@ -116,17 +116,10 @@ module.exports = function () {
   var copia = JSON.parse(JSON.stringify(antes));
   var s = D.migrate(JSON.parse(JSON.stringify(antes)));
 
-  t.es("sube a la versión 15", s.version, 15);
+  t.es("sube a la versión 14", s.version, 14);
   t.es("no se pierde ningún movimiento", s.transactions.length, copia.transactions.length);
   t.es("los movimientos salen tal cual", s.transactions, copia.transactions);
-  /* El `limite` suelto es el único campo que sale de la cuenta: se
-     convierte en un límite con nombre, y se comprueba más abajo. */
-  t.es("no se pierde ninguna cuenta", s.accounts,
-       copia.accounts.map(function (a) {
-         var b = {}; Object.keys(a).forEach(function (k) {
-           if (k !== "limite") b[k] = a[k];
-         }); return b;
-       }));
+  t.es("no se pierde ninguna cuenta", s.accounts, copia.accounts);
   t.es("no se pierde ninguna categoría, ni la propia", s.categories, copia.categories);
   t.es("las etiquetas siguen ahí", s.tags, copia.tags);
   t.es("las metas siguen ahí", s.goals, copia.goals);
@@ -139,18 +132,6 @@ module.exports = function () {
      que es exactamente lo que la app venía haciendo. */
   t.es("el ciclo arranca en el mes natural", s.ciclo, { dia: 1 });
   t.es("no hay ningún apartado inventado", s.apartados, []);
-
-  /* v15: el límite que era un número suelto en la cuenta pasa a ser un
-     límite con nombre. Tiene que seguir contando exactamente igual: el
-     mismo importe, todas las categorías y el mes de la app. */
-  t.es("el límite de la cuenta se convierte en uno con nombre",
-       s.limites.map(function (l) {
-         return [l.name, l.accountId, l.importe, l.ambito, l.reinicio.modo];
-       }),
-       [["Gasto del mes", "banco", 600, "todas", "ciclo"]]);
-  t.es("y la cuenta ya no lo lleva suelto", s.accounts[0].limite, undefined);
-  t.es("las cuentas sin límite no se inventan ninguno",
-       s.limites.filter(function (l) { return l.accountId !== "banco"; }), []);
 
   /* Y que cada programado siga tocando el mismo día. */
   var r1 = s.recurring[0], r2 = s.recurring[1], r3 = s.recurring[2], r4 = s.recurring[3];
@@ -208,7 +189,7 @@ module.exports = function () {
   };
   var viejo = D.migrate(JSON.parse(JSON.stringify(v1)));
 
-  t.es("llega hasta la 15", viejo.version, 15);
+  t.es("llega hasta la 14", viejo.version, 14);
   t.es("el movimiento de hace dos años sigue ahí", viejo.transactions.length, 1);
   t.es("el presupuesto en euros se tradujo a porcentaje",
        [viejo.allocation.comida, viejo.allocation.hogar], [21, 32]);
@@ -231,7 +212,7 @@ module.exports = function () {
   t.es("se le ponen las categorías de fábrica", roto.categories.length > 0, true);
   t.es("se le pone un ciclo", roto.ciclo, { dia: 1 });
   t.es("y una lista de apartados vacía", roto.apartados, []);
-  t.es("sin lista de programados, no falla", D.migrate({ version: 11 }).version, 15);
+  t.es("sin lista de programados, no falla", D.migrate({ version: 11 }).version, 14);
 
   /* ---------- y lo que carga la app de verdad ---------- */
 
@@ -242,10 +223,10 @@ module.exports = function () {
   guardado[D.KEY] = JSON.stringify(estadoV11());
   var cargado = D.load();
 
-  t.es("carga y migra lo que había guardado", cargado.version, 15);
+  t.es("carga y migra lo que había guardado", cargado.version, 14);
   t.es("con todos sus movimientos", cargado.transactions.length, 5);
   t.es("y deja guardado ya el formato nuevo",
-       JSON.parse(guardado[D.KEY]).version, 15);
+       JSON.parse(guardado[D.KEY]).version, 14);
   t.es("de forma que la siguiente vez no cambia nada",
        JSON.parse(guardado[D.KEY]), cargado);
 };

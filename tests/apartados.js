@@ -41,12 +41,7 @@ function limpio() {
   D.state = {
     ciclo: { dia: 1 },
     categories: D.DEFAULT_CATEGORIES.slice(),
-    accounts: [{ id: "cartera", name: "Cartera", opening: 1000 }],
-    /* El límite general de la cartera: lo que se comprueba aquí es que
-       un gasto salido de un apartado NO le suma. */
-    limites: [{ id: "lim-cartera", name: "Gasto del mes", emoji: "🎯", color: 1,
-                accountId: "cartera", importe: 500, ambito: "todas",
-                categoryIds: [], reinicio: { modo: "ciclo" } }],
+    accounts: [{ id: "cartera", name: "Cartera", opening: 1000, limite: 500 }],
     apartados: [],
     transactions: [],
     goals: [],
@@ -80,10 +75,10 @@ module.exports = function () {
   t.es("queda el 85 %", D.estadoDeApartado(ap.id).pctQueda, 85);
 
   t.grupo("y NO cuenta en el límite de la cuenta");
-  t.es("el límite sigue a cero gastado", D.estadoDeLimite("lim-cartera").gastado, 0);
+  t.es("el límite sigue a cero gastado", D.estadoDeLimite("cartera").gastado, 0);
   gasto(40, "comida", "2026-09-06");
-  t.es("un gasto normal sí cuenta", D.estadoDeLimite("lim-cartera").gastado, 40);
-  t.es("y el del sobre sigue sin contar", D.estadoDeLimite("lim-cartera").gastado, 40);
+  t.es("un gasto normal sí cuenta", D.estadoDeLimite("cartera").gastado, 40);
+  t.es("y el del sobre sigue sin contar", D.estadoDeLimite("cartera").gastado, 40);
 
   t.grupo("lo reservado sale del disponible de la cuenta");
   t.es("quedan 170 apartados", D.reservadoDe("cartera"), 170);
@@ -103,7 +98,7 @@ module.exports = function () {
   t.es("la barra no se sale", e.pct, 100);
   t.es("un sobre en negativo ya no reserva nada", D.reservadoDe("cartera"), 0);
   t.es("pero sigue sin tocar el límite de la cuenta",
-       D.estadoDeLimite("lim-cartera").gastado, 40);
+       D.estadoDeLimite("cartera").gastado, 40);
 
   t.grupo("el saldo se calcula, así que borrar un gasto lo devuelve");
   limpio();
@@ -129,7 +124,7 @@ module.exports = function () {
   var g3 = gasto(10, "gasolina", "2026-09-05", { apartadoId: "" });
   t.es("un gasto de gasolina fuera del sobre", g3.apartadoId, undefined);
   t.es("el sobre no se entera", D.estadoDeApartado(ap.id).saldo, 200);
-  t.es("y el límite de la cuenta sí", D.estadoDeLimite("lim-cartera").gastado, 35);
+  t.es("y el límite de la cuenta sí", D.estadoDeLimite("cartera").gastado, 35);
 
   t.grupo("el relleno de cada ciclo acumula");
   limpio();
@@ -168,11 +163,11 @@ module.exports = function () {
   gasto(30, "gasolina", "2026-09-05");
   gasto(20, "gasolina", "2026-09-06");
   t.es("dos gastos en el sobre", D.estadoDeApartado(ap.id).gastado, 50);
-  t.es("y el límite de la cuenta a cero", D.estadoDeLimite("lim-cartera").gastado, 0);
+  t.es("y el límite de la cuenta a cero", D.estadoDeLimite("cartera").gastado, 0);
   var res = D.deleteApartado(ap.id);
   t.es("se sueltan los dos", res.sueltos, 2);
   t.es("los movimientos siguen ahí", D.state.transactions.length, 2);
-  t.es("y ahora sí cuentan en el límite", D.estadoDeLimite("lim-cartera").gastado, 50);
+  t.es("y ahora sí cuentan en el límite", D.estadoDeLimite("cartera").gastado, 50);
 
   t.grupo("cada apartado es de su cuenta");
   limpio();
@@ -184,7 +179,7 @@ module.exports = function () {
   t.es("gasolina pagada con el banco no toca el sobre de la cartera",
        otro.apartadoId, undefined);
   t.es("el sobre sigue entero", D.estadoDeApartado(ap.id).saldo, 200);
-  t.es("y la cartera no tiene ese gasto", D.estadoDeLimite("lim-cartera").gastado, 0);
+  t.es("y la cartera no tiene ese gasto", D.estadoDeLimite("cartera").gastado, 0);
 
   global.Date = REAL;
 };

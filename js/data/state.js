@@ -236,32 +236,6 @@
       s.version = 14;
     }
 
-    if (s.version < 15) {
-      /* v15: los límites dejan de ser un número suelto en la cuenta y
-         pasan a ser una lista con nombre y ámbito propio. El que ya
-         tuviera puesto se convierte en «Gasto del mes» con todas las
-         categorías y el mes de la app, que es exactamente lo que era:
-         actualizar no le cambia una sola cifra a nadie. */
-      if (!Array.isArray(s.limites)) s.limites = [];
-      (s.accounts || []).forEach(function (a) {
-        if (typeof a.limite === "number" && a.limite > 0) {
-          s.limites.push({
-            id: "lim-" + a.id,
-            name: "Gasto del mes",
-            emoji: "🎯",
-            color: a.color || 1,
-            accountId: a.id,
-            importe: a.limite,
-            ambito: "todas",
-            categoryIds: [],
-            reinicio: { modo: "ciclo" }
-          });
-        }
-        delete a.limite;
-      });
-      s.version = 15;
-    }
-
     /* Red de seguridad, al margen de la versión: casi todo el código tira
        de las categorías por defecto cuando la lista no está, pero crear
        una necesita el array de verdad. Un estado importado a mano, o
@@ -269,7 +243,6 @@
     if (!Array.isArray(s.categories)) s.categories = DEFAULT_CATEGORIES.slice();
     if (!s.ciclo || !s.ciclo.dia) s.ciclo = { dia: 1 };
     if (!Array.isArray(s.apartados)) s.apartados = [];
-    if (!Array.isArray(s.limites)) s.limites = [];
 
     invalidateCats();
     return s;

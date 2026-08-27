@@ -168,7 +168,7 @@
   function defaultState() {
     var today = ymd(new Date());
     return {
-      version: 15,
+      version: 14,
       createdAt: today,
       categories: cloneCategories(),
       tags: [],
@@ -178,9 +178,6 @@
 
       /* Sub-bolsas dentro de una cuenta. Vacío: se crean a mano. */
       apartados: [],
-
-      /* Topes de gasto con nombre. Vacío: se crean a mano. */
-      limites: [],
 
       /* Cuánto cuentas al mes para repartir.
          auto  = media real de tus últimos meses cerrados
@@ -218,13 +215,12 @@
   function freshState() {
     var today = ymd(new Date());
     return {
-      version: 15,
+      version: 14,
       createdAt: today,
       categories: cloneCategories(),
       tags: [],
       ciclo: { dia: 1 },
       apartados: [],
-      limites: [],
       income: { mode: "auto", manual: 0, months: 3 },
       /* Vacío a propósito. Traer diez categorías presupuestadas que nadie
          ha elegido hace que la pantalla de Ajustes parezca de otro y que

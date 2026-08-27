@@ -119,7 +119,7 @@
         return;
       }
 
-      /* Añadir una categoría al presupuesto: entra con un décimo de lo
+      /* Añadir una categoría a los límites: entra con un décimo de lo
          que cobras, una cifra redonda de la que partir en vez de un cero
          que no dice nada. */
       if ((node = e.target.closest("[data-alloc-add]"))) {
@@ -137,10 +137,10 @@
       }
 
       if (e.target.closest("#allocReset")) {
-        if (!confirm("¿Quitar todo el presupuesto? Los movimientos no se tocan.")) return;
+        if (!confirm("¿Quitar todos los límites? Los movimientos no se tocan.")) return;
         S.resetAllocation();
         renderAjustes();
-        U.toast("Presupuesto vaciado", { icon: "check" });
+        U.toast("Límites vaciados", { icon: "check" });
       }
     });
 
