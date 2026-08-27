@@ -27,10 +27,15 @@
      de verdad importa saber antes de escribir cuánto ganas. Luego dónde
      tienes el dinero, y luego de dónde te entra.
 
+     La cuarta va después de los trabajos a propósito: para casi todo el
+     mundo el mes empieza el día que cobra, así que en cuanto se sabe
+     cuándo cobra ya se puede proponer la respuesta en vez de preguntar
+     a secas.
+
      Lo que no se pregunta aquí —categorías, presupuesto, reparto— se pone
      sobre la marcha. Preguntarlo todo el primer día es la forma más rápida
      de que alguien cierre la app y no vuelva. */
-  var ONBOARD_STEPS = ["privacidad", "cuentas", "trabajos", "listo"];
+  var ONBOARD_STEPS = ["privacidad", "cuentas", "trabajos", "ciclo", "listo"];
   /* ============================================================
      Cuestionario de bienvenida
 
@@ -54,7 +59,12 @@
         return { id: a.id, name: a.name, opening: a.opening };
       }),
       trabajos: [],
-      nuevo: null
+      nuevo: null,
+      /* null = todavía sin tocar, así que manda el día de cobro. En
+         cuanto se pulsa una opción pasa a ser un número y ya no se
+         mueve aunque se vuelva atrás a cambiar el trabajo. */
+      corte: null,
+      corteOtro: false
     };
     if (!ui.ob.cuentas.length) ui.ob.cuentas.push({ id: null, name: "", opening: "" });
     renderOnboardStep();
@@ -222,6 +232,69 @@
       '</div>';
   }
 
+  /* ---------- cuándo empieza el mes ---------- */
+
+  /* El día en que cobra, si es que lo ha dicho: un trabajo mensual con su
+     día. Es la respuesta buena para la mayoría, así que se propone. El 1
+     no cuenta como propuesta porque ya es la otra opción. */
+  function diaDeCobro() {
+    var t = ui.ob.trabajos.find(function (x) {
+      return x.freq === "mensual" && +x.day > 1 && +x.day <= S.CICLO_DIA_MAX;
+    });
+    return t ? +t.day : 0;
+  }
+
+  /* Lo que se guardará si pulsa «Listo» tal y como está la pantalla. */
+  function corteElegido() {
+    if (ui.ob.corte != null) return ui.ob.corte;
+    return diaDeCobro() || 1;
+  }
+
+  function opcion(cual, activa, titulo, sub) {
+    return '<button type="button" class="ob-opcion" data-obci="' + cual + '" ' +
+        'aria-pressed="' + activa + '">' +
+        '<span class="ob-opcion__marca" aria-hidden="true"></span>' +
+        '<span class="ob-opcion__texto">' +
+          '<span class="ob-opcion__titulo">' + esc(titulo) + '</span>' +
+          '<span class="ob-opcion__sub">' + esc(sub) + '</span>' +
+        '</span>' +
+      '</button>';
+  }
+
+  function pasoCiclo() {
+    var cobro = diaDeCobro();
+    var dia = corteElegido();
+    var otro = ui.ob.corteOtro;
+
+    var opciones =
+      opcion("1", !otro && dia === 1, "El 1 de cada mes",
+             "Como el calendario de toda la vida") +
+      (cobro
+        ? opcion("cobro", !otro && dia === cobro, "El día " + cobro,
+                 "El día que cobras")
+        : "") +
+      opcion("otro", otro, "Otro día", "Lo eliges tú, del 1 al " + S.CICLO_DIA_MAX);
+
+    return [
+      ["calendar", "¿Cuándo empieza tu mes?",
+       "Si cobras el 25, tu mes de verdad va del 25 al 24. Elige ese día y " +
+       "todo lo que cuenta la app —lo gastado, el presupuesto y lo que te " +
+       "queda— se reinicia contigo."],
+      '<div class="ob-opciones">' + opciones + '</div>' +
+      (otro
+        ? '<div class="field" style="margin-top:var(--sp-4)">' +
+            '<label class="field__label" for="obciDia">Qué día</label>' +
+            '<input type="number" class="field__input" id="obciDia" min="1" ' +
+                   'max="' + S.CICLO_DIA_MAX + '" step="1" inputmode="numeric" ' +
+                   'value="' + esc(dia) + '">' +
+            '<p class="field__hint">Hasta el ' + S.CICLO_DIA_MAX + ', para que el ' +
+              'mes empiece igual también en febrero.</p>' +
+          '</div>'
+        : '<p class="field__hint" style="margin-top:var(--sp-4)">' +
+          'Se puede cambiar cuando quieras en Ajustes.</p>')
+    ];
+  }
+
   function pasoListo() {
     var nCuentas = ui.ob.cuentas.filter(function (c) {
       return (c.name || "").trim() || c.id;
@@ -230,11 +303,14 @@
     var cuenta = nCuentas === 1 ? "una cuenta" : nCuentas + " cuentas";
     var trab = nTrabajos === 0 ? "ningún trabajo todavía"
              : nTrabajos === 1 ? "un trabajo" : nTrabajos + " trabajos";
+    var dia = corteElegido();
+    var mes = dia === 1 ? "el mes del calendario"
+                        : "el mes empezando el " + dia;
 
     return [
       ["check", "Ya está",
-       "Vas a empezar con " + cuenta + " y " + trab + ". Lo demás se pone " +
-       "sobre la marcha, y todo se puede cambiar luego."],
+       "Vas a empezar con " + cuenta + ", " + trab + " y " + mes + ". Lo demás " +
+       "se pone sobre la marcha, y todo se puede cambiar luego."],
       '<ul class="ob-lista">' +
         [["plus", "Apuntar un gasto",
           "El botón grande de abajo. Es lo que más vas a usar."],
@@ -258,6 +334,7 @@
     var partes = paso === "privacidad" ? pasoPrivacidad()
                : paso === "cuentas" ? pasoCuentas()
                : paso === "trabajos" ? pasoTrabajos()
+               : paso === "ciclo" ? pasoCiclo()
                : pasoListo();
 
     $("#onboardIcon").innerHTML = icon(partes[0][0], 28);
@@ -329,7 +406,12 @@
 
   /* Aquí es donde por fin se escribe algo. Hasta este botón, nada. */
   function finishOnboarding() {
-    /* 1. cuentas: las que ya existían se actualizan, las nuevas se crean */
+    /* 1. el día de corte, antes que nada: manda sobre todo lo que se
+       pinta después, así que si se pusiera al final la primera pantalla
+       saldría contada con el mes del calendario y cambiaría sola. */
+    S.setDiaDeCorte(corteElegido());
+
+    /* 2. cuentas: las que ya existían se actualizan, las nuevas se crean */
     var ids = ui.ob.cuentas.map(function (c) {
       var name = (c.name || "").trim();
       var opening = +c.opening || 0;
@@ -343,7 +425,7 @@
     });
     var porDefecto = ids.find(function (x) { return x; }) || S.state.accounts[0].id;
 
-    /* 2. trabajos: un ingreso programado por cada uno */
+    /* 3. trabajos: un ingreso programado por cada uno */
     ui.ob.trabajos.forEach(function (t) {
       var abierto = t.modo !== "fijo";
       S.addRecurring({
@@ -394,14 +476,27 @@
 
     /* Lo que se escribe solo actualiza el modelo: repintar en cada tecla
        le quitaría el foco al campo a media palabra. Repinta lo que cambia
-       de forma —las chapas y los botones—, que va abajo. */
+       de forma —las chapas y los botones—, que va abajo.
+
+       Los dos manejadores viven en el diálogo, que solo se abre después de
+       startOnboarding(), así que `ui.ob` debería estar siempre puesto. Se
+       comprueba igual: un evento que llegara con el cuestionario cerrado
+       —un autocompletar del navegador, el foco perdido dentro— reventaría
+       la app entera y no hay nada que ganar arriesgándose. */
     onboard.addEventListener("input", function (e) {
+      if (!ui.ob) return;
       var n = e.target, i;
       if ((i = n.getAttribute("data-obc-nombre")) != null) {
         ui.ob.cuentas[+i].name = n.value; return;
       }
       if ((i = n.getAttribute("data-obc-saldo")) != null) {
         ui.ob.cuentas[+i].opening = n.value; return;
+      }
+      if (n.id === "obciDia") {
+        /* se admite el campo a medias mientras teclea; el guardado lo
+           acota igual, pero así no se le corrige el número bajo el dedo */
+        ui.ob.corte = Math.min(S.CICLO_DIA_MAX, Math.max(1, parseInt(n.value, 10) || 1));
+        return;
       }
       if (!ui.ob.nuevo) return;
       if (n.hasAttribute("data-obt-nombre")) { ui.ob.nuevo.nombre = n.value; return; }
@@ -411,6 +506,7 @@
     });
 
     onboard.addEventListener("click", function (e) {
+      if (!ui.ob) return;
       var n;
 
       if ((n = e.target.closest("[data-obc-quitar]"))) {
@@ -423,6 +519,17 @@
         renderOnboardStep();
         var ultimo = $$("[data-obc-nombre]", onboard).pop();
         if (ultimo) ultimo.focus();
+        U.haptic("light"); return;
+      }
+
+      if ((n = e.target.closest("[data-obci]"))) {
+        var cual = n.getAttribute("data-obci");
+        ui.ob.corteOtro = cual === "otro";
+        if (cual === "1") ui.ob.corte = 1;
+        else if (cual === "cobro") ui.ob.corte = diaDeCobro();
+        else ui.ob.corte = corteElegido();
+        renderOnboardStep();
+        if (ui.ob.corteOtro) { var num = $("#obciDia", onboard); if (num) num.focus(); }
         U.haptic("light"); return;
       }
 

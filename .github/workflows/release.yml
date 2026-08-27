@@ -85,6 +85,12 @@ jobs:
         with:
           node-version: "20"
 
+      # Antes de compilar nada. La migración es lo único que no tiene
+      # segunda oportunidad: si se rompe, se rompe en un móvil con datos
+      # dentro. Que no llegue a salir de aquí.
+      - name: Pasar las pruebas
+        run: node tests/run.js
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

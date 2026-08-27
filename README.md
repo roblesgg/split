@@ -25,14 +25,34 @@ python -m http.server
 
 ## La primera vez que se abre
 
-No hay datos de ejemplo cargados por defecto. La primera vez, un tutorial
-corto explica Resumen, Movimientos, el reparto por porcentajes, Análisis y
-Planes, y termina con la única cuenta con la que arranca la app: se llama
-«Banco», sin dinero ni movimientos. Ese último paso deja cambiarle el nombre
-si se quiere (por ejemplo, al banco real que uses) y lleva directo a
-**Ajustes** para meter tus ingresos y decidir el reparto.
+No hay datos de ejemplo cargados por defecto: se arranca en blanco. La primera
+vez sale un cuestionario corto, cinco pasos, que no es un folleto sino cuatro
+preguntas:
 
-El tutorial se enseña una sola vez, la primera vez que hay algo guardado en
+| Paso | Qué pregunta |
+|---|---|
+| **Privacidad** | No pregunta: dice que nada sale del móvil. Va primero a propósito, antes de pedirle a nadie que escriba cuánto gana |
+| **Cuentas** | Dónde tienes el dinero, y cuánto hay ahora en cada sitio |
+| **Trabajos** | De dónde te entra: fijo, por horas o variable. Se puede saltar |
+| **Cuándo empieza tu mes** | El día en que se reinicia todo |
+| **Listo** | Un resumen de lo que se va a crear |
+
+Lo que **no** se pregunta —categorías, presupuesto, reparto— se pone sobre la
+marcha. Preguntarlo todo el primer día es la forma más rápida de que alguien
+cierre la app y no vuelva.
+
+El paso del mes va **después** de los trabajos por una razón: para casi todo el
+mundo el mes empieza el día que cobra, así que en cuanto se sabe cuándo cobra
+la app propone ese día en vez de preguntar a secas. Si has dicho que cobras el
+25, la opción marcada es «El día 25 · el día que cobras»; si no has puesto
+ningún trabajo, ni se ofrece.
+
+Nada se guarda hasta el último botón. Mientras tanto todo vive en `ui.ob`, así
+que se puede ir y volver entre pasos sin dejar cuentas a medias, y **Saltar**
+de verdad no toca nada: quien salte se queda con el mes del calendario, que es
+lo que la app hacía antes de que esto se pudiera elegir.
+
+El cuestionario se enseña una sola vez, la primera vez que hay algo guardado en
 `localStorage`; a partir de ahí no vuelve a aparecer.
 
 ## Dos interfaces, un solo código
@@ -49,8 +69,9 @@ componentes recolocados.
 ## Cuándo empieza tu mes
 
 De fábrica el mes de la app es el del calendario: del 1 al último día. Pero si
-cobras el 25 y tu mes de verdad va del 25 al 24, en **Ajustes → Cuándo empieza
-tu mes** se cambia el día en que se reinicia todo.
+cobras el 25 y tu mes de verdad va del 25 al 24, se cambia el día en que se
+reinicia todo: el cuestionario de bienvenida lo pregunta, y después está
+siempre en **Ajustes → Cuándo empieza tu mes**.
 
 Ese día manda sobre **todo lo que la app cuenta**: los totales del Resumen, el
 presupuesto, el histórico de Análisis, la navegación de Movimientos y el mapa de
@@ -366,11 +387,16 @@ funcionando igual. En el arranque no se pregunta más de una vez cada 6 h.
 Los dos números tienen que coincidir, porque la comparación es entre ellos:
 
 1. Sube `VERSION` en `js/update.js`.
-2. Regenera el APK (`packaging/`, ver más abajo).
-3. Publica una release etiquetada igual (`vX.Y.Z`) con el `split.apk` adjunto.
+2. Escribe las notas en `.github/release-notes/vX.Y.Z.md` (opcional, pero es lo
+   que se ve al actualizar).
+3. **Actions → Publicar release → Run workflow**, con la versión sin la «v».
+   El workflow corre las pruebas, compila el APK firmado, crea la etiqueta y
+   publica la release con `split.apk` adjunto.
 
-Si te saltas el paso 3, nadie se entera de la actualización; si te saltas el 1,
-la app seguirá avisando de una versión que ya tiene instalada.
+El workflow compara la versión que le pides con la de `js/update.js` y se
+planta si no coinciden: una app que se anuncia como 1.1.0 mientras la última
+release es la 1.2.0 avisaría en bucle de una actualización que ya tienes
+puesta.
 
 ## Estructura
 
@@ -433,10 +459,16 @@ js/
     shell.js        router, barra de arriba, botón atrás y tema
     init.js         arranque: monta las hojas, engancha y pinta
   screens/          una pantalla u hoja por archivo, con su cableado al lado
-    inicio.js  movs.js  analisis.js  planes.js  ajustes.js
+    inicio.js  movs.js  analisis.js  planes.js
+    ajustes.js  ajustes-render.js
     form.js  form-guardar.js  form-render.js  form-apartado.js
     add.js   add-render.js     hoja de añadir movimiento
     detail.js  pick.js  cuenta.js  cobro.js  onboard.js
+tests/              sin dependencias: node tests/run.js
+  ayuda.js          cuarenta líneas en vez de un framework
+  ciclo.js  limites.js  apartados.js  programados.js
+  migracion.js      de una versión publicada a la de hoy, de punta a punta
+packaging/          convierte la app en un APK; si lo borras, la app sigue igual
 ```
 
 ### Cómo encajan las piezas
@@ -478,9 +510,20 @@ Sin dependencias y sin navegador, igual que la app: los archivos son scripts
 clásicos, así que la prueba los lee y los evalúa como haría el navegador.
 
 Lo que hay ahí es **la aritmética**, que es lo que no se ve y lo que más duele
-cuando falla: los ciclos, los límites de cuenta, los apartados y el
-calendario de los programados. Lo que se ve en pantalla se
-comprueba abriendo la app, que para eso se abre con doble clic.
+cuando falla: los ciclos, los límites de cuenta, los apartados y el calendario
+de los programados. Lo que se ve en pantalla se comprueba abriendo la app, que
+para eso se abre con doble clic.
+
+Y **la migración**, que es lo único de todo el proyecto que no tiene segunda
+oportunidad: si se pierde algo, se pierde en el móvil de alguien que ya tenía
+sus datos dentro. Por eso no se comprueba paso a paso sino de punta a punta —un
+estado real de la versión publicada entra, sale en el esquema de hoy, y se
+cuenta que siga estando todo— más el camino largo desde la primera versión de
+todas, que es lo que tiene quien no actualiza desde hace un año. Y que migrar
+dos veces no cambie nada, porque abrir la app veinte veces migra veinte veces.
+
+Las pruebas corren también en el workflow de publicación, **antes** de compilar
+el APK: una migración rota no llega a una release.
 
 ## El lenguaje visual
 

@@ -213,7 +213,6 @@
          cambia una sola cifra a nadie: quien quiera otro corte lo elige
          en Ajustes. */
       if (!s.ciclo || !s.ciclo.dia) s.ciclo = { dia: 1 };
-    if (!Array.isArray(s.apartados)) s.apartados = [];
       s.version = 12;
     }
 

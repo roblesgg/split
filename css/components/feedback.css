@@ -207,6 +207,8 @@
 
 .onboard[data-open="true"] .onboard__card { transform: none; }
 
+/* Discreto a propósito —no es lo que se quiere que pulses— pero se toca
+   como todo lo demás: el área la pone el ::after. */
 .onboard__skip {
   position: absolute;
   top: var(--sp-4);
@@ -215,6 +217,15 @@
   font-size: var(--t-min);
   font-weight: var(--w-medium);
   color: var(--text-muted);
+}
+.onboard__skip::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: max(100%, var(--tap-min));
+  height: var(--tap-min);
 }
 
 .onboard__icon {
@@ -229,14 +240,14 @@
 }
 
 .onboard__title {
-  font-size: 20px;
+  font-size: var(--t-title);
   font-weight: var(--w-bold);
   letter-spacing: -0.03em;
   margin-bottom: var(--sp-3);
 }
 
 .onboard__text {
-  font-size: 14px;
+  font-size: var(--t-body);
   line-height: 1.55;
   color: var(--text-secondary);
   max-width: 30ch;
@@ -279,7 +290,11 @@
 .ob-fila__dinero { flex: none; width: 108px; }
 .ob-fila__hueco { flex: none; width: 30px; }
 
+/* Tiene que verse pequeña —está al lado de dos campos y no compite con
+   ellos— pero se toca con el pulgar como todo lo demás: el área de
+   verdad la pone un ::after invisible. */
 .ob-fila__x {
+  position: relative;
   flex: none;
   display: grid;
   place-items: center;
@@ -288,6 +303,15 @@
   border-radius: var(--r-full);
   color: var(--text-muted);
   background: var(--surface-2);
+}
+.ob-fila__x::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: var(--tap-min);
+  height: var(--tap-min);
 }
 .ob-fila__x:active { background: var(--surface-3); }
 
@@ -301,7 +325,7 @@
   padding: var(--sp-4);
   border-radius: var(--r-md);
   border: 1.5px dashed var(--border);
-  font-size: 14px;
+  font-size: var(--t-body);
   font-weight: var(--w-medium);
   color: var(--text-secondary);
 }
@@ -331,7 +355,7 @@
 .ob-item__texto { flex: 1; min-width: 0; }
 .ob-item__nombre {
   display: block;
-  font-size: 14.5px;
+  font-size: var(--t-body);
   font-weight: var(--w-semibold);
 }
 .ob-item__sub {
@@ -342,6 +366,60 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* --- elegir el día en que empieza el mes --- */
+
+.ob-opciones { display: flex; flex-direction: column; gap: var(--sp-3); }
+
+.ob-opcion {
+  display: flex;
+  gap: var(--sp-4);
+  align-items: center;
+  width: 100%;
+  min-height: var(--tap);
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  text-align: left;
+}
+.ob-opcion:active { background: var(--surface-3); }
+
+/* El punto no viaja solo: la opción elegida cambia además de fondo y de
+   grosor, que es lo que se ve de un vistazo y sin depender del color. */
+.ob-opcion[aria-pressed="true"] {
+  background: var(--accent-wash);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+
+/* Sin marcar tiene que verse igual de claro que marcada: un aro que no
+   se distingue del fondo deja la pregunta sin parecer una pregunta. */
+.ob-opcion__marca {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--r-full);
+  background: var(--surface-raised);
+  box-shadow: inset 0 0 0 2px var(--text-muted);
+}
+.ob-opcion[aria-pressed="true"] .ob-opcion__marca {
+  background: var(--accent);
+  box-shadow: inset 0 0 0 2px var(--accent), inset 0 0 0 5px var(--surface-raised);
+}
+
+.ob-opcion__texto { flex: 1; min-width: 0; }
+
+.ob-opcion__titulo {
+  display: block;
+  font-size: var(--t-label);
+  font-weight: var(--w-semibold);
+}
+.ob-opcion__sub {
+  display: block;
+  margin-top: 1px;
+  font-size: var(--t-hint);
+  color: var(--text-secondary);
+}
+.ob-opcion[aria-pressed="true"] .ob-opcion__sub { color: var(--accent); }
 
 .ob-form {
   margin-top: var(--sp-4);
