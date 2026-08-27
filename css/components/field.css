@@ -78,7 +78,13 @@ select.field__input { appearance: none; cursor: pointer; padding-right: var(--sp
 .fold[data-open="true"] { grid-template-rows: 1fr; }
 
 .fold__inner {
+  /* Hace falta para que el pliegue de 0fr a 1fr funcione, pero recortaba
+     las sombras de las tarjetas de dentro: se les deja aire con un
+     relleno que el margen negativo devuelve, así el recorte cae por
+     fuera de la sombra y no por encima. */
   overflow: hidden;
+  margin: -8px;
+  padding: 8px;
   /* el contenido se apaga antes de terminar de plegarse, para que no se
      vea recortado a media altura */
   opacity: 0;

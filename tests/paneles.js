@@ -24,11 +24,13 @@ module.exports = function () {
   limpio();
   t.es("todo tu dinero trae los suyos",
        D.panelDe(null), D.PANEL_POR_DEFECTO_TODAS);
-  t.es("y los de todas incluyen los límites del mes",
-       D.PANEL_POR_DEFECTO_TODAS.indexOf("limites") >= 0, true);
-  t.es("que en una cuenta no aparecen",
-       D.PANEL_POR_DEFECTO_CUENTA.indexOf("limites") >= 0, false);
-  t.es("y una cuenta, otros: los límites del mes no son de una cuenta",
+  t.es("los límites del mes vienen puestos en los dos",
+       [D.PANEL_POR_DEFECTO_TODAS.indexOf("limites") >= 0,
+        D.PANEL_POR_DEFECTO_CUENTA.indexOf("limites") >= 0], [true, true]);
+  t.es("y lo que es de una cuenta, solo en una cuenta",
+       [D.PANEL_POR_DEFECTO_CUENTA.indexOf("apartados") >= 0,
+        D.PANEL_POR_DEFECTO_TODAS.indexOf("apartados") >= 0], [true, false]);
+  t.es("y una cuenta, otros: el objetivo y los apartados son suyos",
        D.panelDe("cartera"), D.PANEL_POR_DEFECTO_CUENTA);
   t.es("sin tocar, no hay nada guardado", D.state.paneles, {});
   t.es("y se sabe que está sin tocar", D.panelTocado("cartera"), false);

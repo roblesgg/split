@@ -25,7 +25,8 @@
   function nombreCiclo() { return A.nombreCiclo.apply(null, arguments); }
   function pintarBloque() { return A.pintarBloque.apply(null, arguments); }
 
-  /* Cuál es la tarjeta centrada vive en ui.panelCuenta: null es «todo». */
+  /* Cuál es la tarjeta centrada vive en ui.panelCuenta: null es «todo».
+     Si se están recolocando los bloques, en ui.panelEditando (true). */
 
   function cuentaActiva() {
     var id = ui.panelCuenta;
@@ -185,29 +186,98 @@
       return { id: id, html: pintarBloque(id, ctx) };
     }).filter(function (b) { return b.html; });
 
+    var editando = !!ui.panelOrdenando;
+
+    /* En modo colocar se pintan TODOS los del panel, aunque no tengan
+       nada que enseñar: si no, no habría forma de moverlos ni de
+       quitarlos, y desaparecerían de la lista sin explicación. */
+    var lista = editando
+      ? S.panelDe(accId).map(function (id) {
+          return { id: id, html: pintarBloque(id, ctx), vacio: !pintarBloque(id, ctx) };
+        }).filter(function (b) { return A.bloqueDefinicion(b.id); })
+      : bloques;
+
     root.innerHTML =
-      '<div class="dash dash--panel">' +
+      '<div class="dash dash--panel"' + (editando ? ' data-ordenando="true"' : "") + '>' +
         '<div class="dash__col stagger">' +
           (avisoCola() ? '<div style="--i:0">' + avisoCola() + '</div>' : "") +
           (avisoUpdate() ? '<div style="--i:0">' + avisoUpdate() + '</div>' : "") +
           '<div style="--i:0">' + carrusel(curKey, cur, accId) + '</div>' +
-          bloques.map(function (b, i) {
-            return '<div style="--i:' + Math.min(6, i + 1) + '" ' +
-                     'data-bloque="' + esc(b.id) + '">' + b.html + '</div>';
-          }).join("") +
-          '<div style="--i:7">' +
-            '<button type="button" class="panel-editar" id="panelEditar">' +
-              icon("sliders", 15) +
-              (accId ? 'Personalizar el panel de ' + esc(ctx.cuenta.name)
-                     : 'Personalizar este panel') +
-            '</button>' +
+          (editando ? barraDeOrden(accId, ctx) : "") +
+          '<div id="panelLista" class="panel-lista">' +
+            lista.map(function (b, i) {
+              return '<div style="--i:' + Math.min(6, i + 1) + '" ' +
+                       'class="panel-bloque" data-bloque="' + esc(b.id) + '">' +
+                  (editando ? asaDeBloque(b) : "") +
+                  '<div class="panel-bloque__cuerpo">' + (b.html || vacioHtml(b.id)) + '</div>' +
+                '</div>';
+            }).join("") +
           '</div>' +
+          (editando
+            ? ""
+            : '<div style="--i:7">' +
+                '<button type="button" class="panel-editar" id="panelEditar">' +
+                  icon("sliders", 15) +
+                  (accId ? 'Personalizar el panel de ' + esc(ctx.cuenta.name)
+                         : 'Personalizar este panel') +
+                '</button>' +
+              '</div>') +
         '</div>' +
       '</div>';
 
     mountIcons(root);
-    pintarGraficos(root);
+    if (!editando) pintarGraficos(root);
     centrarCarrusel(root, accId);
+    if (editando) A.arrastrarBloques($("#panelLista", root), accId);
+  }
+
+  /* La barra de arriba del modo colocar: qué se está haciendo y cómo
+     salir. Va pegada al panel y no en una hoja aparte porque lo que se
+     está tocando es el panel. */
+  function barraDeOrden(accId, ctx) {
+    /* Dos filas y no una: con el texto y los dos botones en línea, en un
+       móvil el «Colocando…» se partía en una palabra por renglón. */
+    return '<div class="panel-barra" style="--i:0">' +
+        '<span class="panel-barra__texto">' +
+          '<span class="panel-barra__titulo">Colocando ' +
+            (accId ? esc(ctx.cuenta.name) : 'Todo tu dinero') + '</span>' +
+          '<span class="panel-barra__sub">Arrastra por el asa, o usa las flechas</span>' +
+        '</span>' +
+        '<span class="panel-barra__acciones">' +
+          '<button type="button" class="btn btn--ghost" id="panelAnadir">' +
+            icon("plus", 15) + 'Añadir</button>' +
+          '<button type="button" class="btn btn--primary" id="panelListo">' +
+            icon("check", 15) + 'Listo</button>' +
+        '</span>' +
+      '</div>';
+  }
+
+  /* El asa de un bloque mientras se coloca. Es lo único por lo que se
+     arrastra: si se pudiera arrastrar por el cuerpo, no se podría hacer
+     scroll dentro del panel. */
+  function asaDeBloque(b) {
+    var def = A.bloqueDefinicion(b.id);
+    return '<div class="panel-asa">' +
+        '<span class="panel-asa__grip" data-arrastrar="' + esc(b.id) + '" ' +
+              'role="button" tabindex="0" aria-label="Mover ' + esc(def.nombre) + '">' +
+          '<span></span><span></span><span></span>' +
+        '</span>' +
+        '<span class="panel-asa__nombre">' + esc(def.nombre) + '</span>' +
+        '<button type="button" class="icon-btn" data-subir="' + esc(b.id) + '" ' +
+                'aria-label="Subir" data-icon="chevUp" data-icon-size="14"></button>' +
+        '<button type="button" class="icon-btn" data-bajar="' + esc(b.id) + '" ' +
+                'aria-label="Bajar" data-icon="chevDown" data-icon-size="14"></button>' +
+        '<button type="button" class="icon-btn panel-asa__quitar" data-quitar="' + esc(b.id) + '" ' +
+                'aria-label="Quitar" data-icon="close" data-icon-size="14"></button>' +
+      '</div>';
+  }
+
+  /* Un bloque que ahora mismo no tiene nada que enseñar. Solo se ve
+     colocando: fuera de ahí no ocupa hueco. */
+  function vacioHtml(id) {
+    var def = A.bloqueDefinicion(id);
+    return '<p class="panel-vacio">' + esc(def.sub) + '. Ahora mismo no tiene ' +
+      'nada que enseñar, así que fuera de aquí no ocupa sitio.</p>';
   }
 
   /* Los gráficos se montan después de escribir el HTML: el motor mide el

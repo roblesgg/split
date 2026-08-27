@@ -17,7 +17,15 @@
   padding: var(--sp-6);
 }
 
-.card--flush { padding: 0; overflow: hidden; }
+/* Recorta a las esquinas redondeadas, pero dejando sitio para que las
+   sombras de dentro no salgan cortadas: el margen negativo devuelve el
+   hueco que se come el relleno. */
+.card--flush {
+  padding: 0;
+  overflow: hidden;
+  margin-inline: -6px;
+  padding-inline: 6px;
+}
 
 /* variante hundida, para bloques secundarios dentro de una tarjeta */
 .card--quiet {
@@ -94,8 +102,12 @@
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
-  /* margen para que la sombra neumórfica no se recorte */
-  padding: var(--sp-3) var(--sp-5) var(--sp-4);
+  /* Aire para que la sombra de las tarjetas no se recorte contra el
+     carril. La sombra grande se va a 44 px, así que con los 12 de antes
+     salía cortada por arriba y por abajo: se le da el hueco y se
+     devuelve con el margen negativo, que si no la fila entera bajaría. */
+  padding: 34px var(--sp-5);
+  margin-block: -30px;
   margin-inline: calc(var(--sp-5) * -1);
 }
 
@@ -110,14 +122,18 @@
    del degradado, incluidos los claros como el amarillo. */
 .paycard {
   position: relative;
-  flex: 0 0 84%;
+  /* Un poco más estrecha que antes y bastante más baja: el panel de
+     debajo es lo que se viene a mirar, y con la tarjeta de 178 px había
+     que hacer scroll para ver la primera cifra. Se sigue viendo el borde
+     de la siguiente, que es lo que invita a deslizar. */
+  flex: 0 0 80%;
   scroll-snap-align: center;
   overflow: hidden;
-  min-height: 178px;
+  min-height: 142px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: var(--sp-5);
+  padding: var(--sp-4);
   border-radius: var(--r-xl);
   /* respaldo para navegadores sin color-mix: gris de tarjeta, nunca el
      color a pelo, que con el amarillo dejaría el texto ilegible */
@@ -224,8 +240,8 @@
 .paycard__label { font-size: var(--t-min); font-weight: var(--w-normal); opacity: 0.72; }
 
 .paycard__value {
-  margin-top: 3px;
-  font-size: var(--num-xl);
+  margin-top: 2px;
+  font-size: var(--num-l);
   font-weight: var(--w-bold);
   letter-spacing: -0.042em;
   line-height: 1.05;
@@ -493,3 +509,124 @@
   background: var(--surface-raised);
   color: var(--accent);
 }
+
+/* ---------- colocar los bloques en el propio panel ----------
+   Personalizar no abre una hoja: convierte el panel en algo que se
+   recoloca. Lo que se está tocando es el panel, así que se toca ahí. */
+
+.panel-barra {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--accent-wash);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+
+.panel-barra__texto { min-width: 0; }
+
+.panel-barra__titulo {
+  display: block;
+  font-size: var(--t-label);
+  font-weight: var(--w-semi);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel-barra__sub {
+  display: block;
+  margin-top: 1px;
+  font-size: var(--t-hint);
+  color: var(--text-secondary);
+}
+
+.panel-barra__acciones { display: flex; gap: var(--sp-3); }
+.panel-barra__acciones .btn { flex: 1; }
+
+/* El asa: lo único por lo que se arrastra. Si se pudiera arrastrar por
+   el cuerpo del bloque, no se podría hacer scroll dentro del panel. */
+.panel-asa {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-2);
+  padding: 0 var(--sp-2);
+}
+
+.panel-asa__grip {
+  flex: none;
+  display: grid;
+  place-items: center;
+  gap: 3px;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  cursor: grab;
+  /* sin esto el navegador se queda el gesto para hacer scroll y el
+     arrastre no llega a empezar */
+  touch-action: none;
+}
+.panel-asa__grip:active { cursor: grabbing; background: var(--surface-3); }
+.panel-asa__grip span {
+  width: 16px;
+  height: 2px;
+  border-radius: var(--r-full);
+  background: var(--text-muted);
+}
+
+.panel-asa__nombre {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--t-min);
+  font-weight: var(--w-semi);
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panel-asa__quitar { color: var(--status-critical); }
+
+/* Mientras se coloca, el cuerpo se aparta: se mira dónde va cada bloque,
+   no lo que dice. */
+.dash--panel[data-ordenando="true"] .panel-bloque__cuerpo {
+  pointer-events: none;
+  opacity: 0.55;
+  transform: scale(0.985);
+  transform-origin: top center;
+}
+
+.dash--panel[data-ordenando="true"] .panel-bloque {
+  padding: var(--sp-3);
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+}
+
+/* El que va en la mano se despega del resto. */
+.panel-bloque--volando {
+  position: relative;
+  z-index: 5;
+  box-shadow: var(--nm-out-lg);
+  opacity: 0.96;
+}
+.panel-bloque--volando .panel-bloque__cuerpo { opacity: 0.7; }
+
+.panel-lista--arrastrando { cursor: grabbing; }
+
+.panel-vacio {
+  padding: var(--sp-4);
+  font-size: var(--t-hint);
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .panel-bloque { transition-duration: .01ms !important; }
+}
+
+/* La lista de bloques hereda el mismo hueco que llevaba la columna, para
+   que meterlos dentro de un contenedor no cambie cómo se ven. */
+.panel-lista { display: flex; flex-direction: column; gap: var(--sp-7); }
+.dash--panel[data-ordenando="true"] .panel-lista { gap: var(--sp-4); }

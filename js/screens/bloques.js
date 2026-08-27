@@ -172,15 +172,19 @@
   bloque("limites", {
     nombre: "Límites del mes",
     sub: "Una barra por límite, con lo que llevas gastado",
-    soloTodas: true,
     render: function (ctx) {
       var rows = S.estadoDeLimites(ctx.key)
         .sort(function (a, b) { return b.ratio - a.ratio; });
       if (!rows.length) return "";
       var res = S.resumenDeLimites(ctx.key);
+      /* Un límite mira categorías, no cuentas, así que sus cifras son las
+         de todo tu dinero aunque estés mirando una cuenta. Se dice, en
+         vez de esconder el bloque: media verdad en una cifra es peor que
+         no enseñarla. */
       return foldCard("presupuesto",
         "Límites de " + esc(nombreCiclo(ctx.key)),
-        esc(res.cuantos === 1 ? "1 límite" : res.cuantos + " límites") +
+        (ctx.accId ? "De todas tus cuentas · " : "") +
+          esc(res.cuantos === 1 ? "1 límite" : res.cuantos + " límites") +
           (res.sinTope > 0
             ? " · " + esc(S.moneyShort(res.sinTope)) + " fuera de todos"
             : ""),
@@ -193,7 +197,6 @@
   bloque("apurado", {
     nombre: "El límite más apurado",
     sub: "Solo cabe uno, y el que interesa es el que está por reventar",
-    soloTodas: true,
     render: function (ctx) {
       /* Sumar todos los topes no valdría: dos límites pueden solaparse y
          la suma daría de más. El que va más lleno sí es cierto siempre. */

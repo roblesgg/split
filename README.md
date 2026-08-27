@@ -187,23 +187,32 @@ panel entero cambia de cuenta.
 Tocar hace dos cosas, en este orden: la tarjeta que no está centrada se centra,
 y la que ya lo está se abre. Deslizar elige, tocar la que miras entra.
 
-### Los bloques los eliges tú
+### Los bloques los eliges tú, en el propio panel
 
-Debajo del panel hay un botón para **personalizarlo**: qué bloques se ven y en
-qué orden. Cada cuenta tiene los suyos, así que la del día a día puede llevar
-límites y gasto por categoría mientras la hucha lleva la evolución del saldo.
+Debajo hay un botón para **personalizarlo**, y no abre una hoja: convierte el
+panel en algo que se recoloca. Lo que se está tocando es el panel, así que se
+toca ahí, viendo los bloques de verdad y no una lista de nombres.
 
-Se ordena con flechas y no arrastrando: un arrastre dentro de una lista que ya se
-desplaza es de las cosas que peor van en un móvil, y así además se puede usar sin
-ver. El Resumen de detrás se repinta a la vez, porque estás eligiendo qué ver y
-verlo mientras eliges es la mitad de la gracia.
+Cada bloque saca su **asa**: se arrastra por ella, nunca por el cuerpo — si el
+bloque entero fuera arrastrable no se podría hacer scroll, que es lo primero que
+uno intenta. Los demás se apartan a la vista en vez de aparecer ya movidos: se
+mide dónde estaban, se cambia el orden y se anima desde la diferencia.
+
+Al lado del asa van **las flechas y la equis**. Las flechas hacen exactamente lo
+mismo con la misma animación: hay quien no puede arrastrar, y en una lista larga
+dos toques son mejores que un arrastre. Y **+ Añadir** abre la única lista que sí
+hace falta: la de los bloques que *no* están puestos, que por definición no se
+ven.
+
+Cada cuenta tiene los suyos, así que la del día a día puede llevar límites y
+gasto por categoría mientras la hucha lleva la evolución del saldo.
 
 | Bloque | Qué enseña | |
 |---|---|---|
 | **Botones rápidos** | Apuntar un gasto o un ingreso, y el atajo a Análisis | |
 | **Ingresos, gastos y ahorro** | Las tres cifras del periodo, con su tendencia | |
-| **El límite más apurado** | El anillo del que está por reventar | solo en «todo» |
-| **Límites del mes** | Una barra por límite | solo en «todo» |
+| **El límite más apurado** | El anillo del que está por reventar | |
+| **Límites del mes** | Una barra por límite | |
 | **Objetivo de gasto** | El tope de esa cuenta | solo en una cuenta |
 | **Apartados** | El dinero reservado dentro de esa cuenta | solo en una cuenta |
 | **En qué se te va** | Las cuatro categorías con más gasto | |
@@ -214,8 +223,11 @@ verlo mientras eliges es la mitad de la gracia.
 | **Últimos movimientos** | Lo último apuntado | |
 | **Lo que viene** | Los próximos pagos y cobros programados | |
 
-Los que están marcados no se ofrecen en el otro lado, y con razón: los límites
-del mes son de todo tu dinero, y los apartados son de una cuenta concreta.
+Los apartados y el objetivo de gasto solo se ofrecen dentro de una cuenta: son
+suyos. Los límites del mes sí valen en los dos, pero miran categorías y no
+cuentas, así que dentro de una cuenta el bloque lo dice —«De todas tus
+cuentas»— en vez de esconderse: media verdad en una cifra es peor que no
+enseñarla.
 
 **Un bloque sin nada que enseñar no ocupa hueco.** Un panel con seis huecos
 vacíos da la impresión de que la app está rota.
@@ -234,6 +246,8 @@ Tres piezas que no se conocen entre ellas:
   Resumen ni la pantalla de personalizar hay que tocarlos, porque las dos leen
   del catálogo.
 - `js/screens/inicio.js` solo elige la cuenta, monta el contexto y pinta la lista.
+- `js/screens/arrastrar.js` es el arrastre, con punteros y no con la API de
+  arrastrar del navegador: esa no funciona con el dedo, que es donde se usa.
 
 ## Qué hay en cada pantalla
 

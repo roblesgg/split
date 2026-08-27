@@ -212,7 +212,22 @@
         return;
       }
       if (e.target.closest("#kpiFiltro")) { openForm("resumen"); return; }
-      if (e.target.closest("#panelEditar")) { A.abrirPanel(ui.panelCuenta); return; }
+      /* Personalizar ya no abre una hoja: convierte el propio panel en
+         algo que se puede recolocar. Lo que se está tocando es el panel,
+         así que se toca ahí. */
+      if (e.target.closest("#panelEditar")) {
+        ui.panelOrdenando = true;
+        A.renderInicio(); U.haptic("light"); return;
+      }
+      if (e.target.closest("#panelListo")) {
+        ui.panelOrdenando = false;
+        A.renderInicio(); U.haptic("light"); return;
+      }
+      if (e.target.closest("#panelAnadir")) { A.abrirPanel(ui.panelCuenta); return; }
+      if ((node = e.target.closest("[data-quitar]"))) {
+        S.quitarBloque(ui.panelCuenta, node.getAttribute("data-quitar"));
+        A.renderInicio(); U.haptic("light"); return;
+      }
       if (e.target.closest("#colaAbrir")) { abrirCobros(); return; }
       if ((node = e.target.closest("[data-rec-toggle]"))) {
         var r = S.toggleRecurring(node.getAttribute("data-rec-toggle"));

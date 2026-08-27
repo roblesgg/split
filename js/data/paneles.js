@@ -29,7 +29,7 @@
     "acciones", "kpis", "apurado", "limites", "categorias", "recientes", "proximos"
   ];
   var POR_DEFECTO_CUENTA = [
-    "acciones", "kpis", "objetivo", "apartados", "categorias", "recientes"
+    "acciones", "kpis", "objetivo", "limites", "apartados", "categorias", "recientes"
   ];
 
   function paneles() {
