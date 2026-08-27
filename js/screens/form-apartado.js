@@ -11,11 +11,11 @@
 
   var A = window.App;
   var S = A.S, $ = A.$, esc = A.esc, ui = A.ui;
-  var EMOJI_SUGERIDOS = A.EMOJI_SUGERIDOS;
 
   /* Puentes a lo que vive en otro archivo. Se resuelven en la llamada,
      así que da igual el orden en que se carguen los scripts. */
   function bigAmount() { return A.bigAmount.apply(null, arguments); }
+  function identHtml() { return A.identHtml.apply(null, arguments); }
   function money() { return A.money.apply(null, arguments); }
   function numField() { return A.numField.apply(null, arguments); }
   function periodo() { return A.periodo.apply(null, arguments); }
@@ -56,32 +56,16 @@
       }
 
       if (t === "apartado") {
-        var coloresAp = [];
-        for (var ai = 1; ai <= S.CAT_COLORS; ai++) coloresAp.push(ai);
         var cuentaAp = S.state.accounts.find(function (x) { return x.id === d.accountId; });
         var elegidas = d.categoryIds || [];
 
         html =
-          '<div class="field">' +
-            '<span class="field__label">Así se verá</span>' +
-            '<div class="cat-preview">' +
-              '<span class="cat-preview__face cat-face" id="fPreview" ' +
-                    'style="--cat-color:var(--cat-' + d.color + ')" aria-hidden="true">' +
-                esc(d.emoji) + '</span>' +
-              '<span class="cat-preview__name" id="fPreviewName">' +
-                esc(d.name || "Sin nombre") + '</span>' +
-            '</div>' +
-            '<p class="field__hint">Dentro de <strong>' +
-              esc(cuentaAp ? cuentaAp.name : "tu cuenta") + '</strong>. ' +
-              'Apartar no mueve el dinero de sitio: lo reserva, y el saldo de ' +
-              'la cuenta sigue siendo el mismo.</p>' +
-          '</div>' +
-
-          '<div class="field">' +
-            '<label class="field__label" for="fName">Nombre</label>' +
-            '<input type="text" class="field__input" id="fName" data-f="Name" maxlength="24" ' +
-                   'placeholder="Gasolina" value="' + esc(d.name) + '">' +
-          '</div>' +
+          identHtml(d, {
+            placeholder: "Gasolina",
+            hint: "Dentro de <strong>" + esc(cuentaAp ? cuentaAp.name : "tu cuenta") +
+                  "</strong>. Apartar no mueve el dinero de sitio: lo reserva, y el " +
+                  "saldo de la cuenta sigue siendo el mismo."
+          }) +
 
           '<div class="field__row">' +
             numField("fPorCiclo", "Apartas cada " + periodo(), d.porCiclo, 10) +
@@ -120,30 +104,6 @@
                 : 'Sin ninguna elegida tendrás que ir marcando a mano qué gastos ' +
                   'salen de este apartado.') +
             '</p>' +
-          '</div>' +
-
-          '<div class="field">' +
-            '<label class="field__label" for="fEmoji">Emoji</label>' +
-            '<input type="text" class="field__input" id="fEmoji" data-f="Emoji" ' +
-                   'maxlength="8" autocomplete="off" value="' + esc(d.emoji) + '">' +
-            '<div class="emoji-grid">' +
-              EMOJI_SUGERIDOS.map(function (e) {
-                return '<button type="button" class="emoji-pick" data-pemoji="' + esc(e) + '" ' +
-                         'aria-pressed="' + (e === d.emoji) + '">' + esc(e) + '</button>';
-              }).join("") +
-            '</div>' +
-          '</div>' +
-
-          '<div class="field">' +
-            '<span class="field__label">Color</span>' +
-            '<div class="swatch-grid">' +
-              coloresAp.map(function (n) {
-                return '<button type="button" class="swatch" data-pcolor="' + n + '" ' +
-                         'style="background:var(--cat-' + n + ')" ' +
-                         'aria-pressed="' + (n === d.color) + '" ' +
-                         'aria-label="Color ' + n + '"></button>';
-              }).join("") +
-            '</div>' +
           '</div>';
       }
 

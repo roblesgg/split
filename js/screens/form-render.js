@@ -24,6 +24,7 @@
   function pickField() { return A.pickField.apply(null, arguments); }
   function htmlApartado() { return A.htmlApartado.apply(null, arguments); }
   function htmlLimite() { return A.htmlLimite.apply(null, arguments); }
+  function identHtml() { return A.identHtml.apply(null, arguments); }
   function periodo() { return A.periodo.apply(null, arguments); }
   function switchRow() { return A.switchRow.apply(null, arguments); }
 
@@ -36,9 +37,6 @@
     if (t === "limite") html = htmlLimite(t, d);
 
     if (t === "category") {
-      var colores = [];
-      for (var ci = 1; ci <= S.CAT_COLORS; ci++) colores.push(ci);
-
       /* Una que ya tiene hijas no puede meterse dentro de nadie. */
       var tieneHijas = ui.form.id && S.hijasDe(ui.form.id).length > 0;
       var madresPosibles = tieneHijas ? [] : S.categoriasMadre(d.kind)
@@ -55,22 +53,7 @@
                       'aria-selected="' + (d.kind === "in") + '">Ingreso</button>' +
             '</div>') +
 
-        '<div class="field">' +
-          '<span class="field__label">Así se verá</span>' +
-          '<div class="cat-preview">' +
-            '<span class="cat-preview__face cat-face" id="fPreview" ' +
-                  'style="--cat-color:var(--cat-' + d.color + ')" aria-hidden="true">' +
-              esc(d.emoji) + '</span>' +
-            '<span class="cat-preview__name" id="fPreviewName">' +
-              esc(d.name || "Sin nombre") + '</span>' +
-          '</div>' +
-        '</div>' +
-
-        '<div class="field">' +
-          '<label class="field__label" for="fName">Nombre</label>' +
-          '<input type="text" class="field__input" id="fName" data-f="Name" maxlength="24" ' +
-                 'placeholder="Gasolina" value="' + esc(d.name) + '">' +
-        '</div>' +
+        identHtml(d, { placeholder: "Gasolina" }) +
 
         /* Meterla dentro de otra. Solo se ofrecen las de primer nivel del
            mismo tipo, y solo si esta no tiene ya hijas: un nivel y no más,
@@ -91,30 +74,7 @@
             '</div>'
           : "") +
 
-        '<div class="field">' +
-          '<label class="field__label" for="fEmoji">Emoji</label>' +
-          '<input type="text" class="field__input" id="fEmoji" data-f="Emoji" ' +
-                 'maxlength="8" autocomplete="off" value="' + esc(d.emoji) + '">' +
-          '<div class="emoji-grid">' +
-            EMOJI_SUGERIDOS.map(function (e) {
-              return '<button type="button" class="emoji-pick" data-pemoji="' + esc(e) + '" ' +
-                       'aria-pressed="' + (e === d.emoji) + '">' + esc(e) + '</button>';
-            }).join("") +
-          '</div>' +
-          '<p class="field__hint">Escribe el que quieras o elige uno de arriba.</p>' +
-        '</div>' +
-
-        '<div class="field">' +
-          '<span class="field__label">Color</span>' +
-          '<div class="swatch-grid">' +
-            colores.map(function (n) {
-              return '<button type="button" class="swatch" data-pcolor="' + n + '" ' +
-                       'style="background:var(--cat-' + n + ')" ' +
-                       'aria-pressed="' + (n === d.color) + '" ' +
-                       'aria-label="Color ' + n + '"></button>';
-            }).join("") +
-          '</div>' +
-        '</div>';
+        "";
     }
 
     if (t === "account") {

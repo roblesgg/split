@@ -61,28 +61,92 @@
 
 /* ---------- formulario de categoría ---------- */
 
-.cat-preview {
+/* ---------- identidad: cara, nombre y color en una sola fila ----------
+   Es a la vez la vista previa y el editor. Tocas la cara y salen los
+   emojis, tocas el punto y salen los colores, y el nombre se escribe
+   donde se lee: sin etiquetas, sin campos aparte y sin rejillas abiertas
+   ocupando media hoja antes de llegar al botón de guardar. */
+
+.ident {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-  padding: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
   border-radius: var(--r-md);
   background: var(--surface-2);
   box-shadow: var(--nm-in);
 }
 
-.cat-preview__face {
-  width: 46px;
-  height: 46px;
+.ident__cara {
+  flex: none;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border: 0;
   border-radius: var(--r-full);
   font-size: 22px;
+  cursor: pointer;
 }
+.ident__cara[aria-expanded="true"] { box-shadow: 0 0 0 2px var(--accent); }
 
-.cat-preview__name {
-  font-size: 15px;
+/* El nombre no parece un campo hasta que lo tocas: es la vista previa. */
+.ident__nombre {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--tap-min);
+  border: 0;
+  background: none;
+  padding: 0;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--t-title);
   font-weight: var(--w-semi);
   letter-spacing: -0.02em;
 }
+.ident__nombre::placeholder { color: var(--text-muted); font-weight: var(--w-medium); }
+.ident__nombre:focus { outline: none; }
+.ident__nombre:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+.ident__color {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border: 0;
+  border-radius: var(--r-full);
+  background: none;
+  cursor: pointer;
+}
+.ident__color[aria-expanded="true"] { box-shadow: 0 0 0 2px var(--accent); }
+
+.ident__punto {
+  width: 22px;
+  height: 22px;
+  border-radius: var(--r-full);
+  box-shadow: var(--nm-out-sm);
+}
+
+/* El cajón que se abre debajo, pegado a lo que lo abrió. */
+.ident__cajon {
+  margin-top: var(--sp-3);
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  animation: cajon-abre var(--dur-fast) var(--ease-out);
+}
+
+@keyframes cajon-abre {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ident__cajon { animation-duration: .01ms; }
+}
+
+.ident__libre { margin-bottom: var(--sp-3); }
+.ident__cajon .emoji-grid,
+.ident__cajon .swatch-grid { margin-top: 0; }
 
 .emoji-grid {
   display: grid;

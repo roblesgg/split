@@ -122,7 +122,7 @@
       if (!it) { d.freq = "mensual"; d.cada = 1; }
     }
 
-    ui.form = { type: type, id: id || null, d: d };
+    ui.form = { type: type, id: id || null, d: d, abierto: null };
     ui.opcionesRec = false;
 
     $("#sheetFormTitle").textContent = {
@@ -235,15 +235,9 @@
   ];
 
   /* La vista previa se actualiza sola al teclear o al tocar un color, sin
-     repintar el formulario: hacerlo dejaría el campo de texto sin foco. */
-  function refreshCatPreview() {
-    var face = $("#fPreview");
-    if (!face) return;
-    face.textContent = ui.form.d.emoji || "📦";
-    face.style.setProperty("--cat-color", "var(--cat-" + ui.form.d.color + ")");
-    var nameEl = $("#fPreviewName");
-    if (nameEl) nameEl.textContent = String(ui.form.d.name || "").trim() || "Sin nombre";
-  }
+     repintar el formulario: hacerlo dejaría el campo de texto sin foco.
+     Vive en form-ident, que es de quien es el trozo. */
+  function refreshCatPreview() { return A.refreshIdent(); }
 
   function refreshAjuste() {
     var caja = $("#fAjuste");
@@ -399,6 +393,21 @@
         U.haptic("light");
         return;
       }
+      /* La cara y el color abren su cajón, y solo uno a la vez: con los
+         dos abiertos la hoja crece por los dos lados y hay que hacer
+         scroll para ver lo que estás cambiando. */
+      if ((node = e.target.closest("[data-ident]"))) {
+        var cual = node.getAttribute("data-ident");
+        ui.form.abierto = ui.form.abierto === cual ? null : cual;
+        renderForm();
+        if (ui.form.abierto === "emoji") {
+          var libre = $("#fEmoji", formBody);
+          if (libre) libre.focus();
+        }
+        U.haptic("light");
+        return;
+      }
+
       if ((node = e.target.closest("[data-pemoji]"))) {
         ui.form.d.emoji = node.getAttribute("data-pemoji");
         var inp = $("#fEmoji", formBody);

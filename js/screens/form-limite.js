@@ -10,10 +10,10 @@
 
   var A = window.App;
   var S = A.S, esc = A.esc, ui = A.ui;
-  var EMOJI_SUGERIDOS = A.EMOJI_SUGERIDOS;
 
   /* Puentes a lo que vive en otro archivo. Se resuelven en la llamada,
      así que da igual el orden en que se carguen los scripts. */
+  function identHtml() { return A.identHtml.apply(null, arguments); }
   function money() { return A.money.apply(null, arguments); }
   function numField() { return A.numField.apply(null, arguments); }
   function periodo() { return A.periodo.apply(null, arguments); }
@@ -77,29 +77,13 @@
   function htmlLimite(t, d) {
     if (t !== "limite") return "";
 
-    var colores = [];
-    for (var i = 1; i <= S.CAT_COLORS; i++) colores.push(i);
-
     return '' +
-      '<div class="field">' +
-        '<span class="field__label">Así se verá</span>' +
-        '<div class="cat-preview">' +
-          '<span class="cat-preview__face cat-face" id="fPreview" ' +
-                'style="--cat-color:var(--cat-' + d.color + ')" aria-hidden="true">' +
-            esc(d.emoji) + '</span>' +
-          '<span class="cat-preview__name" id="fPreviewName">' +
-            esc(d.name || "Sin nombre") + '</span>' +
-        '</div>' +
-        '<p class="field__hint">Un límite no bloquea nada: avisa. Si te pasas, ' +
-          'el gasto se apunta igual — apuntarlo en otro sitio para que cuadre ' +
-          'sería mentirte a ti mismo.</p>' +
-      '</div>' +
-
-      '<div class="field">' +
-        '<label class="field__label" for="fName">Nombre</label>' +
-        '<input type="text" class="field__input" id="fName" data-f="Name" maxlength="24" ' +
-               'placeholder="Gasolina" value="' + esc(d.name) + '">' +
-      '</div>' +
+      identHtml(d, {
+        placeholder: "Gasolina",
+        hint: "Un límite no bloquea nada: avisa. Si te pasas, el gasto se apunta " +
+              "igual — apuntarlo en otro sitio para que cuadre sería mentirte a " +
+              "ti mismo."
+      }) +
 
       '<div class="field">' +
         numField("fImporte", "Cuánto puedes gastar al " + periodo(), d.importe, 10) +
@@ -123,30 +107,6 @@
 
       '<div class="field">' +
         '<p class="field__hint" id="fLimResumen">' + esc(resumen(d)) + '</p>' +
-      '</div>' +
-
-      '<div class="field">' +
-        '<label class="field__label" for="fEmoji">Emoji</label>' +
-        '<input type="text" class="field__input" id="fEmoji" data-f="Emoji" ' +
-               'maxlength="8" autocomplete="off" value="' + esc(d.emoji) + '">' +
-        '<div class="emoji-grid">' +
-          EMOJI_SUGERIDOS.map(function (e) {
-            return '<button type="button" class="emoji-pick" data-pemoji="' + esc(e) + '" ' +
-                     'aria-pressed="' + (e === d.emoji) + '">' + esc(e) + '</button>';
-          }).join("") +
-        '</div>' +
-      '</div>' +
-
-      '<div class="field">' +
-        '<span class="field__label">Color</span>' +
-        '<div class="swatch-grid">' +
-          colores.map(function (n) {
-            return '<button type="button" class="swatch" data-pcolor="' + n + '" ' +
-                     'style="background:var(--cat-' + n + ')" ' +
-                     'aria-pressed="' + (n === d.color) + '" ' +
-                     'aria-label="Color ' + n + '"></button>';
-          }).join("") +
-        '</div>' +
       '</div>';
   }
 

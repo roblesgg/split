@@ -270,6 +270,27 @@ permitir.
 Borrar un apartado **no borra sus gastos**: los suelta. Vuelven a contar en el
 objetivo de la cuenta, que es donde habrían estado siempre.
 
+## Cara, nombre y color: la vista previa es el editor
+
+Las tres cosas de la app que tienen emoji, nombre y color —categorías,
+apartados y límites— comparten una sola fila:
+
+```
+[ ⛽ ]  Gasolina                              ●
+  ↑        ↑                                  ↑
+ emojis   se escribe aquí                  colores
+```
+
+Tocas la cara y salen **todos** los emojis; tocas el punto y salen todos los
+colores; y el nombre se escribe donde se lee. Solo se abre un cajón a la vez,
+así que la hoja no crece por los dos lados.
+
+Antes eran cuatro campos apilados: una vista previa que no se podía tocar y
+debajo «Nombre», «Emoji» y «Color», cada uno con su etiqueta y su rejilla
+siempre abierta. Media hoja para decidir tres cosas, y había que bajar hasta el
+final para encontrar el botón de guardar. Ahora el formulario entero cabe de una
+vez en la pantalla.
+
 ## Categorías
 
 Se crean, se renombran, se les cambia el **emoji** y el **color**, y se borran.
@@ -549,7 +570,7 @@ js/
     inicio.js  movs.js  analisis.js  planes.js
     ajustes.js  ajustes-render.js
     form.js  form-guardar.js  form-render.js
-    form-apartado.js  form-limite.js
+    form-apartado.js  form-limite.js  form-ident.js
     add.js   add-render.js     hoja de añadir movimiento
     detail.js  pick.js  cuenta.js  cobro.js  onboard.js
 tests/              sin dependencias: node tests/run.js
