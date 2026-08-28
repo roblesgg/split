@@ -52,10 +52,17 @@
       d = it
         ? { name: it.name, emoji: it.emoji, color: it.color, kind: it.kind,
             parentId: it.parentId || "" }
-        : { name: "", emoji: "🏷️", color: 1,
-            kind: (opts && opts.kind === "in") ? "in" : "out",
-            /* al crear desde dentro de una madre, ya viene puesta */
-            parentId: (opts && opts.parentId) || "" };
+        : (function () {
+            /* al crear desde dentro de una madre, ya viene puesta, y con
+               ella la cara: una hija lleva la de su madre */
+            var madreId = (opts && opts.parentId) || "";
+            var madre = madreId && S.catById(madreId);
+            return { name: "",
+                     emoji: madre ? madre.emoji : "🏷️",
+                     color: madre ? madre.color : 1,
+                     kind: (opts && opts.kind === "in") ? "in" : "out",
+                     parentId: madreId };
+          })();
     } else if (type === "account") {
       d = it
         ? { name: it.name, type: it.type, opening: it.opening,
@@ -120,7 +127,19 @@
     ui.form = { type: type, id: id || null, d: d, abierto: null };
     ui.opcionesRec = false;
 
-    $("#sheetFormTitle").textContent = {
+    tituloForm();
+
+    renderForm();
+    sheets.form.show();
+  }
+
+  /* El título de la hoja. Se vuelve a poner al repintar porque una
+     categoría cambia de nombre a mitad de formulario: en cuanto la metes
+     dentro de otra deja de ser una categoría y pasa a ser una
+     subcategoría, y el título tiene que decirlo. */
+  function tituloForm() {
+    var type = ui.form.type, id = ui.form.id, d = ui.form.d;
+    var titulo = {
       account: id ? "Editar cuenta" : "Nueva cuenta",
       goal: id ? "Editar meta" : "Nueva meta",
       recurring: id ? "Editar programado" : "Nuevo programado",
@@ -132,8 +151,10 @@
       aportar: "Apartar o devolver"
     }[type] || "Editar";
 
-    renderForm();
-    sheets.form.show();
+    if (type === "category" && d && d.parentId) {
+      titulo = id ? "Editar subcategoría" : "Crear subcategoría";
+    }
+    $("#sheetFormTitle").textContent = titulo;
   }
 
   function findFor(type, id) {
@@ -500,6 +521,7 @@
   A.listaDias = listaDias;
   A.numField = numField;
   A.openForm = openForm;
+  A.tituloForm = tituloForm;
   A.ritmoDe = ritmoDe;
   A.switchRow = switchRow;
 

@@ -33,6 +33,10 @@
     var t = ui.form.type, d = ui.form.d;
     var html = "";
 
+    /* El título se vuelve a poner aquí: meter una categoría dentro de
+       otra la convierte en subcategoría sin cerrar la hoja. */
+    A.tituloForm();
+
     if (t === "aportar" || t === "apartado") html = htmlApartado(t, d);
     if (t === "limite") html = htmlLimite(t, d);
 
@@ -53,7 +57,10 @@
                       'aria-selected="' + (d.kind === "in") + '">Ingreso</button>' +
             '</div>') +
 
-        identHtml(d, { placeholder: "Gasolina" }) +
+        identHtml(d, {
+          placeholder: "Gasolina",
+          heredadoDe: d.parentId && catOf(d.parentId) ? catOf(d.parentId).name : null
+        }) +
 
         /* Meterla dentro de otra. Solo se ofrecen las de primer nivel del
            mismo tipo, y solo si esta no tiene ya hijas: un nivel y no más,

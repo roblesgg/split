@@ -329,6 +329,12 @@
                     '<span class="cat-list__body">' +
                       '<span class="cat-list__name">' + esc(c.name) + '</span>' +
                       '<span class="cat-list__meta">' +
+                        /* Las de dentro llevan la cara de su madre, así que
+                           en una lista plana salen varias con el mismo
+                           icono: aquí se dice de quién es cada una. */
+                        (c.parentId && S.catById(c.parentId)
+                          ? "En " + esc(S.catById(c.parentId).name) + " · "
+                          : "") +
                         (use.transactions
                           ? use.transactions + " movimiento" + (use.transactions === 1 ? "" : "s")
                           : "Sin movimientos") +

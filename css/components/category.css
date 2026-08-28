@@ -88,6 +88,10 @@
 }
 .ident__cara[aria-expanded="true"] { box-shadow: 0 0 0 2px var(--accent); }
 
+/* La cara de una subcategoría se enseña pero no se toca: la pone su
+   madre, y con ella el color, así que la fila se queda en dos piezas. */
+.ident--heredada .ident__cara { cursor: default; }
+
 /* El nombre no parece un campo hasta que lo tocas: es la vista previa. */
 .ident__nombre {
   flex: 1;

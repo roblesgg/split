@@ -170,8 +170,11 @@
       ui.form.d.categoryId = valor; renderForm();
     } else if (id === "fMadre") {
       ui.form.d.parentId = valor;
-      /* hereda el color de la madre, como hace el store al guardar */
-      if (valor) ui.form.d.color = catOf(valor).color;
+      /* hereda la cara de la madre, como hace el store al guardar */
+      if (valor) {
+        ui.form.d.color = catOf(valor).color;
+        ui.form.d.emoji = catOf(valor).emoji;
+      }
       renderForm();
     } else if (id === "fType") {
       ui.form.d.type = valor; renderForm();

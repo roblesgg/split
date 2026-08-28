@@ -67,11 +67,13 @@
       kind: kind,
       parentId: madreValida(data.parentId, kind, null)
     };
-    /* Una hija hereda el color de su madre: así en un gráfico las tres
-       deudas se ven como la misma familia y no como tres cosas sueltas. */
+    /* Una hija hereda el icono y el color de su madre: son la misma
+       cosa contada más fina, y con cara propia parecían tres categorías
+       sueltas —en un gráfico y en la lista de dentro— en vez de tres
+       maneras de gastar en lo mismo. */
     if (c.parentId) {
       var madre = catExacta(c.parentId);
-      if (madre) c.color = madre.color;
+      if (madre) { c.color = madre.color; c.emoji = madre.emoji; }
     }
     D.state.categories.push(c);
     /* Antes una categoría de gasto nacía en el reparto al 0 %, y salía
@@ -93,13 +95,17 @@
       c.parentId = madreValida(patch.parentId, c.kind, c.id);
       if (c.parentId) {
         var madre = catExacta(c.parentId);
-        if (madre) c.color = madre.color;
+        if (madre) { c.color = madre.color; c.emoji = madre.emoji; }
       }
     }
-    /* Cambiar el color de una madre lo cambia en sus hijas: son la misma
-       familia y verlas de distinto color en un gráfico despista. */
-    if (patch.color != null && !c.parentId) {
-      hijasDe(c.id).forEach(function (h) { h.color = c.color; });
+    /* Cambiar la cara de una madre la cambia en sus hijas: son la misma
+       familia, y verlas distintas en un gráfico o en el cajón de dentro
+       despista. Meter una en otra hace lo propio, justo arriba. */
+    if (!c.parentId) {
+      hijasDe(c.id).forEach(function (h) {
+        if (patch.color != null) h.color = c.color;
+        if (patch.emoji != null) h.emoji = c.emoji;
+      });
     }
     invalidateCats();
     save();

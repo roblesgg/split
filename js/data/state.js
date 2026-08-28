@@ -326,6 +326,21 @@
       s.version = 17;
     }
 
+    if (s.version < 18) {
+      /* v18: una subcategoría lleva la cara de su madre. Antes heredaba
+         el color pero no el emoji, así que las de dentro de Comida
+         salían cada una con un icono distinto y en el cajón parecían
+         categorías sueltas en vez de tres maneras de gastar en comida.
+         Las que ya existen se ponen al día; el nombre no se toca. */
+      var porId = {};
+      (s.categories || []).forEach(function (c) { porId[c.id] = c; });
+      (s.categories || []).forEach(function (c) {
+        var madre = c.parentId && porId[c.parentId];
+        if (madre) c.emoji = madre.emoji;
+      });
+      s.version = 18;
+    }
+
     /* Red de seguridad, al margen de la versión: casi todo el código tira
        de las categorías por defecto cuando la lista no está, pero crear
        una necesita el array de verdad. Un estado importado a mano, o

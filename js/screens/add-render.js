@@ -170,7 +170,7 @@
                   }).join("") +
                   '<button type="button" class="chip chip--add" ' +
                           'data-cat-new-hija="' + esc(abierta) + '">' +
-                    icon("plus", 12) + 'Nueva en ' + esc(catOf(abierta).name) +
+                    icon("plus", 12) + 'Crear subcategoría' +
                   '</button>' +
                 '</div>' +
                 '<p class="field__hint">' +

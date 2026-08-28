@@ -116,7 +116,7 @@ module.exports = function () {
   var copia = JSON.parse(JSON.stringify(antes));
   var s = D.migrate(JSON.parse(JSON.stringify(antes)));
 
-  t.es("sube a la versión 17", s.version, 17);
+  t.es("sube a la versión 18", s.version, 18);
   t.es("no se pierde ningún movimiento", s.transactions.length, copia.transactions.length);
   t.es("los movimientos salen tal cual", s.transactions, copia.transactions);
   t.es("no se pierde ninguna cuenta", s.accounts, copia.accounts);
@@ -208,7 +208,7 @@ module.exports = function () {
   };
   var viejo = D.migrate(JSON.parse(JSON.stringify(v1)));
 
-  t.es("llega hasta la 17", viejo.version, 17);
+  t.es("llega hasta la 18", viejo.version, 18);
   t.es("el movimiento de hace dos años sigue ahí", viejo.transactions.length, 1);
   /* El presupuesto en euros de la v1 pasó a porcentaje en la v2 y vuelve
      a euros en la v15, ya como límites con nombre. Un viaje de ida y
@@ -231,6 +231,37 @@ module.exports = function () {
         Array.isArray(viejo.recurring[0].weekdays)], ["mensual", 1, true]);
   t.es("el ciclo también le nace en el mes natural", viejo.ciclo, { dia: 1 });
 
+  /* ---------- las subcategorías se ponen la cara de su madre ---------- */
+
+  t.grupo("Las de dentro heredan el icono (v18)");
+
+  var conHijas = D.migrate({
+    version: 17,
+    accounts: [{ id: "banco", name: "Banco" }],
+    transactions: [],
+    categories: [
+      { id: "comida", name: "Comida", emoji: "🍽️", color: 1, kind: "out" },
+      { id: "alm", name: "Almuerzos", emoji: "🥪", color: 1, kind: "out",
+        parentId: "comida" },
+      { id: "cena", name: "Cenas fuera", emoji: "🍷", color: 7, kind: "out",
+        parentId: "comida" },
+      { id: "ocio", name: "Ocio", emoji: "🎬", color: 5, kind: "out" }
+    ]
+  });
+  var cara = function (id) {
+    var c = conHijas.categories.find(function (x) { return x.id === id; });
+    return [c.name, c.emoji];
+  };
+
+  t.es("las dos de dentro de Comida se ponen su icono",
+       [cara("alm"), cara("cena")],
+       [["Almuerzos", "🍽️"], ["Cenas fuera", "🍽️"]]);
+  t.es("la madre no se toca", cara("comida"), ["Comida", "🍽️"]);
+  t.es("y una suelta tampoco", cara("ocio"), ["Ocio", "🎬"]);
+  t.es("el nombre de cada una se respeta",
+       conHijas.categories.map(function (c) { return c.name; }),
+       ["Comida", "Almuerzos", "Cenas fuera", "Ocio"]);
+
   /* ---------- un estado roto no tiene que reventar ---------- */
 
   t.grupo("Un estado a medias");
@@ -242,7 +273,7 @@ module.exports = function () {
   t.es("se le ponen las categorías de fábrica", roto.categories.length > 0, true);
   t.es("se le pone un ciclo", roto.ciclo, { dia: 1 });
   t.es("y una lista de apartados vacía", roto.apartados, []);
-  t.es("sin lista de programados, no falla", D.migrate({ version: 11 }).version, 17);
+  t.es("sin lista de programados, no falla", D.migrate({ version: 11 }).version, 18);
 
   /* ---------- y lo que carga la app de verdad ---------- */
 
@@ -253,10 +284,10 @@ module.exports = function () {
   guardado[D.KEY] = JSON.stringify(estadoV11());
   var cargado = D.load();
 
-  t.es("carga y migra lo que había guardado", cargado.version, 17);
+  t.es("carga y migra lo que había guardado", cargado.version, 18);
   t.es("con todos sus movimientos", cargado.transactions.length, 5);
   t.es("y deja guardado ya el formato nuevo",
-       JSON.parse(guardado[D.KEY]).version, 17);
+       JSON.parse(guardado[D.KEY]).version, 18);
   t.es("de forma que la siguiente vez no cambia nada",
        JSON.parse(guardado[D.KEY]), cargado);
 };

@@ -193,7 +193,7 @@
   function defaultState() {
     var today = ymd(new Date());
     return {
-      version: 17,
+      version: 18,
       createdAt: today,
       categories: cloneCategories(),
       tags: [],
@@ -245,7 +245,7 @@
   function freshState() {
     var today = ymd(new Date());
     return {
-      version: 17,
+      version: 18,
       createdAt: today,
       categories: cloneCategories(),
       tags: [],

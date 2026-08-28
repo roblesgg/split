@@ -32,6 +32,25 @@
     var colores = [];
     for (var i = 1; i <= S.CAT_COLORS; i++) colores.push(i);
 
+    /* Una subcategoría no elige cara: lleva la de su madre. Antes el
+       color ya se heredaba pero la rejilla seguía ahí, así que elegías
+       uno y al guardar se perdía sin decir nada. Si no se puede cambiar,
+       no se enseña como si se pudiera: se enseña y se explica. */
+    if (o.heredadoDe) {
+      return '' +
+        '<div class="ident ident--heredada">' +
+          '<span class="ident__cara cat-face" aria-hidden="true" ' +
+                'style="--cat-color:var(--cat-' + d.color + ')">' + esc(d.emoji) + '</span>' +
+          '<input type="text" class="ident__nombre" id="fName" data-f="Name" ' +
+                 'maxlength="' + (o.max || 24) + '" ' +
+                 'placeholder="' + esc(o.placeholder || "Sin nombre") + '" ' +
+                 'aria-label="Nombre" value="' + esc(d.name) + '">' +
+        '</div>' +
+        '<p class="field__hint">Lleva el icono y el color de <strong>' +
+          esc(o.heredadoDe) + '</strong>: las de dentro son la misma cosa ' +
+          'contada más fina, y con cara propia parecerían categorías sueltas.</p>';
+    }
+
     return '' +
       '<div class="ident">' +
         '<button type="button" class="ident__cara cat-face" id="fPreview" ' +

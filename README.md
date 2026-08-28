@@ -421,7 +421,7 @@ abriera cuando ya las tiene, no habría forma de crear la primera — que es jus
 cuando hace falta.
 
 Así que se puede estar apuntando un almuerzo, tocar **Comida**, darle a
-**«+ Nueva en Comida»**, crear *Almuerzos trabajo* ahí mismo y seguir con el
+**«+ Crear subcategoría»**, crear *Almuerzos trabajo* ahí mismo y seguir con el
 importe que ya llevabas tecleado. Al volver, la nueva viene elegida.
 
 Quedarse en la madre sigue siendo una respuesta válida: elegir «Comida» a secas
@@ -432,6 +432,26 @@ El cajón va **debajo** de la rejilla, así que abrirlo no mueve ni el teclado n
 las categorías bajo el dedo. Y la madre se queda marcada cuando lo elegido es una
 hija suya: sin eso, al afinar la rejilla se quedaba entera sin marcar y parecía
 que no habías elegido nada.
+
+### Una subcategoría lleva la cara de su madre
+
+El icono y el color no se eligen: son los de la madre. Las de dentro son la
+misma cosa contada más fina, y con cara propia parecían tres categorías sueltas
+en vez de tres maneras de gastar en comida — en el cajón, en la lista de
+movimientos y en cualquier gráfico.
+
+Así que el formulario **no enseña la rejilla de emojis** cuando hay madre:
+enseña la cara que va a llevar y dice de quién es. Antes el color ya se heredaba
+pero la rejilla seguía ahí, así que elegías uno y al guardar se perdía sin decir
+nada, que es la peor forma de decidir por alguien.
+
+La regla vive en el store y no en la pantalla, así que vale también para lo que
+llegue por otro camino: **cambiarle el icono a una madre se lo cambia a todas
+las de dentro**, y meter una categoría suelta dentro de otra la adopta. Sacarla
+la deja con la que tenga puesta y ya puede elegir la suya.
+
+Como en una lista plana varias comparten icono, en **Ajustes → Categorías** cada
+una dice de quién es: «En Comida · 3 movimientos».
 
 En los gráficos, una subcategoría **suma dentro de su madre** —un gasto de
 «Almuerzos trabajo» aparece como Comida—, pero en la lista de movimientos se
