@@ -191,15 +191,13 @@
          unas tarjetas, y sin esto no habría forma de llegar a una cuenta
          desde el Resumen. */
       if ((node = e.target.closest("[data-panel]"))) {
-        var idP = node.getAttribute("data-panel") || null;
-        if (idP !== ui.panelCuenta) {
-          ui.panelCuenta = idP;
+        var idP = node.getAttribute("data-panel");
+        if (idP !== S.cuentaDelPanel()) {
+          S.setCuentaDelPanel(idP);
           A.renderInicio();
           U.haptic("light");
-        } else if (idP) {
-          openCuenta(idP);
         } else {
-          goTo("planes");
+          openCuenta(idP);
         }
         return;
       }
@@ -223,9 +221,9 @@
         ui.panelOrdenando = false;
         A.renderInicio(); U.haptic("light"); return;
       }
-      if (e.target.closest("#panelAnadir")) { A.abrirPanel(ui.panelCuenta); return; }
+      if (e.target.closest("#panelAnadir")) { A.abrirPanel(S.cuentaDelPanel()); return; }
       if ((node = e.target.closest("[data-quitar]"))) {
-        S.quitarBloque(ui.panelCuenta, node.getAttribute("data-quitar"));
+        S.quitarBloque(S.cuentaDelPanel(), node.getAttribute("data-quitar"));
         A.renderInicio(); U.haptic("light"); return;
       }
       if (e.target.closest("#colaAbrir")) { abrirCobros(); return; }

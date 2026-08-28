@@ -104,10 +104,10 @@
   scrollbar-width: none;
   /* Aire para que la sombra de las tarjetas no se recorte contra el
      carril. La sombra grande se va a 44 px, así que con los 12 de antes
-     salía cortada por arriba y por abajo: se le da el hueco y se
+     salía cortada por arriba y por abajo: se le da el hueco entero y se
      devuelve con el margen negativo, que si no la fila entera bajaría. */
-  padding: 34px var(--sp-5);
-  margin-block: -30px;
+  padding: 46px var(--sp-5);
+  margin-block: -42px;
   margin-inline: calc(var(--sp-5) * -1);
 }
 
@@ -122,14 +122,14 @@
    del degradado, incluidos los claros como el amarillo. */
 .paycard {
   position: relative;
-  /* Un poco más estrecha que antes y bastante más baja: el panel de
-     debajo es lo que se viene a mirar, y con la tarjeta de 178 px había
-     que hacer scroll para ver la primera cifra. Se sigue viendo el borde
-     de la siguiente, que es lo que invita a deslizar. */
-  flex: 0 0 80%;
+  /* Tarjetitas: cabe la de al lado casi entera, así que se ve de un
+     vistazo cuántas cuentas hay y cuál es la que manda, sin deslizar a
+     ciegas. El panel de debajo es lo que se viene a mirar, y cuanto
+     menos alto sea esto, antes se llega a él. */
+  flex: 0 0 66%;
   scroll-snap-align: center;
   overflow: hidden;
-  min-height: 142px;
+  min-height: 124px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -146,6 +146,35 @@
   /* ahora son botones (tocar una tarjeta abre esa cuenta) y los botones
      centran el texto por defecto */
   text-align: left;
+  transition: transform var(--dur-base) var(--ease-ios),
+              opacity var(--dur-base) var(--ease-ios);
+}
+
+/* La que manda sobre el panel. La diferencia no la lleva el color —que
+   es el de la cuenta y cambia en cada una—: la llevan el tamaño, el
+   brillo y la palabra «Viendo» del pie, que se leen igual en gris. */
+.paycard[data-activa="false"] {
+  transform: scale(0.94);
+  opacity: 0.66;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .paycard { transition: none; }
+}
+
+/* Pie de la tarjeta que se está mirando. Pastilla blanca con tinta
+   oscura: va sobre el color de la cuenta, y de los 16 de la paleta
+   ninguno da contraste suficiente con texto de color encima. */
+.paycard__viendo {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px 3px 7px;
+  border-radius: var(--r-full);
+  background: rgba(255, 255, 255, 0.92);
+  color: #10131a;
+  font-size: var(--t-min);
+  font-weight: var(--w-semi);
 }
 
 /* Fuera del carrusel (dentro de la hoja de una cuenta) no hay a qué
@@ -154,6 +183,8 @@
   flex: none;
   width: 100%;
   min-height: 150px;
+  transform: none;
+  opacity: 1;
 }
 
 /* La de crear cuenta no es una tarjeta de verdad: no lleva color ni
@@ -178,11 +209,15 @@
   color: var(--text-primary);
 }
 
+/* Más pequeño desde que las tarjetas son tarjetitas: el carril estira
+   todas a la altura de la más alta, y esta lo era. El hueco sigue muy
+   por encima del mínimo de toque porque quien se toca es la tarjeta
+   entera, no el círculo. */
 .paycard__plus {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   background: var(--surface-1);
   box-shadow: var(--nm-out-sm);
@@ -427,14 +462,6 @@
 /* ---------- el panel del Resumen ----------
    La tarjeta centrada del carrusel manda sobre todo lo que va debajo, y
    los bloques son los que cada cuenta tenga puestos. */
-
-.paycard--todas {
-  /* La de «todo tu dinero» no es una cuenta: se distingue por el acento
-     y por no llevar tipo de banco, no por ser de otra forma. */
-  background: linear-gradient(135deg,
-    color-mix(in srgb, var(--accent) 82%, #10131a),
-    color-mix(in srgb, var(--accent) 55%, #10131a));
-}
 
 .panel-editar {
   display: flex;

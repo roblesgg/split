@@ -310,6 +310,22 @@
       s.version = 16;
     }
 
+    if (s.version < 17) {
+      /* v17: se cae la tarjeta de «todo tu dinero» del carrusel y el
+         Resumen se abre en una cuenta de verdad. Cuál, se guarda: quien
+         opera siempre con la misma tenía que buscarla cada vez que abría
+         la app. Se empieza por la primera, que es lo que se veía justo
+         detrás de la tarjeta que se va.
+
+         El panel de «todas» que hubiera se queda guardado. No se ve
+         mientras haya cuentas, pero es el que sale cuando no queda
+         ninguna, y borrarlo sería tirar algo que el dueño colocó. */
+      if (s.panelActivo === undefined) {
+        s.panelActivo = (s.accounts && s.accounts[0]) ? s.accounts[0].id : null;
+      }
+      s.version = 17;
+    }
+
     /* Red de seguridad, al margen de la versión: casi todo el código tira
        de las categorías por defecto cuando la lista no está, pero crear
        una necesita el array de verdad. Un estado importado a mano, o

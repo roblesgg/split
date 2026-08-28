@@ -72,6 +72,7 @@
   var panelTocado = D.panelTocado, ponerBloque = D.ponerBloque;
   var quitarBloque = D.quitarBloque, moverBloque = D.moverBloque;
   var PANEL_TODAS = D.PANEL_TODAS;
+  var cuentaDelPanel = D.cuentaDelPanel, setCuentaDelPanel = D.setCuentaDelPanel;
   var addApartado = D.addApartado, updateApartado = D.updateApartado;
   var deleteApartado = D.deleteApartado, apartadoById = D.apartadoById;
   var apartadosDe = D.apartadosDe, apartados = D.apartados, aportar = D.aportar;
@@ -138,6 +139,7 @@
     panelTocado: panelTocado, ponerBloque: ponerBloque,
     quitarBloque: quitarBloque, moverBloque: moverBloque,
     PANEL_TODAS: PANEL_TODAS,
+    cuentaDelPanel: cuentaDelPanel, setCuentaDelPanel: setCuentaDelPanel,
 
     /* Apartados: sub-bolsas dentro de una cuenta. El saldo no se guarda,
        se calcula, así que editar o borrar un gasto nunca lo descuadra. */

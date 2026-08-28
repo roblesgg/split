@@ -179,10 +179,27 @@ gasto, lo apuntarías en otro sitio y entonces la app te estaría mintiendo.
 
 ## El Resumen es un panel, y cada cuenta tiene el suyo
 
-Arriba, el carrusel de tarjetas. La primera es **«Todo tu dinero»** —el saldo de
-todas juntas— y detrás va una por cuenta. **La tarjeta centrada manda sobre todo
-lo que hay debajo:** las cifras, los gráficos, los movimientos. Deslizas y el
-panel entero cambia de cuenta.
+Arriba, el carrusel: **una tarjetita por cuenta**, y al final la de añadir otra.
+**La tarjeta centrada manda sobre todo lo que hay debajo:** las cifras, los
+gráficos, los movimientos. Deslizas y el panel entero cambia de cuenta.
+
+Son tarjetitas y no tarjetones porque así se ve la de al lado y se sabe cuántas
+cuentas hay sin deslizar a ciegas — y porque lo que se viene a mirar es el panel
+de debajo. La que manda va entera y con un sello de **«Viendo»**; las demás, un
+punto más pequeñas y apagadas. La diferencia no la lleva el color: el color es
+el de cada cuenta y cambia en todas.
+
+**La cuenta que dejes puesta se guarda.** Cerrar la app y volver a abrirla te
+deja donde estabas, no en la primera de la lista: uno opera casi siempre con la
+misma cuenta y tenerla que buscar cada mañana es trabajo que la app puede
+ahorrarse. Si esa cuenta se borra, el Resumen se cae a la primera que quede en
+vez de quedarse en blanco.
+
+No hay tarjeta de «todo tu dinero». La hubo, y era la primera, así que la app
+abría siempre ahí y había que deslizar hasta la de verdad. El saldo de todas
+juntas sigue estando: en **Mi dinero**, sobre la lista de cuentas, y en
+**Análisis**, arriba del todo. Es un dato que se consulta, no uno que estorbe
+cada vez que abres la app.
 
 Tocar hace dos cosas, en este orden: la tarjeta que no está centrada se centra,
 y la que ya lo está se abre. Deslizar elige, tocar la que miras entra.
@@ -236,10 +253,12 @@ vacíos da la impresión de que la app está rota.
 
 Tres piezas que no se conocen entre ellas:
 
-- `js/data/paneles.js` guarda **qué bloques y en qué orden**, por cuenta. No sabe
-  qué bloques existen: guarda nombres. Un panel que nombre uno que ya se quitó
-  del código se ignora al pintar, así que quitar un bloque nunca deja el Resumen
-  de nadie roto.
+- `js/data/paneles.js` guarda **qué bloques y en qué orden**, por cuenta, y
+  **con cuál se abre el Resumen**. No sabe qué bloques existen: guarda nombres.
+  Un panel que nombre uno que ya se quitó del código se ignora al pintar, así
+  que quitar un bloque nunca deja el Resumen de nadie roto. La cuenta activa se
+  valida al leerla, no al guardarla: una que ya no exista devuelve la primera
+  que haya, y sin ninguna cuenta devuelve el panel de todas.
 - `js/screens/bloques.js` es **el catálogo**: qué existe y qué pinta cada uno.
   Todos reciben el mismo contexto —la cuenta, el ciclo— y ninguno sabe de los
   demás. **Añadir un bloque es escribir una función ahí y nada más:** ni el

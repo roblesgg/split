@@ -116,7 +116,7 @@ module.exports = function () {
   var copia = JSON.parse(JSON.stringify(antes));
   var s = D.migrate(JSON.parse(JSON.stringify(antes)));
 
-  t.es("sube a la versión 16", s.version, 16);
+  t.es("sube a la versión 17", s.version, 17);
   t.es("no se pierde ningún movimiento", s.transactions.length, copia.transactions.length);
   t.es("los movimientos salen tal cual", s.transactions, copia.transactions);
   t.es("no se pierde ninguna cuenta", s.accounts, copia.accounts);
@@ -146,6 +146,11 @@ module.exports = function () {
      guardado cada panel sale con los bloques de fábrica, que es justo lo
      que la app enseñaba antes. */
   t.es("los paneles nacen vacíos, o sea de fábrica", s.paneles, {});
+  /* v17: se cae la tarjeta de «todo tu dinero» y el Resumen abre en una
+     cuenta. La que se elige al migrar es la primera, que es justo la que
+     estaba detrás de la tarjeta que se va. */
+  t.es("el Resumen queda abierto en la primera cuenta",
+       s.panelActivo, copia.accounts[0].id);
 
   /* Y que cada programado siga tocando el mismo día. */
   var r1 = s.recurring[0], r2 = s.recurring[1], r3 = s.recurring[2], r4 = s.recurring[3];
@@ -203,7 +208,7 @@ module.exports = function () {
   };
   var viejo = D.migrate(JSON.parse(JSON.stringify(v1)));
 
-  t.es("llega hasta la 16", viejo.version, 16);
+  t.es("llega hasta la 17", viejo.version, 17);
   t.es("el movimiento de hace dos años sigue ahí", viejo.transactions.length, 1);
   /* El presupuesto en euros de la v1 pasó a porcentaje en la v2 y vuelve
      a euros en la v15, ya como límites con nombre. Un viaje de ida y
@@ -237,7 +242,7 @@ module.exports = function () {
   t.es("se le ponen las categorías de fábrica", roto.categories.length > 0, true);
   t.es("se le pone un ciclo", roto.ciclo, { dia: 1 });
   t.es("y una lista de apartados vacía", roto.apartados, []);
-  t.es("sin lista de programados, no falla", D.migrate({ version: 11 }).version, 16);
+  t.es("sin lista de programados, no falla", D.migrate({ version: 11 }).version, 17);
 
   /* ---------- y lo que carga la app de verdad ---------- */
 
@@ -248,10 +253,10 @@ module.exports = function () {
   guardado[D.KEY] = JSON.stringify(estadoV11());
   var cargado = D.load();
 
-  t.es("carga y migra lo que había guardado", cargado.version, 16);
+  t.es("carga y migra lo que había guardado", cargado.version, 17);
   t.es("con todos sus movimientos", cargado.transactions.length, 5);
   t.es("y deja guardado ya el formato nuevo",
-       JSON.parse(guardado[D.KEY]).version, 16);
+       JSON.parse(guardado[D.KEY]).version, 17);
   t.es("de forma que la siguiente vez no cambia nada",
        JSON.parse(guardado[D.KEY]), cargado);
 };

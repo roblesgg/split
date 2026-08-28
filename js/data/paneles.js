@@ -2,9 +2,13 @@
    split — el panel de cada cuenta
 
    El Resumen deja de ser una lista fija: es un panel de bloques, y cada
-   cuenta tiene los suyos y en el orden que quieras. La primera tarjeta
-   del carrusel —«Todo tu dinero»— también es un panel, con la clave
-   TODAS: así el mecanismo es uno solo y no hay un caso especial.
+   cuenta tiene los suyos y en el orden que quieras. Cuál se está mirando
+   también se guarda aquí, porque se guarda: uno abre la app en la cuenta
+   con la que opera, no en la primera de la lista.
+
+   Queda la clave TODAS para el panel sin cuenta, que es el que sale
+   cuando no hay ninguna todavía. Ya no hay tarjeta de «todo tu dinero»
+   en el carrusel: era un sitio más al que volver a mano cada mañana.
 
    Aquí no se sabe qué bloques existen ni qué pintan: eso vive en la capa
    de pantallas, que es la que los registra. Esto guarda una lista de
@@ -22,9 +26,10 @@
   var TODAS = "todas";
 
   /* Con qué nace un panel que nadie ha tocado. Dos juegos, porque no
-     tiene sentido lo mismo mirando todo tu dinero que mirando una
-     cuenta: los límites del mes son de todas, y los apartados y el
-     objetivo de gasto son de una. */
+     tiene sentido lo mismo sin cuenta —que es lo que se ve mientras no
+     hay ninguna— que dentro de una: los límites del mes miran en qué se
+     va sin importar de dónde, y los apartados y el objetivo de gasto
+     son de una cuenta. */
   var POR_DEFECTO_TODAS = [
     "acciones", "kpis", "apurado", "limites", "categorias", "recientes", "proximos"
   ];
@@ -86,17 +91,37 @@
     return true;
   }
 
+  /* ---------- qué cuenta se está mirando ----------
+     Vive en el estado y no en la sesión: quien opera siempre con la
+     misma cuenta la tenía que volver a buscar cada vez que abría la
+     app. Se valida al leer, así que una cuenta borrada no deja el
+     Resumen en blanco: se cae a la primera que haya. */
+
+  function cuentaDelPanel() {
+    var cuentas = D.state.accounts || [];
+    var id = D.state.panelActivo;
+    if (id && cuentas.some(function (a) { return a.id === id; })) return id;
+    return cuentas.length ? cuentas[0].id : null;
+  }
+
+  function setCuentaDelPanel(id) {
+    D.state.panelActivo = id || null;
+    save();
+  }
+
   /* Una cuenta que se borra se lleva su panel: si no, el hueco se
      quedaría ahí para siempre engordando el estado. */
   function olvidarPanel(accId) {
     if (!accId) return;
     delete paneles()[accId];
+    if (D.state.panelActivo === accId) D.state.panelActivo = null;
   }
 
   /* --- lo que se lleva el espacio común --- */
   D.PANEL_TODAS = TODAS;
   D.PANEL_POR_DEFECTO_TODAS = POR_DEFECTO_TODAS;
   D.PANEL_POR_DEFECTO_CUENTA = POR_DEFECTO_CUENTA;
+  D.cuentaDelPanel = cuentaDelPanel;
   D.moverBloque = moverBloque;
   D.olvidarPanel = olvidarPanel;
   D.panelDe = panelDe;
@@ -104,5 +129,6 @@
   D.ponerBloque = ponerBloque;
   D.quitarBloque = quitarBloque;
   D.resetPanel = resetPanel;
+  D.setCuentaDelPanel = setCuentaDelPanel;
   D.setPanel = setPanel;
 })();

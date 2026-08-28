@@ -38,7 +38,6 @@ window.App = (function () {
     form: null,             /* formulario abierto: { type, id, d } */
     ob: null,               /* cuestionario de bienvenida a medias */
     cuentaAbierta: null,    /* qué cuenta se está mirando por dentro */
-    panelCuenta: null,      /* qué tarjeta manda en el Resumen; null = todo */
     panelEditando: null,    /* de qué panel se están eligiendo los bloques */
     panelOrdenando: false,  /* el panel está en modo colocar bloques */
     pickPendiente: null,    /* quién espera una elección: { resolver } */

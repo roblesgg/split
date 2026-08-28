@@ -5,6 +5,9 @@
    con las demás, que mover y quitar hacen lo que dicen, y que un panel
    sin tocar sale con los de fábrica — que es lo que hace que actualizar
    no le cambie el Resumen a nadie.
+
+   Y que la cuenta con la que se abre el Resumen se recuerda, que es lo
+   que evita tener que buscarla cada mañana.
    ============================================================ */
 
 var t = require("./ayuda");
@@ -15,6 +18,14 @@ var D = win.Datos;
 
 function limpio() {
   D.state = { paneles: {} };
+}
+
+function conCuentas() {
+  D.state = {
+    paneles: {},
+    panelActivo: null,
+    accounts: [{ id: "cartera" }, { id: "banco" }]
+  };
 }
 
 module.exports = function () {
@@ -99,6 +110,38 @@ module.exports = function () {
   t.es("vuelve a los de fábrica", D.panelDe("cartera"), D.PANEL_POR_DEFECTO_CUENTA);
   t.es("y deja de estar tocada", D.panelTocado("cartera"), false);
 
+  t.grupo("Con qué cuenta se abre el Resumen");
+
+  conCuentas();
+  t.es("sin nada elegido, con la primera", D.cuentaDelPanel(), "cartera");
+
+  D.setCuentaDelPanel("banco");
+  t.es("la que se deja puesta es la que sale", D.cuentaDelPanel(), "banco");
+  t.es("y queda en el estado, que es lo que se guarda",
+       D.state.panelActivo, "banco");
+
+  /* Lo que de verdad se pide: cerrar y volver a abrir no la pierde. */
+  var guardado = JSON.parse(JSON.stringify(D.state));
+  D.state = guardado;
+  t.es("al volver a cargar sigue siendo la misma", D.cuentaDelPanel(), "banco");
+
+  /* Una cuenta que ya no está no puede dejar el Resumen en blanco. */
+  D.state.accounts = [{ id: "cartera" }];
+  t.es("si la guardada ya no existe, se cae a la primera",
+       D.cuentaDelPanel(), "cartera");
+  t.es("y no se reescribe el estado por leerlo",
+       D.state.panelActivo, "banco");
+
+  D.state.accounts = [];
+  t.es("sin ninguna cuenta no hay cuenta que valga",
+       D.cuentaDelPanel(), null);
+  t.es("y entonces el panel es el de todas",
+       D.panelDe(D.cuentaDelPanel()), D.PANEL_POR_DEFECTO_TODAS);
+
+  conCuentas();
+  D.setCuentaDelPanel(null);
+  t.es("poner ninguna vuelve a la primera", D.cuentaDelPanel(), "cartera");
+
   t.grupo("Una cuenta que se borra");
 
   limpio();
@@ -107,6 +150,13 @@ module.exports = function () {
   D.olvidarPanel("cartera");
   t.es("se lleva su panel", Object.keys(D.state.paneles), ["banco"]);
   t.es("y no toca el de la otra", D.panelDe("banco"), ["calor"]);
+
+  conCuentas();
+  D.setCuentaDelPanel("banco");
+  D.olvidarPanel("banco");
+  D.state.accounts = [{ id: "cartera" }];
+  t.es("y si era la que se estaba mirando, se olvida también",
+       [D.state.panelActivo, D.cuentaDelPanel()], [null, "cartera"]);
 
   /* Con null no se puede borrar el de «todo tu dinero» por accidente:
      esa clave no es de ninguna cuenta. */

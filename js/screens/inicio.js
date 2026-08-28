@@ -2,9 +2,10 @@
    split — pantalla: Resumen
 
    El Resumen es un panel: arriba el carrusel de tarjetas y debajo los
-   bloques de la que esté centrada. La primera tarjeta es «Todo tu
-   dinero» y también es un panel, con sus propios bloques: así no hay un
-   caso especial, solo una tarjeta más.
+   bloques de la que esté centrada. Todas las tarjetas son cuentas: la de
+   «todo tu dinero» se fue porque abría siempre ahí y había que deslizar
+   hasta la de verdad cada mañana. La cuenta que dejes puesta se guarda,
+   así que la app abre donde la dejaste.
 
    Qué bloques existen y qué pintan vive en bloques.js; qué bloques tiene
    cada cuenta y en qué orden, en data/paneles.js. Aquí solo se elige la
@@ -22,47 +23,20 @@
   function bigAmount() { return A.bigAmount.apply(null, arguments); }
   function limiteEnTarjeta() { return A.limiteEnTarjeta.apply(null, arguments); }
   function mountIcons() { return A.mountIcons.apply(null, arguments); }
-  function nombreCiclo() { return A.nombreCiclo.apply(null, arguments); }
   function pintarBloque() { return A.pintarBloque.apply(null, arguments); }
 
-  /* Cuál es la tarjeta centrada vive en ui.panelCuenta: null es «todo».
-     Si se están recolocando los bloques, en ui.panelEditando (true). */
+  /* Cuál es la tarjeta centrada no vive en la sesión sino en el estado,
+     porque se recuerda de una vez para otra. Sale null solo mientras no
+     haya ninguna cuenta, que es lo que ve quien las borra todas. */
 
-  function cuentaActiva() {
-    var id = ui.panelCuenta;
-    if (!id) return null;
-    return S.state.accounts.some(function (a) { return a.id === id; }) ? id : null;
-  }
+  function cuentaActiva() { return S.cuentaDelPanel(); }
 
   /* ---------- el carrusel ---------- */
-
-  /* La primera tarjeta no es una cuenta: es todo tu dinero junto. Va
-     primera porque es con la que se abre la app, y es la que responde a
-     «cuánto tengo» sin tener que sumar de cabeza. */
-  function tarjetaTodas(curKey, cur, activa) {
-    return '<button type="button" class="paycard paycard--todas" data-panel="" ' +
-             'aria-pressed="' + activa + '" style="--acc-color:var(--accent)">' +
-        '<div class="paycard__top">' +
-          '<span class="paycard__dots"><i></i><i></i><i></i><i></i>Todo tu dinero</span>' +
-          '<span class="paycard__type">' + S.state.accounts.length +
-            (S.state.accounts.length === 1 ? " cuenta" : " cuentas") + '</span>' +
-        '</div>' +
-        '<div>' +
-          '<p class="paycard__label">Saldo</p>' +
-          '<p class="paycard__value">' + bigAmount(S.balance()) + '</p>' +
-        '</div>' +
-        '<div class="paycard__foot">' +
-          '<span class="paycard__label">' +
-            esc(S.signed(cur.net)) + ' en ' + esc(nombreCiclo(curKey)) + '</span>' +
-          '<span class="paycard__mark" aria-hidden="true"><span></span><span></span></span>' +
-        '</div>' +
-      '</button>';
-  }
 
   function tarjetaCuenta(a, curKey, activa) {
     var obj = S.estadoDeObjetivo(a.id, curKey);
     return '<button type="button" class="paycard" data-panel="' + esc(a.id) + '" ' +
-             'aria-pressed="' + activa + '" ' +
+             'data-activa="' + activa + '" aria-pressed="' + activa + '" ' +
              'style="--acc-color:' + S.catColorVar(a) + '">' +
         '<div class="paycard__top">' +
           '<span class="paycard__dots"><i></i><i></i><i></i><i></i>' + esc(a.name) + '</span>' +
@@ -76,17 +50,22 @@
            de texto: es lo que se quiere mirar de un vistazo */
         (obj ? limiteEnTarjeta(obj) : "") +
         '<div class="paycard__foot">' +
-          '<span class="paycard__label">' + esc(a.type) + '</span>' +
+          /* La que manda sobre el panel lo dice con todas las letras: el
+             tamaño y el brillo ya la separan, pero eso solo se ve si
+             tienes otra al lado con la que compararla. */
+          (activa
+            ? '<span class="paycard__viendo">' + icon("check", 13) + 'Viendo</span>'
+            : '<span class="paycard__label">' + esc(a.type) + '</span>') +
           '<span class="paycard__mark" aria-hidden="true"><span></span><span></span></span>' +
         '</div>' +
       '</button>';
   }
 
-  function carrusel(curKey, cur, activa) {
+  function carrusel(curKey, activa) {
     var accounts = S.state.accounts;
+    var pos = accounts.findIndex(function (x) { return x.id === activa; });
     return '<div class="cards">' +
         '<div class="cards__track" id="cardsTrack">' +
-          tarjetaTodas(curKey, cur, activa === null) +
           accounts.map(function (a) {
             return tarjetaCuenta(a, curKey, activa === a.id);
           }).join("") +
@@ -98,13 +77,15 @@
           '<button type="button" class="paycard paycard--nueva" data-form="account">' +
             '<span class="paycard__plus" data-icon="plus" data-icon-size="22"></span>' +
             '<span class="paycard__nueva-txt">Añadir cuenta</span>' +
-            '<span class="paycard__nueva-sub">Otro banco, una hucha, efectivo…</span>' +
+            /* Corto a propósito: en dos renglones estiraba a todas las
+               tarjetas del carril, que van a la altura de la más alta. */
+            '<span class="paycard__nueva-sub">Banco, hucha, efectivo…</span>' +
           '</button>' +
         '</div>' +
+        /* Un punto por tarjeta, contando la de añadir: si no, deslizar
+           hasta el final apagaba todos los puntos y parecía roto. */
         '<div class="cards__dots" id="cardsDots" aria-hidden="true">' +
-          accounts.concat([null, null]).map(function (a, i) {
-            var pos = activa === null ? 0
-                    : accounts.findIndex(function (x) { return x.id === activa; }) + 1;
+          accounts.concat([null]).map(function (a, i) {
             return '<span class="cards__dot" data-on="' + (i === pos) + '"></span>';
           }).join("") +
         '</div>' +
@@ -169,7 +150,6 @@
     var root = $("#view-inicio");
     var curKey = S.cicloActual();
     var accId = cuentaActiva();
-    var cur = S.totals(S.delCiclo(curKey, accId));
 
     var ctx = {
       accId: accId,
@@ -202,7 +182,7 @@
         '<div class="dash__col stagger">' +
           (avisoCola() ? '<div style="--i:0">' + avisoCola() + '</div>' : "") +
           (avisoUpdate() ? '<div style="--i:0">' + avisoUpdate() + '</div>' : "") +
-          '<div style="--i:0">' + carrusel(curKey, cur, accId) + '</div>' +
+          '<div style="--i:0">' + carrusel(curKey, accId) + '</div>' +
           (editando ? barraDeOrden(accId, ctx) : "") +
           '<div id="panelLista" class="panel-lista">' +
             lista.map(function (b, i) {
@@ -240,7 +220,7 @@
     return '<div class="panel-barra" style="--i:0">' +
         '<span class="panel-barra__texto">' +
           '<span class="panel-barra__titulo">Colocando ' +
-            (accId ? esc(ctx.cuenta.name) : 'Todo tu dinero') + '</span>' +
+            (accId ? esc(ctx.cuenta.name) : 'el Resumen') + '</span>' +
           '<span class="panel-barra__sub">Arrastra por el asa, o usa las flechas</span>' +
         '</span>' +
         '<span class="panel-barra__acciones">' +
@@ -319,9 +299,7 @@
   function centrarCarrusel(root, accId) {
     var track = $("#cardsTrack", root);
     if (!track) return;
-    var i = accId
-      ? S.state.accounts.findIndex(function (a) { return a.id === accId; }) + 1
-      : 0;
+    var i = Math.max(0, S.state.accounts.findIndex(function (a) { return a.id === accId; }));
     var card = track.children[i];
     if (card) track.scrollLeft = card.offsetLeft - track.offsetLeft;
 
@@ -337,9 +315,11 @@
       t = setTimeout(function () {
         var hijo = track.children[n];
         if (!hijo || !hijo.hasAttribute("data-panel")) return;
-        var id = hijo.getAttribute("data-panel") || null;
-        if (id === ui.panelCuenta) return;
-        ui.panelCuenta = id;
+        var id = hijo.getAttribute("data-panel");
+        if (id === S.cuentaDelPanel()) return;
+        /* Se guarda al parar, no en cada píxel: es una escritura por
+           gesto, y así la app vuelve a abrir donde la dejaste. */
+        S.setCuentaDelPanel(id);
         renderInicio();
       }, 180);
     }, { passive: true });

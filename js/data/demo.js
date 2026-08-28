@@ -193,13 +193,17 @@
   function defaultState() {
     var today = ymd(new Date());
     return {
-      version: 16,
+      version: 17,
       createdAt: today,
       categories: cloneCategories(),
       tags: [],
 
       /* El día en que se reinicia el mes. 1 = mes natural. */
       ciclo: { dia: 1 },
+
+      /* Con qué cuenta se abre el Resumen. null = con la primera; en
+         cuanto se desliza el carrusel se guarda la que se deje. */
+      panelActivo: null,
 
       /* Sub-bolsas dentro de una cuenta. Vacío: se crean a mano. */
       apartados: [],
@@ -241,7 +245,7 @@
   function freshState() {
     var today = ymd(new Date());
     return {
-      version: 16,
+      version: 17,
       createdAt: today,
       categories: cloneCategories(),
       tags: [],
@@ -249,6 +253,7 @@
       apartados: [],
       limites: [],
       paneles: {},
+      panelActivo: null,
       income: { mode: "auto", manual: 0, months: 3 },
       /* Sin ningún límite a propósito. Traer diez topes que nadie ha
          elegido hace que Ajustes parezca de otro y que el Resumen enseñe
