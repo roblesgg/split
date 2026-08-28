@@ -266,3 +266,13 @@
 }
 
 .cat-list__meta { display: block; font-size: var(--t-min); color: var(--text-muted); }
+
+/* La madre abierta, y la que tiene dentro lo que has elegido. Sin esto,
+   al afinar en una subcategoría la rejilla se quedaba entera sin marcar
+   y parecía que no habías elegido nada. */
+.cat-pick[data-abierta="1"] .cat-pick__icon,
+.cat-pick[data-dentro="1"] .cat-pick__icon {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.cat-pick[data-dentro="1"] .cat-pick__name { color: var(--accent); }

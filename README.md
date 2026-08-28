@@ -394,7 +394,32 @@ en claro y 2,2 en oscuro, y ese último es entre azul y violeta, que ya venía a
 de `--series-1` / `--series-7`. No importa aquí porque **el color de una
 categoría nunca viaja solo**: siempre lleva su emoji y su nombre al lado.
 
+## Subcategorías, sin salir de apuntar
+
+Tocar una categoría al apuntar un gasto la elige **y abre lo que hay dentro**,
+tenga subcategorías o no. Ese «o no» es la parte que importa: si el cajón solo se
+abriera cuando ya las tiene, no habría forma de crear la primera — que es justo
+cuando hace falta.
+
+Así que se puede estar apuntando un almuerzo, tocar **Comida**, darle a
+**«+ Nueva en Comida»**, crear *Almuerzos trabajo* ahí mismo y seguir con el
+importe que ya llevabas tecleado. Al volver, la nueva viene elegida.
+
+Quedarse en la madre sigue siendo una respuesta válida: elegir «Comida» a secas
+vale, y afinar es un toque más. Volver a tocarla cierra el cajón y te deja en
+ella.
+
+El cajón va **debajo** de la rejilla, así que abrirlo no mueve ni el teclado ni
+las categorías bajo el dedo. Y la madre se queda marcada cuando lo elegido es una
+hija suya: sin eso, al afinar la rejilla se quedaba entera sin marcar y parecía
+que no habías elegido nada.
+
+En los gráficos, una subcategoría **suma dentro de su madre** —un gasto de
+«Almuerzos trabajo» aparece como Comida—, pero en la lista de movimientos se
+distingue.
+
 ## Qué se guarda de cada movimiento
+
 
 Importe, categoría, cuenta, **fecha y hora**, un **título** corto para la lista,
 **notas** largas para lo que no cabe en el título, **etiquetas** y **adjuntos**.

@@ -439,12 +439,17 @@
       }
       if ((node = e.target.closest("[data-cat]"))) {
         var elegido = node.getAttribute("data-cat");
+        var cat = catOf(elegido);
         ui.draft.categoryId = elegido;
 
-        /* Tocar una que tiene otras dentro la elige Y las enseña: quedarse
-           en la madre es una respuesta válida, y afinar es un toque más. */
-        if (node.hasAttribute("data-con-hijas")) {
+        /* Tocar una de primer nivel la elige Y abre lo que hay dentro,
+           tenga hijas o no: si solo se abriera teniéndolas, no habría
+           forma de crear la primera. Volver a tocarla lo cierra.
+
+           Las hijas no abren nada: ya estás dentro. */
+        if (!cat.parentId) {
           ui.catAbierta = ui.catAbierta === elegido ? null : elegido;
+          ui.draft.apartadoId = null;
           renderAddSheet(); U.haptic("light");
           return;
         }

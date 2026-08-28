@@ -133,10 +133,15 @@
             '<span class="field__label">Categoría</span>' +
             '<div class="cat-grid">' +
               cats.map(function (c) {
-                var conHijas = S.hijasDe(c.id).length > 0;
+                /* Marcada si es la elegida, y también si lo elegido es una
+                   hija suya: si no, al afinar dentro de Comida la rejilla
+                   se quedaba entera sin marcar y parecía que no habías
+                   elegido nada. */
+                var dentro = elegida && elegida.parentId === c.id;
                 return '<button type="button" class="cat-pick" data-cat="' + c.id + '" ' +
                          'aria-pressed="' + (c.id === d.categoryId) + '"' +
-                         (conHijas ? ' data-con-hijas="1"' : '') + '>' +
+                         (c.id === abierta ? ' data-abierta="1"' : '') +
+                         (dentro ? ' data-dentro="1"' : '') + '>' +
                     catFace(c, 26, "cat-pick__icon") +
                     '<span class="cat-pick__name">' + esc(c.name) + '</span>' +
                   '</button>';
@@ -148,8 +153,14 @@
               '</button>' +
             '</div>' +
 
-            /* Las de dentro, cuando hay una madre abierta. Se puede quedar
-               en la madre sin más: elegir «Deudas» a secas es válido. */
+            /* Las de dentro, al tocar una madre. Se abre SIEMPRE, tenga
+               hijas o no: si solo se abriera cuando ya las tiene, no
+               habría forma de crear la primera —que es justo cuando
+               hace falta—. Y quedarse en la madre sigue siendo válido:
+               elegir «Comida» a secas es una respuesta.
+
+               El cajón va debajo de la rejilla, así que abrirlo no mueve
+               ni el teclado ni las categorías bajo el dedo. */
             (abierta
               ? '<div class="chips" style="margin-top:var(--sp-3)">' +
                   hijas.map(function (h) {
@@ -159,9 +170,17 @@
                   }).join("") +
                   '<button type="button" class="chip chip--add" ' +
                           'data-cat-new-hija="' + esc(abierta) + '">' +
-                    icon("plus", 12) + 'Nueva dentro' +
+                    icon("plus", 12) + 'Nueva en ' + esc(catOf(abierta).name) +
                   '</button>' +
-                '</div>'
+                '</div>' +
+                '<p class="field__hint">' +
+                  (hijas.length
+                    ? 'Estás en <strong>' + esc(catOf(abierta).name) + '</strong>. ' +
+                      'Afina si quieres, o déjalo así.'
+                    : 'Dentro de <strong>' + esc(catOf(abierta).name) + '</strong> no hay ' +
+                      'nada todavía. Puedes crear algo como «almuerzos de trabajo» y ' +
+                      'seguirá sumando en ' + esc(catOf(abierta).name) + '.') +
+                '</p>'
               : "") +
 
             '<p class="field__hint">Mantén pulsada una categoría para editarla.</p>' +
