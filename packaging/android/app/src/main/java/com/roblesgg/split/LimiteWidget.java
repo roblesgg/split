@@ -4,6 +4,7 @@ import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.widget.RemoteViews;
 
 import androidx.core.content.ContextCompat;
@@ -26,32 +27,45 @@ public class LimiteWidget extends AppWidgetProvider {
         for (int id : ids) pintar(ctx, am, id);
     }
 
+    /** Al estirarlo o encogerlo hay que volver a pintar: cambia el layout. */
+    @Override
+    public void onAppWidgetOptionsChanged(Context ctx, AppWidgetManager am,
+                                          int id, Bundle nuevas) {
+        super.onAppWidgetOptionsChanged(ctx, am, id, nuevas);
+        pintar(ctx, am, id);
+    }
+
     static void pintar(Context ctx, AppWidgetManager am, int id) {
         SharedPreferences p = WidgetDatos.prefs(ctx);
-        RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_limite);
+        RemoteViews v = new RemoteViews(ctx.getPackageName(),
+                WidgetMedida.esCorto(am, id)
+                        ? R.layout.widget_limite_corto
+                        : R.layout.widget_limite);
 
         boolean hay = p.getBoolean(WidgetDatos.HAY_LIMITE, false);
 
         if (hay) {
             String nivel = p.getString(WidgetDatos.LIMITE_NIVEL, "ok");
-            int pct = p.getInt(WidgetDatos.LIMITE_PCT, 0);
+            int pct = Math.max(0, Math.min(100, p.getInt(WidgetDatos.LIMITE_PCT, 0)));
 
             v.setTextViewText(R.id.wlNombre, p.getString(WidgetDatos.LIMITE_NOMBRE, ""));
-            v.setTextViewText(R.id.wlTexto, p.getString(WidgetDatos.LIMITE_TEXTO, ""));
+            v.setTextViewText(R.id.wlPct, pct + " %");
             v.setTextViewText(R.id.wlQueda, p.getString(WidgetDatos.LIMITE_QUEDA, ""));
-            v.setProgressBar(R.id.wlBarra, 100, Math.max(0, Math.min(100, pct)), false);
+            v.setTextViewText(R.id.wlTexto, p.getString(WidgetDatos.LIMITE_TEXTO, ""));
+            v.setProgressBar(R.id.wlBarra, 100, pct, false);
 
             int color = ContextCompat.getColor(ctx,
                     "pasado".equals(nivel) ? R.color.widgetMal
                             : "cerca".equals(nivel) ? R.color.widgetAviso
                             : R.color.widgetBien);
-            v.setTextColor(R.id.wlQueda, color);
+            v.setTextColor(R.id.wlPct, color);
         } else {
             /* Sin límites puestos no hay nada que enseñar, y decirlo es
                mejor que una barra a cero que parece un límite gastado. */
             v.setTextViewText(R.id.wlNombre, ctx.getString(R.string.widget_sin_limites_titulo));
-            v.setTextViewText(R.id.wlTexto, ctx.getString(R.string.widget_sin_limites_pie));
-            v.setTextViewText(R.id.wlQueda, "");
+            v.setTextViewText(R.id.wlPct, "");
+            v.setTextViewText(R.id.wlQueda, ctx.getString(R.string.widget_sin_limites_pie));
+            v.setTextViewText(R.id.wlTexto, "");
             v.setProgressBar(R.id.wlBarra, 100, 0, false);
         }
 

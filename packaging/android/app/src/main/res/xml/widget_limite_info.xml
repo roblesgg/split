@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Igual que el del saldo: 3×2 de salida, 2×1 lo más pequeño. Encogido
+     se queda con el nombre, el porcentaje y la barra, que es lo que se
+     mira de un vistazo. -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="180dp"
     android:minHeight="110dp"
-    android:targetCellWidth="2"
+    android:minResizeWidth="110dp"
+    android:minResizeHeight="40dp"
+    android:targetCellWidth="3"
     android:targetCellHeight="2"
     android:description="@string/widget_limite_desc"
     android:previewImage="@mipmap/ic_launcher"

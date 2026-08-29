@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Un botón: abre la app en «Nuevo gasto».
-     No enseña datos, así que nunca está desactualizado. -->
+<!-- En una sola celda no cabe el rótulo: solo el botón, que a ese tamaño
+     es lo único que hace falta. Un «+» en el color de la app se entiende
+     sin leer nada. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/waRaiz"
     android:layout_width="match_parent"
@@ -8,28 +9,22 @@
     android:orientation="vertical"
     android:gravity="center"
     android:background="@drawable/widget_fondo"
-    android:padding="10dp">
+    android:padding="6dp">
 
     <TextView
         android:id="@+id/waCirculo"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="44dp"
+        android:layout_height="44dp"
         android:background="@drawable/widget_boton"
         android:gravity="center"
         android:text="+"
-        android:textSize="27sp"
+        android:textSize="25sp"
         android:fontFamily="sans-serif-medium"
         android:textColor="#FFFFFF" />
 
     <TextView
         android:id="@+id/waTexto"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="7dp"
-        android:maxLines="1"
-        android:ellipsize="end"
-        android:text="@string/widget_apuntar_texto"
-        android:textSize="11sp"
-        android:fontFamily="sans-serif-medium"
-        android:textColor="@color/widgetTinta" />
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
 </LinearLayout>

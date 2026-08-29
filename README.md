@@ -613,11 +613,27 @@ Para regenerarlo tras cambiar algo, mira `packaging/README.md`.
 Tres, y se ponen como cualquier otro: mantén pulsado el fondo del escritorio →
 **Widgets** → split.
 
-| Widget | Qué enseña | Tamaño |
-|---|---|---|
-| **Saldo** | La cuenta con la que operas, con su nombre y su color | 2×2 |
-| **Límite** | El límite del mes que está más apurado, con su barra | 2×2 |
-| **Nuevo gasto** | Un botón: abre la app directamente en apuntar | 1×1 |
+| Widget | Qué enseña | Nace en | Se puede encoger a |
+|---|---|---|---|
+| **Saldo** | La cuenta con la que operas, con su nombre y su color | 3×2 | 2×1 |
+| **Límite** | El límite del mes más apurado, con porcentaje y barra | 3×2 | 2×1 |
+| **Nuevo gasto** | Un botón: abre la app directamente en apuntar | 1×1 | 1×1 |
+
+**Los tres se estiran y se encogen**, y no se limitan a estirar lo que hay
+dentro: **cambian de forma**. Por debajo de una fila de alto el del saldo pone
+la cifra al lado del nombre y suelta el tipo de cuenta; el del límite se queda
+con el nombre, el porcentaje y la barra; y el de apuntar, en una sola celda, se
+queda solo con el botón. Apretar tres renglones donde cabe uno es la forma
+segura de que no se lea ninguno.
+
+Quién decide eso es `WidgetMedida`: mira el alto que le ha dejado el usuario y
+elige layout. El corte está en 100 dp porque una fila del escritorio son unos 70
+y dos rondan las 110. Los dos layouts de cada widget tienen **los mismos ids**,
+así que el código que pinta es uno solo y no sabe en cuál está.
+
+En Android 12 y más las esquinas usan el radio del sistema
+(`system_app_widget_background_radius`), que es el que llevan los demás widgets
+del móvil: así split no desentona en una pantalla llena de widgets ajenos.
 
 Cuál es «la cuenta con la que operas» no se pregunta al colocar el widget: es la
 que manda en el Resumen, la que la app ya recuerda de una vez para otra. Así hay

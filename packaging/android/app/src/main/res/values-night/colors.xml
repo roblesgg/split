@@ -13,6 +13,8 @@
     <color name="widgetTinta">#F2F3F6</color>
     <color name="widgetTintaSuave">#A2A8B5</color>
     <color name="widgetCarril">#3A3D45</color>
+    <color name="widgetBotonAlto">#9AA0FF</color>
+    <color name="widgetBotonBajo">#6B71F5</color>
     <color name="widgetBien">#6BD6A0</color>
     <color name="widgetAviso">#F0C36B</color>
     <color name="widgetMal">#FF8A80</color>

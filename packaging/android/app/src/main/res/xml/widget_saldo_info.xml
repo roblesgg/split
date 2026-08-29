@@ -1,11 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Dos celdas de ancho por una de alto: lo que ocupa una fila de iconos.
-     Un widget que ocupa media pantalla para enseñar una cifra no lo deja
-     nadie puesto. -->
+<!-- Se coloca en 3×2 y se puede estirar y encoger en las dos direcciones.
+     El mínimo son 2×1: a partir de ahí el widget cambia de forma —el saldo
+     se pone al lado del nombre y se cae el tipo de cuenta— en vez de
+     apretar tres renglones donde solo cabe uno.
+
+     Las medidas van en la escala del escritorio de Android, que reparte
+     celdas de unos 70dp: 40 es una, 110 son dos, 180 son tres. -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="180dp"
     android:minHeight="110dp"
-    android:targetCellWidth="2"
+    android:minResizeWidth="110dp"
+    android:minResizeHeight="40dp"
+    android:targetCellWidth="3"
     android:targetCellHeight="2"
     android:description="@string/widget_saldo_desc"
     android:previewImage="@mipmap/ic_launcher"

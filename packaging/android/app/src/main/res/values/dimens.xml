@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- El radio de la caja de un widget. Desde Android 12 el sistema tiene
+         el suyo y los lanzadores lo usan en todos: seguirlo hace que split
+         no desentone en una pantalla llena de widgets ajenos. Antes de la
+         12 no había ninguno, así que se pone uno a mano. -->
+    <dimen name="widget_radio">20dp</dimen>
+    <dimen name="widget_aire">16dp</dimen>
+    <dimen name="widget_aire_corto">12dp</dimen>
+</resources>

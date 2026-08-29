@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- El límite del mes que está más apurado: el único que es noticia.
-     Arriba el nombre y el porcentaje, en medio la barra, abajo lo que
-     queda en palabras. La severidad la lleva el texto y no solo el color
-     de la barra: en un widget pequeño, y sobre el fondo de pantalla que
-     cada uno tenga, un color a secas no se lee. -->
+<!-- El mismo en una fila: nombre, porcentaje y barra. Lo que queda en
+     euros se cae, que es el renglón que menos se echa de menos cuando ya
+     ves la barra y el porcentaje. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/wlRaiz"
     android:layout_width="match_parent"
@@ -11,7 +9,7 @@
     android:orientation="vertical"
     android:gravity="center_vertical"
     android:background="@drawable/widget_fondo"
-    android:padding="@dimen/widget_aire">
+    android:padding="@dimen/widget_aire_corto">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -27,7 +25,7 @@
             android:layout_weight="1"
             android:maxLines="1"
             android:ellipsize="end"
-            android:textSize="14sp"
+            android:textSize="13sp"
             android:fontFamily="sans-serif-medium"
             android:textColor="@color/widgetTinta" />
 
@@ -37,9 +35,8 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:maxLines="1"
-            android:textSize="15sp"
+            android:textSize="13sp"
             android:fontFamily="sans-serif-black"
-            android:letterSpacing="-0.02"
             android:textColor="@color/widgetBien" />
     </LinearLayout>
 
@@ -47,29 +44,20 @@
         android:id="@+id/wlBarra"
         style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
-        android:layout_height="9dp"
-        android:layout_marginTop="10dp"
+        android:layout_height="7dp"
+        android:layout_marginTop="7dp"
         android:max="100"
         android:progressDrawable="@drawable/widget_barra" />
 
     <TextView
         android:id="@+id/wlQueda"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="9dp"
-        android:maxLines="1"
-        android:ellipsize="end"
-        android:textSize="13sp"
-        android:fontFamily="sans-serif-medium"
-        android:textColor="@color/widgetTintaSuave" />
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/wlTexto"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="2dp"
-        android:maxLines="1"
-        android:ellipsize="end"
-        android:textSize="11sp"
-        android:textColor="@color/widgetTintaSuave" />
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
 </LinearLayout>

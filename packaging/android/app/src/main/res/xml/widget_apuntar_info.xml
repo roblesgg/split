@@ -1,14 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Una celda: es un botón, no un panel. -->
+<!-- Nace como un icono más: una celda. Se puede estirar si alguien lo
+     quiere ancho, y a partir de dos filas de alto le sale el rótulo. -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="80dp"
-    android:minHeight="80dp"
+    android:minWidth="40dp"
+    android:minHeight="40dp"
+    android:minResizeWidth="40dp"
+    android:minResizeHeight="40dp"
     android:targetCellWidth="1"
     android:targetCellHeight="1"
     android:description="@string/widget_apuntar_desc"
     android:previewImage="@mipmap/ic_launcher"
-    android:initialLayout="@layout/widget_apuntar"
-    android:previewLayout="@layout/widget_apuntar"
-    android:resizeMode="none"
+    android:initialLayout="@layout/widget_apuntar_corto"
+    android:previewLayout="@layout/widget_apuntar_corto"
+    android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
     android:updatePeriodMillis="0" />
