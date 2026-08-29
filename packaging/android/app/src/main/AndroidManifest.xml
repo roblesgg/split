@@ -27,6 +27,43 @@
             android:enabled="true"
             android:exported="false" />
 
+        <!-- Los widgets de la pantalla de inicio. Exportados a la fuerza:
+             quien los coloca y los repinta es el lanzador del sistema, que
+             es otra app. Lo único que hacen es leer la foto que la app deja
+             guardada y abrir la app; no reciben datos de nadie. -->
+        <receiver
+            android:name=".SaldoWidget"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_saldo_info" />
+        </receiver>
+
+        <receiver
+            android:name=".LimiteWidget"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_limite_info" />
+        </receiver>
+
+        <receiver
+            android:name=".ApuntarWidget"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_apuntar_info" />
+        </receiver>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

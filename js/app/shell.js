@@ -104,6 +104,10 @@
   function renderView(view) {
     var render = A.screens[view];
     if (render) render();
+    /* Los widgets de la pantalla de inicio viven fuera del WebView y no
+       pueden leer nada de aquí: se les deja una foto. Se manda después
+       de pintar y con un respiro, que es cuando el dato ya está hecho. */
+    if (window.Widgets) window.Widgets.publicarLuego();
   }
 
   function renderAll() { renderView(ui.view); }

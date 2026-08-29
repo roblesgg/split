@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dos celdas de ancho por una de alto: lo que ocupa una fila de iconos.
+     Un widget que ocupa media pantalla para enseñar una cifra no lo deja
+     nadie puesto. -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="180dp"
+    android:minHeight="110dp"
+    android:targetCellWidth="2"
+    android:targetCellHeight="2"
+    android:description="@string/widget_saldo_desc"
+    android:previewImage="@mipmap/ic_launcher"
+    android:initialLayout="@layout/widget_saldo"
+    android:previewLayout="@layout/widget_saldo"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen"
+    android:updatePeriodMillis="0" />

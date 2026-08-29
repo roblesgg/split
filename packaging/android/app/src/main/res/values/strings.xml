@@ -4,4 +4,16 @@
     <string name="title_activity_main">split</string>
     <string name="package_name">com.roblesgg.split</string>
     <string name="custom_url_scheme">com.roblesgg.split</string>
+
+    <!-- Lo que se lee al elegir un widget en la pantalla de inicio -->
+    <string name="widget_saldo_desc">El saldo de la cuenta con la que operas</string>
+    <string name="widget_limite_desc">El límite del mes que está más apurado</string>
+    <string name="widget_apuntar_desc">Apuntar un gasto de un toque</string>
+    <string name="widget_apuntar_texto">Nuevo gasto</string>
+
+    <!-- Antes de abrir la app por primera vez no hay nada que pintar -->
+    <string name="widget_sin_datos_titulo">split</string>
+    <string name="widget_sin_datos_pie">Abre la app para verlo aquí</string>
+    <string name="widget_sin_limites_titulo">Sin límites</string>
+    <string name="widget_sin_limites_pie">Ponte uno en Ajustes</string>
 </resources>

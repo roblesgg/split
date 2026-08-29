@@ -47,6 +47,12 @@
        necesita. */
     sincronizarAvisos();
 
+    /* Y la foto para los widgets de la pantalla de inicio. Al arrancar
+       porque puede haber cambiado algo sin abrir la app —un programado
+       que ha vencido, un mes nuevo—, y luego al salir, que es cuando el
+       widget se va a ver. */
+    if (window.Widgets) { window.Widgets.vigilar(); window.Widgets.publicar(); }
+
     sheets.add = new U.Sheet($("#sheetAdd"), $("#scrim"));
     sheets.detail = new U.Sheet($("#sheetDetail"), $("#scrim"));
     sheets.form = new U.Sheet($("#sheetForm"), $("#scrim"));

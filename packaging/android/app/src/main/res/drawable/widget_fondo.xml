@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- El fondo de un widget. Nada de neumorfismo: la app puede permitirse
+     sombras porque conoce su propio fondo, y aquí debajo hay el fondo de
+     pantalla que cada uno tenga. Una caja opaca con las esquinas
+     redondeadas es lo único que se lee sobre cualquier cosa. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+       android:shape="rectangle">
+    <solid android:color="@color/widgetFondo" />
+    <corners android:radius="20dp" />
+</shape>

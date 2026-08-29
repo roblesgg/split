@@ -6,4 +6,14 @@
     <color name="colorAccent">#8B90FF</color>
     <color name="splitPage">#1C1E22</color>
     <color name="splitInk">#F2F3F6</color>
+
+    <!-- En oscuro la caja es gris carbón y no negra: sobre un fondo de
+         pantalla oscuro, una caja negra desaparece. -->
+    <color name="widgetFondo">#22242A</color>
+    <color name="widgetTinta">#F2F3F6</color>
+    <color name="widgetTintaSuave">#A2A8B5</color>
+    <color name="widgetCarril">#3A3D45</color>
+    <color name="widgetBien">#6BD6A0</color>
+    <color name="widgetAviso">#F0C36B</color>
+    <color name="widgetMal">#FF8A80</color>
 </resources>

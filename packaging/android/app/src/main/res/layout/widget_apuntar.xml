@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Un botón y ya: abre la app en «Nuevo gasto».
+     No enseña datos, así que nunca está desactualizado. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/waRaiz"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:background="@drawable/widget_fondo"
+    android:padding="10dp">
+
+    <TextView
+        android:layout_width="46dp"
+        android:layout_height="46dp"
+        android:background="@drawable/widget_boton"
+        android:gravity="center"
+        android:text="+"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:text="@string/widget_apuntar_texto"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:textColor="@color/widgetTinta" />
+</LinearLayout>

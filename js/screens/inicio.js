@@ -209,6 +209,12 @@
     if (!editando) pintarGraficos(root);
     centrarCarrusel(root, accId);
     if (editando) A.arrastrarBloques($("#panelLista", root), accId);
+
+    /* El Resumen se repinta por su cuenta desde muchos sitios —deslizar
+       el carrusel, colocar bloques, volver de una hoja— sin pasar por
+       renderView, que es donde está el otro aviso. Y justo lo que enseña
+       este panel es lo que enseñan los widgets, así que aquí también. */
+    if (window.Widgets) window.Widgets.publicarLuego();
   }
 
   /* La barra de arriba del modo colocar: qué se está haciendo y cómo

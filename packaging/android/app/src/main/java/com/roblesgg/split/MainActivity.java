@@ -1,5 +1,6 @@
 package com.roblesgg.split;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.ActionMode;
 import android.view.View;
@@ -41,12 +42,19 @@ public class MainActivity extends BridgeActivity {
     /** Último hueco conocido, en píxeles CSS. */
     private int huecoAbajo = 0;
 
+    /** Lo que pidió el widget que abrió la app, mientras no se pueda servir. */
+    private String pedido = null;
+
+    /** Si la página ya está cargada y por tanto hay App a la que llamar. */
+    private boolean cargada = false;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         /* Antes de super.onCreate, que es cuando Capacitor carga la página:
            un plugin registrado después no lo vería el lado web. */
         registerPlugin(ActualizadorPlugin.class);
         registerPlugin(RecordatorioPlugin.class);
+        registerPlugin(WidgetsPlugin.class);
 
         super.onCreate(savedInstanceState);
 
@@ -59,8 +67,15 @@ public class MainActivity extends BridgeActivity {
             @Override
             public void onPageLoaded(WebView webView) {
                 pasarHuecoAlWeb();
+                /* La app ya está en pie: si veníamos del widget de apuntar,
+                   este es el primer momento en que se le puede pedir algo.
+                   Antes de esto no hay App a la que llamar. */
+                cargada = true;
+                atenderLoPedido();
             }
         });
+
+        recordarLoPedido(getIntent());
 
         quitarSeleccionDeTexto();
         atenderBotonAtras();
@@ -102,6 +117,52 @@ public class MainActivity extends BridgeActivity {
         /* Si el teclado tapa un campo, el WebView se redimensiona solo:
            pedimos que nos vuelvan a pasar los insets al cambiar. */
         ViewCompat.requestApplyInsets(root);
+    }
+
+    /**
+     * La app se puede abrir desde un widget de la pantalla de inicio, y
+     * uno de ellos pide algo concreto: «Nuevo gasto».
+     *
+     * Se apunta lo pedido y se sirve cuando la página está cargada. Si la
+     * app ya estaba abierta el intent llega por onNewIntent —la actividad
+     * es singleTask— y entonces se sirve en el momento.
+     */
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        recordarLoPedido(intent);
+        atenderLoPedido();
+    }
+
+    private void recordarLoPedido(Intent intent) {
+        if (intent == null) return;
+        String q = intent.getStringExtra(WidgetDatos.EXTRA_ABRIR);
+        if (q != null) pedido = q;
+        /* Se borra del intent para que no se vuelva a servir al girar la
+           pantalla o al volver de segundo plano: se pidió una vez. */
+        intent.removeExtra(WidgetDatos.EXTRA_ABRIR);
+    }
+
+    private void atenderLoPedido() {
+        if (pedido == null || !cargada) return;
+        if (!WidgetDatos.ABRIR_GASTO.equals(pedido)) { pedido = null; return; }
+        pedido = null;
+
+        if (getBridge() == null) return;
+        final WebView web = getBridge().getWebView();
+        if (web == null) return;
+
+        /* Envuelto en try: si por lo que sea no hubiera App, la app se
+           queda abierta por donde estaba, que es un mal menor. */
+        final String js = "(function(){try{if(window.App&&App.openAdd)App.openAdd('out')}"
+                + "catch(e){}})()";
+        web.post(new Runnable() {
+            @Override
+            public void run() {
+                web.evaluateJavascript(js, null);
+            }
+        });
     }
 
     /**

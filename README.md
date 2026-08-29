@@ -608,6 +608,53 @@ versiones nuevas.
 
 Para regenerarlo tras cambiar algo, mira `packaging/README.md`.
 
+### Widgets en la pantalla de inicio
+
+Tres, y se ponen como cualquier otro: mantén pulsado el fondo del escritorio →
+**Widgets** → split.
+
+| Widget | Qué enseña | Tamaño |
+|---|---|---|
+| **Saldo** | La cuenta con la que operas, con su nombre y su color | 2×2 |
+| **Límite** | El límite del mes que está más apurado, con su barra | 2×2 |
+| **Nuevo gasto** | Un botón: abre la app directamente en apuntar | 1×1 |
+
+Cuál es «la cuenta con la que operas» no se pregunta al colocar el widget: es la
+que manda en el Resumen, la que la app ya recuerda de una vez para otra. Así hay
+**un solo sitio** donde se elige la cuenta, y el widget nunca enseña una distinta
+de la que ves al abrir. Tocar cualquiera de los dos paneles abre la app.
+
+#### Cómo llegan los datos
+
+Un widget es una vista del sistema: se dibuja fuera del WebView, con la app
+cerrada, y **no puede leer `localStorage`**, que es donde está todo. Así que la
+app le deja una **foto** —cuatro cadenas— en `SharedPreferences`, y el widget
+pinta esa foto:
+
+1. `js/widgets.js` arma la foto con los textos **ya formateados**. Se manda
+   «1.240,00 €», no 1240: si el número lo formateara Java habría dos sitios
+   donde se decide cómo se escribe un euro en español, y el día que cambie uno
+   el otro se queda atrás.
+2. `WidgetsPlugin` la guarda y avisa a los widgets puestos.
+3. Cada widget la lee y se pinta.
+
+**Se manda al arrancar, al salir de la app y después de repintar** —con 700 ms
+de respiro y solo si algo ha cambiado—. Lo que de verdad importa es lo segundo:
+salir de la app es justo el momento en que el widget se va a ver.
+
+De ahí sale la única limitación honesta: **el widget se actualiza cuando usas la
+app**, no solo. No hay servidor ni proceso en segundo plano, y los datos no
+salen del móvil; sin abrir la app no hay nada nuevo que contar.
+
+Antes de abrirla por primera vez no hay foto, y entonces el widget lo dice
+—«Abre la app para verlo aquí»— en vez de enseñar un 0,00 € que no es verdad.
+El de **Nuevo gasto** no enseña datos, así que ese nunca está desactualizado.
+
+El color no viaja solo tampoco aquí: el de la cuenta va junto a su nombre, y la
+severidad de un límite va en palabras («Te quedan 40,00 €» / «Te has pasado
+12,00 €») con el color solo acompañando. En un widget de dos dedos de alto, y
+sobre el fondo de pantalla que cada uno tenga, un color a secas no se lee.
+
 ## Actualizaciones
 
 La app avisa sola cuando hay una versión nueva. Al abrirla mira la **última
@@ -697,6 +744,7 @@ js/
   update.js         versión instalada y aviso de release nueva
   attach.js         adjuntos en IndexedDB, con reducción de la imagen
   avisos.js         qué recordatorios hacen falta (los pone la capa Android)
+  widgets.js        la foto que pintan los widgets de la pantalla de inicio
   ui.js             iconos SVG, hojas arrastrables, toasts, háptica
   app/
     base.js         window.App: estado de interfaz, hojas y ayudantes
@@ -719,6 +767,11 @@ tests/              sin dependencias: node tests/run.js
   paneles.js        los bloques de cada cuenta
   migracion.js      de una versión publicada a la de hoy, de punta a punta
 packaging/          convierte la app en un APK; si lo borras, la app sigue igual
+  android/…/java/   lo poco que tiene que ser nativo:
+                    RecordatorioPlugin  alarmas de los cobros
+                    ActualizadorPlugin  descargar e instalar el APK
+                    WidgetsPlugin       la foto de los widgets
+                    SaldoWidget  LimiteWidget  ApuntarWidget
 ```
 
 ### Cómo encajan las piezas
@@ -735,8 +788,8 @@ espacio común donde sus archivos se leen entre ellos, más una fachada que es l
 | Interfaz | `window.App` | — |
 
 En la interfaz no hay fachada porque no hay nadie fuera: `window.App` es a la
-vez el espacio común y lo que la capa Android llama para el botón atrás
-(`App.atras()`).
+vez el espacio común y lo que la capa Android llama: el botón atrás
+(`App.atras()`) y el widget de apuntar (`App.openAdd("out")`).
 
 **Añadir una pantalla** son tres pasos: crear `js/screens/loquesea.js`, terminarlo
 con `A.screens["loquesea"] = renderLoquesea;` y añadir su `<script>`. El router no

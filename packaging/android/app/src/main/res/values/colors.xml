@@ -6,4 +6,16 @@
     <color name="colorAccent">#5B62F0</color>
     <color name="splitPage">#E7E9EE</color>
     <color name="splitInk">#16181D</color>
+
+    <!-- Los widgets de la pantalla de inicio. Van sobre el fondo de
+         pantalla de cada uno, así que la caja es opaca: no hay forma de
+         saber qué hay detrás. -->
+    <color name="widgetFondo">#FFFFFF</color>
+    <color name="widgetTinta">#16181D</color>
+    <color name="widgetTintaSuave">#5C6270</color>
+    <color name="widgetCarril">#DDE0E7</color>
+    <!-- Los tres escalones de un límite, los mismos que en la app -->
+    <color name="widgetBien">#1F7A4D</color>
+    <color name="widgetAviso">#8A5A00</color>
+    <color name="widgetMal">#B3261E</color>
 </resources>
