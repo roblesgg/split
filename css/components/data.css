@@ -334,7 +334,7 @@
 .apartado__track {
   display: block;
   position: relative;
-  height: 10px;
+  height: var(--barra);
   border-radius: var(--r-full);
   background: var(--surface-3);
   overflow: hidden;
@@ -451,7 +451,7 @@
 
 .limcard__track {
   position: relative;
-  height: 10px;
+  height: var(--barra);
   border-radius: var(--r-full);
   background: var(--surface-2);
   box-shadow: var(--nm-in);

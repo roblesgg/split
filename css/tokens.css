@@ -169,10 +169,21 @@
           "SF Pro Text", "Segoe UI Variable Display", "Segoe UI", system-ui,
           Roboto, Inter, sans-serif;
 
-  --w-normal: 500;
-  --w-medium: 600;
-  --w-semi: 700;
-  --w-bold: 800;
+  /* Gordas a propósito. La app se mira de reojo y con una mano: un texto
+     fino se lee peor al vuelo, y en una pantalla llena de cifras el peso
+     es lo que separa lo importante de lo accesorio. Los cuatro escalones
+     caen en pesos que existen de verdad en las fuentes del sistema —500,
+     700 y 900—, así que no hay ninguno que el móvil tenga que fingir. */
+  --w-normal: 600;
+  --w-medium: 700;
+  --w-semi: 800;
+  --w-bold: 900;
+
+  /* El grosor de una barra de progreso. Una sola escala para todas: la
+     de una lista y la de dentro de una tarjeta, que es más corta y por
+     eso se queda un punto por debajo. Barritas de 6 px no se ven. */
+  --barra: 16px;
+  --barra-sm: 12px;
   --w-heavy: 800;
 
   /* --- la escala de texto ---

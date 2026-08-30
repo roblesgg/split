@@ -58,6 +58,13 @@
     var zeroY = py(0);
     var tip = null;
 
+    /* Cuántas etiquetas caben. Una etiqueta de mes ocupa unos 26 px con
+       la tipografía gorda de la app, así que si la banda es más estrecha
+       se pintan de dos en dos, o de tres en tres: doce meses apretados
+       en un móvil se solapan y no se lee ninguno. La última siempre se
+       pinta —es «dónde estamos»— y por eso se cuenta desde el final. */
+    var cadaCuantas = Math.max(1, Math.ceil(26 / band));
+
     data.forEach(function (d, i) {
       var cx = padL + band * i + band / 2;
       var x = cx - barW / 2;
@@ -75,11 +82,13 @@
       });
       svg.appendChild(path);
 
-      var lbl = svgEl("text", {
-        class: "axis-label", x: cx, y: padT + plotH + 17, "text-anchor": "middle"
-      });
-      lbl.textContent = d.label;
-      svg.appendChild(lbl);
+      if ((data.length - 1 - i) % cadaCuantas === 0) {
+        var lbl = svgEl("text", {
+          class: "axis-label", x: cx, y: padT + plotH + 17, "text-anchor": "middle"
+        });
+        lbl.textContent = d.label;
+        svg.appendChild(lbl);
+      }
 
       /* zona de impacto ≥24px, cubre toda la banda */
       var hitRect = svgEl("rect", {

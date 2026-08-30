@@ -148,12 +148,16 @@
              : "var(--cat-" + b.color + ")";
     return '' +
       '<div class="meter">' +
+        /* El nombre se lleva la línea entera y la cifra va debajo. Con
+           los dos en la misma fila, y con la tipografía gorda de la app,
+           «Suscripciones» se quedaba en «Suscripcio…»: el nombre es lo
+           que dice de qué límite hablamos, así que no se recorta. */
         '<div class="meter__head">' +
           '<span class="meter__dot" style="background:' + fill + '"></span>' +
           '<span class="meter__label">' + esc(b.emoji || "") + ' ' + esc(b.name) + '</span>' +
-          '<span class="meter__value">' + esc(S.moneyShort(b.gastado)) + ' / ' +
-            esc(S.moneyShort(b.limite)) + '</span>' +
         '</div>' +
+        '<p class="meter__cifra">' + esc(S.moneyShort(b.gastado)) + ' de ' +
+          esc(S.moneyShort(b.limite)) + '</p>' +
         '<div class="meter__track">' +
           '<div class="meter__fill" style="width:' + Math.min(100, b.ratio * 100).toFixed(1) + '%;' +
             'background:' + fill + ';--delay:' + (i * 55 + 90) + 'ms"></div>' +
@@ -365,8 +369,8 @@
                 '<div class="meter__head">' +
                   '<span class="meter__dot" style="background:' + fill + '"></span>' +
                   '<span class="meter__label">' + esc(ap.emoji) + ' ' + esc(ap.name) + '</span>' +
-                  '<span class="meter__value">' + esc(S.moneyShort(e.saldo)) + '</span>' +
                 '</div>' +
+                '<p class="meter__cifra">' + esc(S.moneyShort(e.saldo)) + '</p>' +
                 '<div class="meter__track">' +
                   '<div class="meter__fill" style="width:' + e.pct + '%;background:' +
                     fill + '"></div>' +

@@ -67,10 +67,10 @@
     if (total <= 0) return;
 
     var size = opts.size || 190;
-    /* Fino a propósito: 12 de 180. Con 26 el anillo pesaba más que la
-       cifra del centro, que es lo que se viene a mirar. */
-    var stroke = opts.stroke || 12;
-    var hueco = opts.gap == null ? 5 : opts.gap;   /* separación, en píxeles */
+    /* 16 de 180. Con 26 el anillo pesaba más que la cifra del centro,
+       que es lo que se viene a mirar; con 12 se quedaba en un hilo. */
+    var stroke = opts.stroke || 16;
+    var hueco = opts.gap == null ? 6 : opts.gap;   /* separación, en píxeles */
     var r = (size - stroke) / 2;
     var cx = size / 2, cy = size / 2;
     var circ = 2 * Math.PI * r;

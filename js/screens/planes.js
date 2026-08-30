@@ -157,7 +157,7 @@
     mountIcons(root);
     $$("[data-ring]", root).forEach(function (node) {
       C.progressRing(node, parseFloat(node.getAttribute("data-ring")), {
-        size: 50, stroke: 5, color: C.seriesColor(+node.getAttribute("data-slot"))
+        size: 50, stroke: 8, color: C.seriesColor(+node.getAttribute("data-slot"))
       });
     });
   }

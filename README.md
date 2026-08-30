@@ -937,6 +937,28 @@ abriéndose con doble clic y funcionando sin internet.
 
 Todo lo demás — tarjetas, botones, iconos, avatares, tiles — es gris.
 
+## Gordo, no fino
+
+Todo lo que mide algo es **grueso**: las barras van a 16 px —12 dentro de una
+tarjeta, que es más corta—, el anillo del rosco a 16, el de progreso a 9 y el
+trazo de una línea a 3,5. Y los cuatro pesos de letra suben un escalón, a 600 /
+700 / 800 / 900, que además son pesos que existen de verdad en las fuentes del
+sistema: ninguno que el móvil tenga que fingir.
+
+Las medidas viven en dos fichas —`--barra` y `--barra-sm`—, así que engordar
+todas las barras de la app es cambiar dos números.
+
+**Y sin rayitas.** Los separadores de un píxel entre filas se han ido: separan
+el aire y las cabeceras, que no ensucian. Donde de verdad hace falta partir en
+dos, se parte con un trazo de 2 px que se ve.
+
+Esto obligó a arreglar dos cosas por el camino: con la letra más gorda, las
+etiquetas de los meses se solapaban en los dos gráficos de barras y líneas —ahora
+se pintan de dos en dos o de tres en tres, **contando desde la última**, que es
+«dónde estamos» y siempre se pinta—; y en la lista de límites el nombre se
+recortaba, así que la cifra se ha bajado a su propia línea y el nombre se lleva
+el ancho entero.
+
 ## Números grandes, botones grandes
 
 Dos escalas en `tokens.css`, y ahí es donde está la regla: si hace falta un

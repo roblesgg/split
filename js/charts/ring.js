@@ -15,7 +15,8 @@
   function progressRing(container, ratio, opts) {
     opts = opts || {};
     var size = opts.size || 58;
-    var stroke = opts.stroke || 6;
+    /* Gordo: el anillo ES el dato, y a 6 px parecía un pelo. */
+    var stroke = opts.stroke || 9;
     var r = (size - stroke) / 2;
     var c = 2 * Math.PI * r;
     var clamped = Math.max(0, Math.min(1, ratio));

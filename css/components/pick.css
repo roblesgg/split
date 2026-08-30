@@ -173,21 +173,20 @@
   flex-direction: column;
 }
 
+/* Sin rayitas entre filas: separa el aire, que no ensucia. */
 .donut__ley {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-  min-height: 34px;
+  min-height: 36px;
   padding: 0 2px;
-  border-top: 1px solid var(--hairline);
   font-size: var(--t-body);
 }
-.donut__ley:first-child { border-top: 0; }
 
 .donut__punto {
   flex: none;
-  width: 9px;
-  height: 9px;
+  width: 12px;
+  height: 12px;
   border-radius: var(--r-full);
 }
 
@@ -263,8 +262,8 @@
 /* Fina a propósito: hay una por fila y varias filas seguidas. */
 .pres-fila__track {
   display: block;
-  margin-top: 6px;
-  height: 6px;
+  margin-top: 8px;
+  height: var(--barra-sm);
   border-radius: var(--r-full);
   background: var(--surface-3);
   overflow: hidden;

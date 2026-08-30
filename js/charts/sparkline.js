@@ -37,7 +37,7 @@
     var pts = values.map(function (v, i) { return [px(i), py(v)]; });
     svg.appendChild(svgEl("path", {
       d: splinePath(pts), fill: "none",
-      style: "stroke:var(--deemphasis);stroke-width:2;stroke-linejoin:round;stroke-linecap:round"
+      style: "stroke:var(--deemphasis);stroke-width:3;stroke-linejoin:round;stroke-linecap:round"
     }));
 
     /* el tramo final va en el color de acento, curvado igual */
@@ -45,15 +45,15 @@
       ? svgEl("path", {
           d: splinePath(pts), fill: "none",
           style: "stroke:" + (opts.color || "var(--accent)") +
-                 ";stroke-width:2;stroke-linejoin:round;stroke-linecap:round"
+                 ";stroke-width:3;stroke-linejoin:round;stroke-linecap:round"
         })
       : null;
     if (last) svg.appendChild(last);
 
     svg.appendChild(svgEl("circle", {
-      cx: px(values.length - 1), cy: py(values[values.length - 1]), r: 2.6,
+      cx: px(values.length - 1), cy: py(values[values.length - 1]), r: 3.4,
       style: "fill:" + (opts.color || "var(--accent)") +
-             ";stroke:var(--surface-1);stroke-width:2"
+             ";stroke:var(--surface-1);stroke-width:2.5"
     }));
 
     container.appendChild(svg);

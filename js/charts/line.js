@@ -87,10 +87,13 @@
       svg.appendChild(lbl);
     });
 
-    /* etiquetas del eje x, aligeradas si no caben */
-    var everyN = innerW / data.length < 26 ? 2 : 1;
+    /* Etiquetas del eje x, aligeradas si no caben. Se cuenta DESDE EL
+       FINAL: la última es «dónde estamos» y siempre se pinta, y contando
+       desde el principio acababa pegada a la penúltima —«ago sep» uno
+       encima del otro— cada vez que el número de puntos era par. */
+    var everyN = Math.max(1, Math.ceil(30 / (innerW / data.length)));
     data.forEach(function (d, i) {
-      if (i % everyN !== 0 && i !== data.length - 1) return;
+      if ((data.length - 1 - i) % everyN !== 0) return;
       var lbl = svgEl("text", {
         class: "axis-label", x: px(i), y: padT + plotH + 17, "text-anchor": "middle"
       });

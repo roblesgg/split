@@ -301,7 +301,7 @@
     var anillo = $("[data-limit-ring]", root);
     if (anillo) {
       C.progressRing(anillo, parseFloat(anillo.getAttribute("data-limit-ring")), {
-        size: 46, stroke: 4, color: "#fff", track: "rgba(255,255,255,0.28)"
+        size: 46, stroke: 7, color: "#fff", track: "rgba(255,255,255,0.28)"
       });
     }
   }
