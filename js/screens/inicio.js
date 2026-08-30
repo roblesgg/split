@@ -193,14 +193,17 @@
                 '</div>';
             }).join("") +
           '</div>' +
+          /* Abajo del panel, y sin pasar por ningún modo: añadir un
+             módulo es lo que más se hace, así que es un botón y no algo
+             escondido detrás de «personalizar». Colocar y quitar sí
+             siguen en el modo de colocar, que es donde se ven. */
           (editando
             ? ""
-            : '<div style="--i:7">' +
-                '<button type="button" class="panel-editar" id="panelEditar">' +
-                  icon("sliders", 15) +
-                  (accId ? 'Personalizar el panel de ' + esc(ctx.cuenta.name)
-                         : 'Personalizar este panel') +
-                '</button>' +
+            : '<div style="--i:7" class="panel-pie">' +
+                '<button type="button" class="panel-add" id="panelAdd">' +
+                  icon("plus", 16) + 'Añadir módulo</button>' +
+                '<button type="button" class="panel-colocar" id="panelEditar">' +
+                  icon("sliders", 14) + 'Colocar</button>' +
               '</div>') +
         '</div>' +
       '</div>';
@@ -242,13 +245,16 @@
      arrastra: si se pudiera arrastrar por el cuerpo, no se podría hacer
      scroll dentro del panel. */
   function asaDeBloque(b) {
-    var def = A.bloqueDefinicion(b.id);
+    /* El nombre lo da el catálogo y no la definición a secas: el módulo
+       de un límite se llama como el límite, que es lo que lo distingue
+       de los otros tres iguales. */
+    var nombre = A.bloqueNombre(b.id);
     return '<div class="panel-asa">' +
         '<span class="panel-asa__grip" data-arrastrar="' + esc(b.id) + '" ' +
-              'role="button" tabindex="0" aria-label="Mover ' + esc(def.nombre) + '">' +
+              'role="button" tabindex="0" aria-label="Mover ' + esc(nombre) + '">' +
           '<span></span><span></span><span></span>' +
         '</span>' +
-        '<span class="panel-asa__nombre">' + esc(def.nombre) + '</span>' +
+        '<span class="panel-asa__nombre">' + esc(nombre) + '</span>' +
         '<button type="button" class="icon-btn" data-subir="' + esc(b.id) + '" ' +
                 'aria-label="Subir" data-icon="chevUp" data-icon-size="14"></button>' +
         '<button type="button" class="icon-btn" data-bajar="' + esc(b.id) + '" ' +
@@ -262,8 +268,9 @@
      colocando: fuera de ahí no ocupa hueco. */
   function vacioHtml(id) {
     var def = A.bloqueDefinicion(id);
-    return '<p class="panel-vacio">' + esc(def.sub) + '. Ahora mismo no tiene ' +
-      'nada que enseñar, así que fuera de aquí no ocupa sitio.</p>';
+    return '<p class="panel-vacio">' + esc(def ? def.sub : "Este módulo") +
+      '. Ahora mismo no tiene nada que enseñar, así que fuera de aquí no ' +
+      'ocupa sitio.</p>';
   }
 
   /* Los gráficos se montan después de escribir el HTML: el motor mide el

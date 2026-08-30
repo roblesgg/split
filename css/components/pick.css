@@ -113,10 +113,14 @@
   transition: opacity var(--dur-fast) var(--ease-out);
 }
 
-/* El centro va encima del svg, centrado sobre el agujero. */
+/* El centro va encima del svg, centrado sobre el agujero. El ancho lo
+   pone el motor —es el del agujero— porque aquí no se sabe de qué
+   tamaño se ha pedido el rosco. */
 .donut__centro {
   position: absolute;
-  inset: 0;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: grid;
   place-content: center;
   text-align: center;
@@ -135,6 +139,7 @@
 .donut__valor {
   display: block;
   margin-top: 2px;
+  white-space: nowrap;
   font-size: 22px;
   font-weight: var(--w-bold);
   letter-spacing: -0.02em;

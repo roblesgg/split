@@ -39,6 +39,78 @@
 
   /* ---------- piezas que usan varios bloques ---------- */
 
+  /* La tarjeta de UN límite, en grande. La cifra que manda es lo que te
+     QUEDA, no lo que llevas: «me quedan 170 €» es la frase con la que
+     uno decide si sale a cenar. Debajo, la barra con una marca de dónde
+     está hoy dentro del mes, que es la otra mitad de la historia —
+     gastar el 70 % el día 3 no es lo mismo que el día 28— y el ritmo que
+     te queda por día.
+
+     El color nunca va solo: el estado se dice con palabras y, cuando hay
+     algo que avisar, con su icono delante. */
+  function limiteCardHtml(b) {
+    var over = b.nivel === "pasado";
+    var near = b.nivel === "cerca";
+    var fill = over ? "var(--status-critical)"
+             : near ? "var(--status-warning)"
+             : "var(--cat-" + b.color + ")";
+
+    return '<section class="card limcard" data-limcard="' + esc(b.id) + '">' +
+        '<button type="button" class="limcard__head" data-form="limite" ' +
+                'data-form-id="' + esc(b.id) + '" aria-label="Editar ' + esc(b.name) + '">' +
+          '<span class="limcard__cara cat-face" ' +
+                'style="--cat-color:var(--cat-' + b.color + ')">' +
+            esc(b.emoji || "🎯") + '</span>' +
+          '<span class="limcard__titulos">' +
+            '<span class="limcard__nombre">' + esc(b.name) + '</span>' +
+            '<span class="limcard__sub">' + esc(S.textoAmbitoCortoLimite(b)) + '</span>' +
+          '</span>' +
+          '<span class="limcard__chev" data-icon="chevron" data-icon-size="16"></span>' +
+        '</button>' +
+
+        '<p class="limcard__cifra">' +
+          '<span class="limcard__grande">' + esc(S.money(Math.abs(b.queda))) + '</span>' +
+          '<span class="limcard__de">' +
+            (over ? " de más sobre " : " restante de ") + esc(S.money(b.limite)) + '</span>' +
+        '</p>' +
+
+        '<div class="limcard__barra">' +
+          '<div class="limcard__track">' +
+            '<div class="limcard__fill" style="width:' + Math.min(100, b.ratio * 100).toFixed(1) +
+              '%;background:' + fill + '"></div>' +
+            /* Dónde estaría el gasto si lo repartieras por igual: si la
+               barra de color va por delante de esta marca, vas rápido. */
+            '<span class="limcard__hoy" style="left:' + b.pctTiempo + '%">' +
+              '<span class="limcard__hoy-txt">Hoy</span>' +
+            '</span>' +
+          '</div>' +
+        '</div>' +
+
+        '<p class="limcard__pie" data-nivel="' + esc(b.nivel) + '">' +
+          (over
+            ? icon("warning", 12) + " Te has pasado " + esc(S.money(-b.queda))
+            : near
+              ? icon("warning", 12) + " Al límite: " + esc(S.money(b.porDia)) +
+                " al día para " + diasTxt(b.diasQuedan)
+              : "Puedes gastar " + esc(S.money(b.porDia)) + " al día para " +
+                diasTxt(b.diasQuedan)) +
+        '</p>' +
+      '</section>';
+  }
+
+  /* Crear un límite sin salir de donde estás. La hoja es la misma que en
+     Ajustes: un solo formulario para una sola cosa. */
+  function nuevoLimiteBtn() {
+    return '<button type="button" class="panel-add panel-add--dentro" data-form="limite">' +
+        icon("plus", 15) + 'Nuevo límite</button>';
+  }
+
+  /* «26 días más» / «un día más», que es como se dice. */
+  function diasTxt(n) {
+    var d = Math.max(0, n) + 1;   /* hoy cuenta */
+    return d === 1 ? "hoy" : d + " días más";
+  }
+
   function deltaPct(ahora, antes) {
     if (!antes) return null;
     return ((ahora - antes) / Math.abs(antes)) * 100;
@@ -175,7 +247,17 @@
     render: function (ctx) {
       var rows = S.estadoDeLimites(ctx.key)
         .sort(function (a, b) { return b.ratio - a.ratio; });
-      if (!rows.length) return "";
+      /* Sin ninguno el módulo no desaparece: es justo desde donde se
+         crea el primero, y esconderlo dejaría al que lo puso mirando un
+         hueco sin saber qué hacer. */
+      if (!rows.length) {
+        return foldCard("presupuesto",
+          "Límites de " + esc(nombreCiclo(ctx.key)),
+          "Todavía no tienes ninguno",
+          "",
+          '<p class="field__hint">Un límite es un tope con nombre: cuánto y ' +
+            'sobre qué gastos. No bloquea nada, avisa.</p>' + nuevoLimiteBtn());
+      }
       var res = S.resumenDeLimites(ctx.key);
       /* Un límite mira categorías, no cuentas, así que sus cifras son las
          de todo tu dinero aunque estés mirando una cuenta. Se dice, en
@@ -189,7 +271,35 @@
             ? " · " + esc(S.moneyShort(res.sinTope)) + " fuera de todos"
             : ""),
         '<button type="button" class="card__link" data-goto="ajustes">Editar</button>',
-        rows.map(meterHtml).join(""));
+        rows.map(meterHtml).join("") + nuevoLimiteBtn());
+    }
+  });
+
+  /* --- UN límite, en grande ---
+     Se puede poner varias veces, una por límite: el módulo lleva dentro
+     de qué límite habla. Es lo que se pide cuando tienes cinco y solo
+     dos te importan a diario. */
+  bloque("limite", {
+    nombre: "Un límite del mes",
+    sub: "El que elijas, en grande y con el ritmo que te queda por día",
+    /* Cada opción es un módulo distinto: «limite:lim-gasolina». */
+    opciones: function () {
+      return S.limites().map(function (l) {
+        return { id: "limite:" + l.id,
+                 nombre: (l.emoji ? l.emoji + " " : "") + l.name,
+                 sub: S.textoAmbitoCortoLimite(l) };
+      });
+    },
+    nombreDe: function (arg) {
+      var l = arg && S.limitePorId(arg);
+      return l ? (l.emoji ? l.emoji + " " : "") + l.name : "Un límite del mes";
+    },
+    render: function (ctx) {
+      /* Un límite borrado se lleva su módulo: devolver "" hace que ni se
+         le haga hueco, igual que cualquier bloque sin nada que enseñar. */
+      var est = ctx.arg ? S.estadoDeLimite(ctx.arg, ctx.key) : null;
+      if (!est) return "";
+      return limiteCardHtml(est);
     }
   });
 
@@ -434,21 +544,64 @@
     });
   }
 
-  function definicion(id) { return BLOQUES[id] || null; }
+  /* Lo que se le ofrece a quien va a añadir un módulo: los del catálogo,
+     con los parametrizados ya desplegados en uno por opción, y sin los
+     que ya están puestos. Lo devuelve la capa de pantallas y no la hoja
+     porque quien sabe desplegarlos es el catálogo. */
+  function ofrecibles(accId, puestos) {
+    var ya = puestos || [];
+    var out = [];
+    disponibles(accId).forEach(function (id) {
+      var b = BLOQUES[id];
+      if (b.opciones) {
+        b.opciones().forEach(function (o) {
+          if (ya.indexOf(o.id) < 0) out.push(o);
+        });
+      } else if (ya.indexOf(id) < 0) {
+        out.push({ id: id, nombre: b.nombre, sub: b.sub });
+      }
+    });
+    return out;
+  }
+
+  /* Un módulo puede llevar un argumento detrás de dos puntos —
+     «limite:lim-gasolina»— y entonces se puede poner varias veces, una
+     por argumento. Todo lo que mira ids pasa por aquí. */
+  function base(id) { return String(id || "").split(":")[0]; }
+  function arg(id) {
+    var i = String(id || "").indexOf(":");
+    return i < 0 ? null : String(id).slice(i + 1);
+  }
+
+  function definicion(id) { return BLOQUES[base(id)] || null; }
+
+  /* Cómo se llama ESTE módulo: el de un límite lleva el nombre del
+     límite, que es lo que lo distingue de los otros tres iguales. */
+  function nombreDe(id) {
+    var b = BLOQUES[base(id)];
+    if (!b) return id;
+    return b.nombreDe ? b.nombreDe(arg(id)) : b.nombre;
+  }
 
   /* Pinta un bloque. Devuelve "" si no existe —un panel guardado puede
      nombrar uno que ya se quitó del código— o si no tiene nada que
      enseñar, y entonces ni se le hace hueco. */
   function pintar(id, ctx) {
-    var b = BLOQUES[id];
+    var b = BLOQUES[base(id)];
     if (!b) return "";
     if (ctx.accId && b.soloTodas) return "";
     if (!ctx.accId && b.soloCuenta) return "";
-    return b.render(ctx) || "";
+    /* El contexto es el mismo para todos más el argumento, que solo
+       miran los que lo llevan. */
+    var c = { accId: ctx.accId, key: ctx.key, cuenta: ctx.cuenta, arg: arg(id) };
+    return b.render(c) || "";
   }
 
   /* --- lo que usan otros archivos --- */
   A.bloqueDefinicion = definicion;
+  A.bloqueNombre = nombreDe;
+  A.bloquesOfrecibles = ofrecibles;
+  A.limiteCardHtml = limiteCardHtml;
   A.bloquesDisponibles = disponibles;
   A.pintarBloque = pintar;
   A.meterHtml = meterHtml;

@@ -463,12 +463,49 @@
    La tarjeta centrada del carrusel manda sobre todo lo que va debajo, y
    los bloques son los que cada cuenta tenga puestos. */
 
-.panel-editar {
+/* El pie del panel: añadir un módulo y colocarlos. Añadir es lo que más
+   se hace, así que va primero, ancho y con el acento; colocar es una vez
+   cada mucho y se queda de lado, pequeño. */
+.panel-pie {
+  display: flex;
+  align-items: stretch;
+  gap: var(--sp-2);
+}
+
+.panel-add {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: var(--sp-2);
-  width: 100%;
+  flex: 1;
+  min-height: var(--tap-min);
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  border: 1.5px dashed var(--accent);
+  background: none;
+  color: var(--accent);
+  font-size: var(--t-body);
+  font-weight: var(--w-semi);
+  cursor: pointer;
+}
+.panel-add:active { background: var(--surface-2); }
+
+/* El mismo botón dentro de un módulo —«Nuevo límite»—, un punto más
+   discreto: ahí no es la acción principal de la pantalla. */
+.panel-add--dentro {
+  margin-top: var(--sp-3);
+  padding: var(--sp-3);
+  font-size: var(--t-min);
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+
+.panel-colocar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 0 0 auto;
   min-height: var(--tap-min);
   padding: var(--sp-4);
   border-radius: var(--r-md);
@@ -479,7 +516,7 @@
   font-weight: var(--w-medium);
   cursor: pointer;
 }
-.panel-editar:active { background: var(--surface-2); }
+.panel-colocar:active { background: var(--surface-2); }
 
 /* El hueco donde va un gráfico dentro de un bloque. */
 .chart-box { width: 100%; }

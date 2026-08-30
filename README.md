@@ -204,11 +204,20 @@ cada vez que abres la app.
 Tocar hace dos cosas, en este orden: la tarjeta que no está centrada se centra,
 y la que ya lo está se abre. Deslizar elige, tocar la que miras entra.
 
-### Los bloques los eliges tú, en el propio panel
+### Los módulos los eliges tú
 
-Debajo hay un botón para **personalizarlo**, y no abre una hoja: convierte el
-panel en algo que se recoloca. Lo que se está tocando es el panel, así que se
-toca ahí, viendo los bloques de verdad y no una lista de nombres.
+Al final del panel hay dos botones: **«+ Añadir módulo»**, que abre la lista de
+los que no tienes puestos, y **«Colocar»**, para moverlos y quitarlos.
+
+Añadir es lo que más se hace, así que es un botón y no algo escondido detrás de
+un modo: antes había que entrar en «personalizar», buscar la sección y darle a
+añadir. Ahora es un toque, la hoja se queda abierta —quien pone uno suele poner
+dos— y el panel de debajo se repinta a la vez, así que se ve lo que se está
+eligiendo mientras se elige.
+
+Colocar y quitar sí siguen en el propio panel, que es donde se ven: convierte el
+panel en algo que se recoloca, con los módulos de verdad y no una lista de
+nombres.
 
 Cada bloque saca su **asa**: se arrastra por ella, nunca por el cuerpo — si el
 bloque entero fuera arrastrable no se podría hacer scroll, que es lo primero que
@@ -224,12 +233,13 @@ ven.
 Cada cuenta tiene los suyos, así que la del día a día puede llevar límites y
 gasto por categoría mientras la hucha lleva la evolución del saldo.
 
-| Bloque | Qué enseña | |
+| Módulo | Qué enseña | |
 |---|---|---|
 | **Botones rápidos** | Apuntar un gasto o un ingreso, y el atajo a Análisis | |
 | **Ingresos, gastos y ahorro** | Las tres cifras del periodo, con su tendencia | |
 | **El límite más apurado** | El anillo del que está por reventar | |
-| **Límites del mes** | Una barra por límite | |
+| **Un límite del mes** | El que elijas, en grande | uno por límite |
+| **Límites del mes** | Todos, con una barra cada uno | |
 | **Objetivo de gasto** | El tope de esa cuenta | solo en una cuenta |
 | **Apartados** | El dinero reservado dentro de esa cuenta | solo en una cuenta |
 | **En qué se te va** | Las cuatro categorías con más gasto | |
@@ -239,6 +249,26 @@ gasto por categoría mientras la hucha lleva la evolución del saldo.
 | **Dónde más gastas** | Los conceptos que más se repiten | |
 | **Últimos movimientos** | Lo último apuntado | |
 | **Lo que viene** | Los próximos pagos y cobros programados | |
+
+### Un módulo por límite, o todos juntos
+
+**«Un límite del mes»** se ofrece una vez por cada límite que tengas, con su
+nombre: pones el de Gasolina, y si además quieres el de Gastos lo añades otra
+vez. Cada uno es un módulo distinto y se coloca donde quieras.
+
+Esa tarjeta enseña lo que te **queda** —«me quedan 170 €» es la frase con la que
+uno decide si sale a cenar—, la barra con una **marca de por dónde va el mes** y
+el ritmo que te queda por día. Gastar el 70 % del tope no es lo mismo el día 3
+que el día 28, y sin la marca esa mitad de la historia no se ve.
+
+Y si los quieres todos juntos, **«Límites del mes»** los pone en una lista, y
+desde dentro se crea uno nuevo sin salir del Resumen. Ese módulo no desaparece
+cuando no tienes ninguno: es justo desde donde se crea el primero.
+
+Por dentro, un módulo puede llevar un **argumento** detrás de dos puntos
+—`limite:lim-gasolina`— y entonces se puede poner varias veces, una por
+argumento. `bloques.js` es quien sabe desplegarlos en opciones; el panel y la
+hoja de añadir solo pintan lo que les da.
 
 Los apartados y el objetivo de gasto solo se ofrecen dentro de una cuenta: son
 suyos. Los límites del mes sí valen en los dos, pero miran categorías y no
@@ -452,6 +482,17 @@ la deja con la que tenga puesta y ya puede elegir la suya.
 
 Como en una lista plana varias comparten icono, en **Ajustes → Categorías** cada
 una dice de quién es: «En Comida · 3 movimientos».
+
+### Las de dentro, dentro
+
+Editando una categoría se ven **sus subcategorías** y se crea una ahí mismo, con
+lo que ha usado cada una. Buscarlas en la lista general de Ajustes —que las
+enseña todas mezcladas— es justo lo que no se quiere hacer mientras se está
+mirando una.
+
+Saltar de la madre a una de dentro **guarda antes lo que llevaras escrito**: si
+no, cambiarle el nombre y tocar «Nueva subcategoría» se comería el cambio sin
+decir nada.
 
 En los gráficos, una subcategoría **suma dentro de su madre** —un gasto de
 «Almuerzos trabajo» aparece como Comida—, pero en la lista de movimientos se

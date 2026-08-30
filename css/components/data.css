@@ -374,3 +374,134 @@
 }
 
 .apartado__mas:active { box-shadow: var(--nm-in); }
+
+/* ---------- la tarjeta de UN límite ----------
+   La cifra que manda es lo que te QUEDA: «me quedan 170 €» es la frase
+   con la que uno decide si sale a cenar. Debajo, la barra con una marca
+   de por dónde va el mes: gastar el 70 % el día 3 no es lo mismo que el
+   día 28, y sin la marca esa mitad de la historia no se ve. */
+
+.limcard { padding: var(--sp-5); }
+
+.limcard__head {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: 0;
+  background: none;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.limcard__cara {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--r-full);
+  font-size: 19px;
+}
+
+.limcard__titulos { flex: 1; min-width: 0; }
+
+.limcard__nombre {
+  display: block;
+  font-size: var(--t-title);
+  font-weight: var(--w-semi);
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.limcard__sub {
+  display: block;
+  margin-top: 1px;
+  font-size: var(--t-min);
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.limcard__chev { flex: none; color: var(--text-muted); }
+
+.limcard__cifra {
+  margin-top: var(--sp-4);
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.limcard__grande {
+  font-size: var(--num-l);
+  font-weight: var(--w-bold);
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
+}
+
+.limcard__de { font-size: var(--t-min); color: var(--text-secondary); }
+
+/* Hueco arriba para el globito de «Hoy», que se sale de la barra. */
+.limcard__barra { margin-top: 22px; }
+
+.limcard__track {
+  position: relative;
+  height: 10px;
+  border-radius: var(--r-full);
+  background: var(--surface-2);
+  box-shadow: var(--nm-in);
+}
+
+.limcard__fill {
+  height: 100%;
+  border-radius: var(--r-full);
+  transform-origin: left center;
+  animation: meter-grow var(--dur-slow) var(--ease-out) both;
+}
+
+/* La marca de hoy: una línea sobre la barra con su etiqueta encima. Va
+   en gris, no en color: no es un estado, es una referencia. */
+.limcard__hoy {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--text-muted);
+  transform: translateX(-1px);
+}
+
+.limcard__hoy-txt {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 1px 7px;
+  border-radius: var(--r-full);
+  background: var(--surface-1);
+  box-shadow: var(--nm-out-sm);
+  font-size: 10px;
+  font-weight: var(--w-semi);
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+/* El pie no se tiñe con el color de estado: a este tamaño el amarillo y
+   el rojo de la paleta no dan contraste sobre la tarjeta. La severidad
+   la llevan el icono y las palabras, como en el resto de la app; el
+   color vive en la barra, que es donde se ve. */
+.limcard__pie {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: var(--sp-4);
+  font-size: var(--t-min);
+  color: var(--text-secondary);
+}
+
+.limcard__pie[data-nivel="pasado"] { font-weight: var(--w-medium); }

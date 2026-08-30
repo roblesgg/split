@@ -86,14 +86,31 @@
     container.appendChild(svg);
 
     /* El centro es HTML y no SVG: así hereda la tipografía y los tamaños
-       del resto de la app sin repetirlos aquí. */
+       del resto de la app sin repetirlos aquí.
+
+       Va limitado al agujero y no a la caja entera: con `inset: 0` el
+       texto podía crecer hasta el ancho del rosco, y una cifra larga
+       —12.850,00 €— se metía por debajo del anillo. Ahora se le da el
+       ancho del hueco y, si aun así no cabe, se encoge la cifra hasta
+       que quepa. Encogerla es preferible a partirla en dos renglones o a
+       recortarla con puntos suspensivos: el número entero es el dato. */
+    var hueco = size - stroke * 2;
     var centro = document.createElement("div");
     centro.className = "donut__centro";
+    centro.style.width = hueco + "px";
     centro.innerHTML =
       '<span class="donut__label">' + (opts.label || "Total") + '</span>' +
       '<span class="donut__valor">' +
         (opts.format ? opts.format(total) : total) + '</span>';
     container.appendChild(centro);
+
+    var valor = centro.querySelector(".donut__valor");
+    var cabe = hueco - 14;                       /* aire a los dos lados */
+    var mide = valor.scrollWidth;
+    if (mide > cabe && cabe > 0) {
+      var base = parseFloat(getComputedStyle(valor).fontSize) || 22;
+      valor.style.fontSize = Math.max(12, Math.floor(base * cabe / mide)) + "px";
+    }
   }
 
   /* --- lo que se lleva el espacio común --- */

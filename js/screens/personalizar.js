@@ -4,6 +4,15 @@
    Colocar y quitar se hace en el propio panel, arrastrando: es donde se
    ven. Lo que no cabe ahí es elegir entre los que NO están puestos, que
    por definición no se ven, y para eso está esta hoja.
+
+   Se abre desde el botón «Añadir módulo» del final del panel, sin pasar
+   por ningún modo: añadir es lo que más se hace y no puede costar tres
+   toques. La hoja se queda abierta al añadir, porque quien pone uno
+   suele poner dos, y el panel de debajo se repinta a la vez.
+
+   Un módulo puede llevar argumento —«limite:lim-gasolina»— y entonces se
+   ofrece uno por opción, no uno a secas: por eso la lista la arma el
+   catálogo, en bloques.js, y aquí solo se pinta.
    ============================================================ */
 
 (function () {
@@ -14,8 +23,7 @@
 
   /* Puentes a lo que vive en otro archivo. Se resuelven en la llamada,
      así que da igual el orden en que se carguen los scripts. */
-  function bloqueDefinicion() { return A.bloqueDefinicion.apply(null, arguments); }
-  function bloquesDisponibles() { return A.bloquesDisponibles.apply(null, arguments); }
+  function bloquesOfrecibles() { return A.bloquesOfrecibles.apply(null, arguments); }
   function mountIcons() { return A.mountIcons.apply(null, arguments); }
   function renderInicio() { return A.renderInicio.apply(null, arguments); }
 
@@ -23,37 +31,35 @@
 
   function render() {
     var accId = ui.panelEditando;
-    var puestos = S.panelDe(accId);
-    var quedan = bloquesDisponibles(accId).filter(function (id) {
-      return puestos.indexOf(id) < 0;
-    });
+    var quedan = bloquesOfrecibles(accId, S.panelDe(accId));
     var cuenta = accId
       ? S.state.accounts.find(function (a) { return a.id === accId; })
       : null;
 
-    $("#sheetPanelTitle").textContent = "Añadir un bloque";
+    $("#sheetPanelTitle").textContent = "Añadir un módulo";
 
     $("#sheetPanelBody").innerHTML =
       '<p class="card__sub">A ' +
         (cuenta ? '<strong>' + esc(cuenta.name) + '</strong>' : '<strong>Todo tu dinero</strong>') +
-        '. Cada cuenta tiene los suyos.</p>' +
+        '. Cada cuenta tiene los suyos, y la hoja se queda abierta: ' +
+        'puedes añadir varios de una vez.</p>' +
 
       (quedan.length
         ? '<div class="pbloques" style="margin-top:var(--sp-5)">' +
-            quedan.map(function (id) {
-              var b = bloqueDefinicion(id);
+            quedan.map(function (o) {
               return '<button type="button" class="pbloque pbloque--add" ' +
-                       'data-poner="' + esc(id) + '">' +
+                       'data-poner="' + esc(o.id) + '">' +
                   '<span class="pbloque__texto">' +
-                    '<span class="pbloque__nombre">' + esc(b.nombre) + '</span>' +
-                    '<span class="pbloque__sub">' + esc(b.sub) + '</span>' +
+                    '<span class="pbloque__nombre">' + esc(o.nombre) + '</span>' +
+                    '<span class="pbloque__sub">' + esc(o.sub) + '</span>' +
                   '</span>' +
                   '<span class="pbloque__mas" data-icon="plus" data-icon-size="16"></span>' +
                 '</button>';
             }).join("") +
           '</div>'
         : '<p class="field__hint" style="margin-top:var(--sp-5)">Ya los tienes ' +
-          'todos puestos. Para quitar alguno, la equis de su asa.</p>') +
+          'todos puestos. Para quitar alguno, entra en <strong>Colocar</strong> ' +
+          'y toca la equis de su asa.</p>') +
 
       /* Solo se ofrece cuando significa algo: si nunca lo has tocado, un
          «volver a como estaba» no hace nada y encima da que pensar. */
@@ -67,11 +73,12 @@
     mountIcons($("#sheetPanelBody"));
   }
 
-  function abrir(accId) {
+  /* Se abre de dos sitios: del botón de abajo del panel —y entonces al
+     cerrar no hay que dejar a nadie en modo colocar— y del propio modo
+     colocar, donde sí hay que volver a él. */
+  function abrir(accId, opts) {
     ui.panelEditando = accId || null;
-    /* Se llega desde el modo colocar y se vuelve a él: cerrar la hoja no
-       puede dejarte fuera de lo que estabas haciendo. */
-    ui.panelOrdenando = true;
+    if (!(opts && opts.soloAnadir)) ui.panelOrdenando = true;
     render();
     sheets.panel.show();
   }

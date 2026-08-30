@@ -280,3 +280,59 @@
 }
 
 .cat-pick[data-dentro="1"] .cat-pick__name { color: var(--accent); }
+
+/* ---------- las de dentro, dentro ----------
+   La lista de subcategorías vive en la ficha de su madre: es donde se
+   buscan cuando se está mirando una. Cada fila es su cara —la de la
+   madre, que la heredan—, su nombre y cuánto se ha usado. */
+
+.subcats {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin-top: var(--sp-2);
+}
+
+.subcat {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: var(--sp-3);
+  border: 0;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  box-shadow: var(--nm-in);
+  text-align: left;
+  cursor: pointer;
+}
+.subcat:active { box-shadow: var(--nm-out-sm); }
+
+.subcat__cara {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-full);
+  font-size: 17px;
+}
+
+.subcat__cuerpo { flex: 1; min-width: 0; }
+
+.subcat__nombre {
+  display: block;
+  font-size: var(--t-body);
+  font-weight: var(--w-semi);
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subcat__uso {
+  display: block;
+  font-size: var(--t-min);
+  color: var(--text-muted);
+}
+
+.subcat__chev { flex: none; color: var(--text-muted); }

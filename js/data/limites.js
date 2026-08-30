@@ -167,6 +167,13 @@
     var pasado = ratio > 1;
     var cerca = !pasado && ratio >= CERCA;
 
+    var dias = diasDeCiclo(key);
+    var corridos = diasCorridos(key);
+    /* El día en curso cuenta: si hoy es el 28 de 31, te quedan 4 días
+       para gastar —hoy incluido—, no 3. */
+    var paraGastar = Math.max(1, dias - corridos + 1);
+    var porDia = queda > 0 ? Math.round((queda / paraGastar) * 100) / 100 : 0;
+
     return {
       id: lim.id,
       key: key,
@@ -174,6 +181,11 @@
       emoji: lim.emoji,
       color: lim.color,
       ambito: lim.ambito,
+      /* Copia, no la lista de verdad: quien pinta no puede cambiar el
+         límite sin querer. Va aquí porque el ámbito no se puede contar
+         sin ella —«solo gasolina» necesita saber cuál— y el estado es lo
+         único que llega a la pantalla. */
+      categoryIds: (lim.categoryIds || []).slice(),
       limite: importe,
       gastado: gastado,
       queda: queda,
@@ -183,7 +195,18 @@
       pctQueda: Math.max(0, Math.round((1 - ratio) * 100)),
       ratio: ratio,
       nivel: pasado ? "pasado" : cerca ? "cerca" : "ok",
-      diasQuedan: Math.max(0, diasDeCiclo(key) - diasCorridos(key))
+
+      /* Por dónde va el ciclo, que es la otra mitad de la historia:
+         gastar el 70 % del tope no es lo mismo el día 3 que el día 28.
+         Con esto la barra puede enseñar dónde está hoy. */
+      dias: dias,
+      diasCorridos: corridos,
+      diasQuedan: Math.max(0, dias - corridos),
+      pctTiempo: dias > 0 ? Math.min(100, Math.round((corridos / dias) * 100)) : 0,
+
+      /* Lo que te queda repartido entre los días que quedan. Cuando ya
+         te has pasado no hay ritmo que valga y sale 0. */
+      porDia: porDia
     };
   }
 

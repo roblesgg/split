@@ -214,9 +214,15 @@
         return;
       }
       if (e.target.closest("#kpiFiltro")) { openForm("resumen"); return; }
-      /* Personalizar ya no abre una hoja: convierte el propio panel en
-         algo que se puede recolocar. Lo que se está tocando es el panel,
-         así que se toca ahí. */
+      /* Añadir es lo que más se hace, así que va directo: la hoja de
+         módulos se abre desde el panel, sin entrar en ningún modo. */
+      if (e.target.closest("#panelAdd")) {
+        A.abrirPanel(S.cuentaDelPanel(), { soloAnadir: true });
+        return;
+      }
+      /* Colocar no abre una hoja: convierte el propio panel en algo que
+         se puede recolocar. Lo que se está tocando es el panel, así que
+         se toca ahí. */
       if (e.target.closest("#panelEditar")) {
         ui.panelOrdenando = true;
         A.renderInicio(); U.haptic("light"); return;

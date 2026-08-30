@@ -347,6 +347,24 @@
         U.haptic("light");
         return;
       }
+      /* Las de dentro, desde la ficha de su madre. Lo que se lleve
+         escrito de la madre se guarda antes de saltar: si no, cambiarle
+         el nombre y tocar «Nueva subcategoría» se comería el cambio sin
+         decir nada. */
+      if (e.target.closest("#fNuevaSub")) {
+        var madreId = ui.form.id;
+        guardarCallado();
+        openForm("category", null, { kind: ui.form.d.kind, parentId: madreId });
+        U.haptic("light");
+        return;
+      }
+      if ((node = e.target.closest("[data-subcat]"))) {
+        var hijaId = node.getAttribute("data-subcat");
+        guardarCallado();
+        openForm("category", hijaId);
+        U.haptic("light");
+        return;
+      }
       if ((node = e.target.closest("[data-fperiodo]"))) {
         ui.form.d.periodo = node.getAttribute("data-fperiodo");
         renderForm(); U.haptic("light"); return;
@@ -514,6 +532,17 @@
     };
   }
 
+
+  /* Guarda lo que se lleve escrito de la categoría que se está editando,
+     sin avisos ni cerrar la hoja: se usa al saltar a una de dentro, que
+     es moverse entre fichas y no un «guardar» del usuario. Sin esto,
+     cambiarle el nombre a la madre y tocar «Nueva subcategoría» se
+     comería el cambio sin decir nada. */
+  function guardarCallado() {
+    if (ui.form.type !== "category" || !ui.form.id) return;
+    if (!String(ui.form.d.name || "").trim()) return;
+    S.updateCategory(ui.form.id, ui.form.d);
+  }
 
   /* --- lo que usan otros archivos --- */
   A.DIAS_LARGO = DIAS_LARGO;

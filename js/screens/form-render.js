@@ -15,6 +15,7 @@
   /* Puentes a lo que vive en otro archivo. Se resuelven en la llamada,
      así que da igual el orden en que se carguen los scripts. */
   function accountSelect() { return A.accountSelect.apply(null, arguments); }
+  function catFace() { return A.catFace.apply(null, arguments); }
   function catOf() { return A.catOf.apply(null, arguments); }
   function listaDias() { return A.listaDias.apply(null, arguments); }
   function bigAmount() { return A.bigAmount.apply(null, arguments); }
@@ -27,6 +28,56 @@
   function identHtml() { return A.identHtml.apply(null, arguments); }
   function periodo() { return A.periodo.apply(null, arguments); }
   function switchRow() { return A.switchRow.apply(null, arguments); }
+
+  /* Las de dentro, dentro. Editando una categoría madre se ven las suyas
+     y se crean ahí mismo: buscarlas en la lista general de Ajustes, que
+     las enseña todas mezcladas, es justo lo que no se quiere hacer
+     mientras se está mirando una.
+
+     Solo sale al editar una que puede tenerlas: en una que se está
+     creando todavía no hay a qué colgarlas, y una subcategoría no puede
+     tener nietas. */
+  function subcategoriasHtml() {
+    var id = ui.form.id;
+    if (!id) return "";
+    var madre = catOf(id);
+    if (!madre || madre.parentId) return "";
+
+    var hijas = S.hijasDe(id);
+
+    return '<div class="field" style="margin-top:var(--sp-6)">' +
+        '<span class="field__label">Subcategorías</span>' +
+        (hijas.length
+          ? '<div class="subcats">' +
+              hijas.map(function (h) {
+                var uso = S.categoryUsage(h.id);
+                return '<button type="button" class="subcat" data-subcat="' + esc(h.id) + '">' +
+                    catFace(h, 20, "subcat__cara") +
+                    '<span class="subcat__cuerpo">' +
+                      '<span class="subcat__nombre">' + esc(h.name) + '</span>' +
+                      '<span class="subcat__uso">' +
+                        (uso.transactions
+                          ? uso.transactions + (uso.transactions === 1
+                              ? " movimiento" : " movimientos")
+                          : "Sin movimientos") +
+                      '</span>' +
+                    '</span>' +
+                    '<span class="subcat__chev" data-icon="chevron" data-icon-size="14"></span>' +
+                  '</button>';
+              }).join("") +
+            '</div>'
+          : '') +
+        '<button type="button" class="panel-add panel-add--dentro" id="fNuevaSub">' +
+          icon("plus", 15) + 'Nueva subcategoría</button>' +
+        '<p class="field__hint">' +
+          (hijas.length
+            ? 'Llevan el icono y el color de <strong>' + esc(madre.name) + '</strong>, y ' +
+              'en los gráficos suman dentro de ella.'
+            : 'Dentro de <strong>' + esc(madre.name) + '</strong> puedes afinar: ' +
+              '«almuerzos de trabajo» seguiría sumando en ' + esc(madre.name) + '.') +
+        '</p>' +
+      '</div>';
+  }
 
   function renderForm() {
     var body = $("#sheetFormBody");
@@ -80,6 +131,8 @@
               '</p>' +
             '</div>'
           : "") +
+
+        subcategoriasHtml() +
 
         "";
     }
