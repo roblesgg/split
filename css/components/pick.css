@@ -105,7 +105,16 @@
 
 .donut__svg { display: block; }
 
-.donut__pista { stroke: var(--surface-2); }
+/* El aro y su centro son una pieza; la leyenda va debajo, fuera. */
+.donut__aro {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+/* El canal se queda muy por detrás: está para que el anillo se lea
+   cuando falta un trozo, no para competir con él. */
+.donut__pista { stroke: var(--surface-2); opacity: 0.7; }
 
 .donut__trozo {
   /* entran uno detrás de otro, no todos a la vez */
@@ -149,6 +158,62 @@
 
 @media (prefers-reduced-motion: reduce) {
   .donut__trozo { animation: none; }
+}
+
+/* ---------- la leyenda del rosco ----------
+   De qué es cada color y cuánto. Sin ella hay que adivinar, y en esta
+   app el color nunca viaja solo. Una fila por trozo: punto, nombre, su
+   parte en porcentaje y los euros a la derecha, todos alineados. */
+
+.donut__leyenda {
+  list-style: none;
+  margin: var(--sp-4) 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.donut__ley {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  min-height: 34px;
+  padding: 0 2px;
+  border-top: 1px solid var(--hairline);
+  font-size: var(--t-body);
+}
+.donut__ley:first-child { border-top: 0; }
+
+.donut__punto {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: var(--r-full);
+}
+
+.donut__ley-nombre {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+
+.donut__ley-pct {
+  flex: none;
+  min-width: 38px;
+  text-align: right;
+  font-size: var(--t-min);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.donut__ley-valor {
+  flex: none;
+  font-weight: var(--w-semi);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ---------- filas de los límites ----------

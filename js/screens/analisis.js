@@ -231,6 +231,10 @@
     C.donut($("#donutCats", root), cats, {
       format: S.moneyShort,
       label: "Gastado",
+      /* Sin leyenda: aquí debajo va la lista entera con todas las
+         categorías y su peso. Repetir las seis primeras encima sería
+         decir dos veces lo mismo en la misma tarjeta. */
+      leyenda: false,
       size: isDesktop() ? 210 : 180,
       ariaLabel: "Reparto del gasto por categoría"
     });

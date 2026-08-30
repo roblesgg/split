@@ -243,7 +243,7 @@ gasto por categoría mientras la hucha lleva la evolución del saldo.
 | **Objetivo de gasto** | El tope de esa cuenta | solo en una cuenta |
 | **Apartados** | El dinero reservado dentro de esa cuenta | solo en una cuenta |
 | **En qué se te va** | Las cuatro categorías con más gasto | |
-| **Gasto por categoría** | El anillo con el reparto | |
+| **Gasto por categoría** | El anillo con el reparto, y debajo qué es cada color | |
 | **Mes a mes** | Ingresos contra gastos de los últimos seis ciclos | |
 | **Día a día** | Un cuadradito por día: cuanto más oscuro, más gastaste | |
 | **Dónde más gastas** | Los conceptos que más se repiten | |
@@ -980,6 +980,14 @@ banda de luminosidad, croma, separación CVD y contraste en los dos modos.
 En claro hay cuatro colores por debajo de 3:1 sobre el gris. Por eso todos los
 gráficos llevan **etiquetas visibles y vista de tabla**: el color nunca es el
 único canal que transporta el dato.
+
+El **rosco** es un caso de eso mismo. El anillo es fino y con las puntas
+redondeadas —grueso y a tope parecía una tarta de los noventa, y le comía el
+sitio a la cifra del centro, que es lo que primero se busca—, los trozos van
+separados para distinguirse sin depender del color, lo que no llega al 3 % se
+junta en **«Otras»** (ocho rayas de medio grado no informan de nada) y **debajo
+va la leyenda**: punto, nombre, su parte y los euros. En Análisis no la lleva,
+porque ahí debajo está ya la lista entera y sería decir dos veces lo mismo.
 
 El gráfico de Historial no usa la paleta categórica sino la forma de **énfasis**:
 la serie que cuenta va en tinta y el contexto en un gris validado a 3:1. Es lo
