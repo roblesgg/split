@@ -30,6 +30,11 @@
     maximumFractionDigits: 2
   });
 
+  /* Enteros con sus puntos de millar. Lo usa el importe mientras se
+     teclea: los decimales de ahí van tal como se escriben, así que el
+     formateador solo se ocupa del entero. */
+  var num0 = new Intl.NumberFormat("es-ES", { maximumFractionDigits: 0 });
+
   /* Intl escribe el negativo con un guion de teclado, y signed() lleva
      desde siempre el menos tipográfico. Con las cifras grandes esas dos
      rayas de distinto largo se ven a la primera, así que se unifican
@@ -64,6 +69,7 @@
   D.eur = eur;
   D.money = money;
   D.moneyShort = moneyShort;
+  D.num0 = num0;
   D.num2 = num2;
   D.pct = pct;
   D.signed = signed;

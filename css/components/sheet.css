@@ -125,3 +125,12 @@
 }
 
 .key:active { box-shadow: var(--nm-in); }
+
+/* La coma es un signo pequeño y colgado de la línea base: al tamaño de
+   los dígitos se pierde en una tecla de 56 px. Se agranda y se sube un
+   poco para que ocupe el centro como lo ocupa un número. */
+.key--coma {
+  font-size: 30px;
+  line-height: 1;
+  padding-bottom: 14px;
+}

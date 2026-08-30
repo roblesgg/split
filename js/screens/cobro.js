@@ -28,17 +28,16 @@
 
   function hayPendientes() { return S.pendientes().length > 0; }
 
-  /* Lo que se va tecleando, en céntimos (o en centésimas de hora). Vive
-     aparte del estado de datos: es lo que hay a medio escribir. */
+  /* Lo que se va tecleando —"12", "12," o "12,5"— en euros, o en horas
+     si el programado va por tarifa. Vive aparte del estado de datos: es
+     lo que hay a medio escribir. La regla de teclado es la misma que al
+     apuntar un gasto y vive en un solo sitio, app/importe.js. */
   function digitos() {
     if (ui.cobro == null) ui.cobro = "";
     return ui.cobro;
   }
 
-  function valorCobro() {
-    var d = digitos();
-    return d ? parseInt(d, 10) / 100 : 0;
-  }
+  function valorCobro() { return A.valorImporte(digitos()); }
 
   /* Lo que se propone al abrir: la media de lo que de verdad ha entrado
      por ese programado. Es la única cifra honesta que hay cuando el
@@ -81,10 +80,10 @@
 
       /* La cifra, grande y en el centro, como al apuntar un movimiento:
          es lo único que se está haciendo en esta pantalla. */
-      '<div class="amount-display' + (v === 0 ? " is-zero" : "") + '" id="cobroDisplay" ' +
+      '<div class="amount-display' + (digitos() ? "" : " is-zero") + '" id="cobroDisplay" ' +
            'data-kind="' + (esIn ? "in" : "out") + '" aria-live="polite">' +
         '<span class="amount-display__sign">' + (esIn ? "+" : "−") + '</span>' +
-        '<span id="cobroTexto">' + esc(S.num2.format(v)) + '</span>' +
+        '<span id="cobroTexto">' + esc(A.textoImporte(digitos())) + '</span>' +
         '<span class="amount-display__cur">' + (tarifa ? "h" : "€") + '</span>' +
       '</div>' +
 
@@ -101,7 +100,7 @@
         [1, 2, 3, 4, 5, 6, 7, 8, 9].map(function (n) {
           return '<button type="button" class="key" data-ckey="' + n + '">' + n + '</button>';
         }).join("") +
-        '<button type="button" class="key" data-ckey="00">00</button>' +
+        '<button type="button" class="key key--coma" data-ckey="," aria-label="Coma decimal">,</button>' +
         '<button type="button" class="key" data-ckey="0">0</button>' +
         '<button type="button" class="key" data-ckey="del" aria-label="Borrar">' +
           icon("backspace", 18) + '</button>' +
@@ -157,8 +156,9 @@
 
     var disp = $("#cobroDisplay");
     var texto = $("#cobroTexto");
-    if (texto) texto.textContent = S.num2.format(v);
-    if (disp) disp.classList.toggle("is-zero", v === 0);
+    if (texto) texto.textContent = A.textoImporte(digitos());
+    /* Apagado mientras no hayas escrito nada, no mientras valga cero. */
+    if (disp) disp.classList.toggle("is-zero", !digitos());
 
     var eur = $("#cobroTotal");
     if (eur) eur.textContent = money(total);
@@ -253,11 +253,7 @@
       var node;
 
       if ((node = e.target.closest("[data-ckey]"))) {
-        var k = node.getAttribute("data-ckey");
-        if (k === "del") ui.cobro = digitos().slice(0, -1);
-        else if (digitos().length < 9) {
-          ui.cobro = (digitos() + k).replace(/^0+(?=\d)/, "");
-        }
+        ui.cobro = A.teclaImporte(digitos(), node.getAttribute("data-ckey"));
         refreshCobro();
         U.haptic("light");
         return;
@@ -266,7 +262,7 @@
       if (e.target.closest("#cobroProp")) {
         var prop = propuestaDe(p);
         var valor = tarifa ? horasDe(prop.valor, tarifa) : prop.valor;
-        ui.cobro = String(Math.round(valor * 100));
+        ui.cobro = A.importeDesde(valor);
         renderCobro();
         U.haptic("light");
         return;
@@ -303,12 +299,13 @@
       if (document.activeElement &&
           /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) return;
       if (/^[0-9]$/.test(e.key)) {
-        if (digitos().length < 9) {
-          ui.cobro = (digitos() + e.key).replace(/^0+(?=\d)/, "");
-        }
+        ui.cobro = A.teclaImporte(digitos(), e.key);
+        refreshCobro();
+      } else if (e.key === "," || e.key === ".") {
+        ui.cobro = A.teclaImporte(digitos(), ",");
         refreshCobro();
       } else if (e.key === "Backspace") {
-        ui.cobro = digitos().slice(0, -1);
+        ui.cobro = A.teclaImporte(digitos(), "del");
         refreshCobro();
       } else if (e.key === "Enter") {
         var ok = $("#cobroOk");

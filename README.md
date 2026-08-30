@@ -457,6 +457,27 @@ En los gráficos, una subcategoría **suma dentro de su madre** —un gasto de
 «Almuerzos trabajo» aparece como Comida—, pero en la lista de movimientos se
 distingue.
 
+## Teclear un importe
+
+Los dígitos van al **entero**, y los decimales solo salen si tocas la **coma**.
+12 € son dos teclas: `1` `2`. Y 12,50 € son `1` `2` `,` `5` `0`, que es
+exactamente el orden en que se dice.
+
+Antes se guardaba en céntimos y cada tecla entraba por la derecha: para poner
+12 € había que teclear `1` `2` `0` `0` y por el camino se leía «0,01», «0,12»,
+«1,20». Cuatro pulsaciones y tres cifras que no eran la que querías, cuando la
+inmensa mayoría de los gastos son redondos o casi.
+
+Donde estaba el `00` está ahora la coma, que es la tecla que sí hace falta. Se
+admiten dos decimales y una sola coma; empezar por ella es «cero coma»; y en un
+teclado de ordenador el punto del bloque numérico también escribe la coma.
+
+Lo que se guarda mientras escribes es **lo tecleado** —`"12"`, `"12,"`,
+`"12,5"`— y no un número: hace falta distinguir «12» de «12,» para saber si la
+coma ya está puesta, y eso un número no lo puede contar. La regla vive en
+`js/app/importe.js` y la comparten los dos teclados de la app, el de apuntar y
+el de confirmar un cobro.
+
 ## Qué se guarda de cada movimiento
 
 
@@ -533,7 +554,7 @@ movimiento: es lo único que estás haciendo ahí.
 
 - Si el programado va **por horas**, se piden horas y no euros. Hacer la
   multiplicación de cabeza cada vez es justo lo que la app tiene que ahorrarte:
-  se teclea «18,50» y debajo pone «A 12,00 € la hora · 222,00 €».
+  se teclean «18,5» y debajo pone «A 12,00 € la hora · 222,00 €».
 - Se **propone una cifra**: la media de lo que de verdad ha entrado por ese
   programado. Es un botón, no un valor puesto de oficio — verlo y decidir es
   distinto de encontrártelo escrito sin saber de dónde sale. Si no hay historial
@@ -764,6 +785,7 @@ js/
   ui.js             iconos SVG, hojas arrastrables, toasts, háptica
   app/
     base.js         window.App: estado de interfaz, hojas y ayudantes
+    importe.js      la regla de teclear una cantidad, para los dos teclados
     parts.js        trozos que salen en más de una pantalla
     shell.js        router, barra de arriba, botón atrás y tema
     init.js         arranque: monta las hojas, engancha y pinta

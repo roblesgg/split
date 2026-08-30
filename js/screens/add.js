@@ -44,7 +44,7 @@
     ui.catAbierta = null;
     var accs = S.state.accounts;
     ui.draft = t
-      ? { kind: t.kind, amount: String(Math.round(t.amount * 100)), categoryId: t.categoryId,
+      ? { kind: t.kind, amount: A.importeDesde(t.amount), categoryId: t.categoryId,
           accountId: t.accountId, toAccountId: t.toAccountId || null,
           note: t.note, memo: t.memo || "", date: t.date, time: t.time || "",
           tags: Array.isArray(t.tags) ? t.tags.slice() : [],
@@ -246,9 +246,7 @@
     return (h < 10 ? "0" : "") + h + ":" + (m < 10 ? "0" : "") + m;
   }
 
-  function draftValue() {
-    return ui.draft.amount ? parseInt(ui.draft.amount, 10) / 100 : 0;
-  }
+  function draftValue() { return A.valorImporte(ui.draft.amount); }
 
   function saveDraft() {
     var d = ui.draft, v = draftValue();
@@ -374,9 +372,7 @@
       var node;
       if ((node = e.target.closest("[data-key]"))) {
         var k = node.getAttribute("data-key");
-        if (k === "del") ui.draft.amount = ui.draft.amount.slice(0, -1);
-        else if (ui.draft.amount.length < 9)
-          ui.draft.amount = (ui.draft.amount + k).replace(/^0+(?=\d)/, "");
+        ui.draft.amount = A.teclaImporte(ui.draft.amount, k);
         refreshAmount(); U.haptic("light"); return;
       }
       if ((node = e.target.closest("[data-dkind]"))) {
@@ -543,11 +539,15 @@
       if (!sheets.add || !sheets.add.open) return;
       if (document.activeElement && /INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName)) return;
       if (/^[0-9]$/.test(e.key)) {
-        if (ui.draft.amount.length < 9)
-          ui.draft.amount = (ui.draft.amount + e.key).replace(/^0+(?=\d)/, "");
+        ui.draft.amount = A.teclaImporte(ui.draft.amount, e.key);
+        refreshAmount();
+      } else if (e.key === "," || e.key === ".") {
+        /* El punto también: en un teclado de portátil la coma decimal
+           del bloque numérico manda un punto. */
+        ui.draft.amount = A.teclaImporte(ui.draft.amount, ",");
         refreshAmount();
       } else if (e.key === "Backspace") {
-        ui.draft.amount = ui.draft.amount.slice(0, -1); refreshAmount();
+        ui.draft.amount = A.teclaImporte(ui.draft.amount, "del"); refreshAmount();
       } else if (e.key === "Enter") { saveDraft(); }
     });
 

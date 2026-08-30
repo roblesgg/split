@@ -41,7 +41,7 @@ window.App = (function () {
     panelEditando: null,    /* de qué panel se están eligiendo los bloques */
     panelOrdenando: false,  /* el panel está en modo colocar bloques */
     pickPendiente: null,    /* quién espera una elección: { resolver } */
-    cobro: "",              /* lo tecleado al confirmar un cobro, en céntimos */
+    cobro: "",              /* lo tecleado al confirmar un cobro: "12", "12,5"… */
     avisadoDeAlarmas: false /* el aviso de «las alarmas llegan tarde», una vez */
   };
 

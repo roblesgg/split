@@ -95,11 +95,11 @@
                 'aria-selected="' + (d.kind === "transfer") + '">Traspaso</button>' +
       '</div>' +
 
-      '<div class="amount-display' + (v === 0 ? " is-zero" : "") + '" id="amountDisplay" ' +
+      '<div class="amount-display' + (d.amount ? "" : " is-zero") + '" id="amountDisplay" ' +
            'data-kind="' + d.kind + '" aria-live="polite">' +
         '<span class="amount-display__sign">' +
           (d.kind === "in" ? "+" : d.kind === "transfer" ? "" : "−") + '</span>' +
-        '<span id="amountText">' + esc(S.num2.format(v)) + '</span>' +
+        '<span id="amountText">' + esc(A.textoImporte(d.amount)) + '</span>' +
         '<span class="amount-display__cur">€</span>' +
       '</div>' +
 
@@ -107,7 +107,10 @@
         [1,2,3,4,5,6,7,8,9].map(function (n) {
           return '<button type="button" class="key" data-key="' + n + '">' + n + '</button>';
         }).join("") +
-        '<button type="button" class="key" data-key="00">00</button>' +
+        /* La coma donde antes estaba el «00». Los importes se teclean
+           enteros y los decimales solo salen si los pides, así que el
+           «00» dejó de tener sentido y la coma pasó a hacer falta. */
+        '<button type="button" class="key key--coma" data-key="," aria-label="Coma decimal">,</button>' +
         '<button type="button" class="key" data-key="0">0</button>' +
         '<button type="button" class="key" data-key="del" aria-label="Borrar">' +
           icon("backspace", 18) + '</button>' +
@@ -349,8 +352,10 @@
     var v = draftValue();
     var disp = $("#amountDisplay"), txt = $("#amountText"), save = $("#addSave");
     if (!disp || !txt) return;
-    txt.textContent = S.num2.format(v);
-    disp.classList.toggle("is-zero", v === 0);
+    txt.textContent = A.textoImporte(ui.draft.amount);
+    /* Apagado mientras no hayas escrito nada, no mientras valga cero:
+       «0,» es un cero que está a medio teclear. */
+    disp.classList.toggle("is-zero", !ui.draft.amount);
     if (save) {
       var d = ui.draft;
       var repartoMal = d.reparto &&

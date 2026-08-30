@@ -34,7 +34,7 @@
   var load = D.load, mediaCobradaDe = D.mediaCobradaDe, mensualizar = D.mensualizar;
   var money = D.money, moneyShort = D.moneyShort;
   var nextDue = D.nextDue;
-  var nombreLargo = D.nombreLargo, num2 = D.num2, parseYmd = D.parseYmd;
+  var nombreLargo = D.nombreLargo, num0 = D.num0, num2 = D.num2, parseYmd = D.parseYmd;
   var pct = D.pct, pendientes = D.pendientes, plannedIncome = D.plannedIncome;
   var projectedExpense = D.projectedExpense, raizDe = D.raizDe, recurringMonthly = D.recurringMonthly;
   var relDayLabel = D.relDayLabel;
@@ -219,7 +219,8 @@
     /* fechas y formato */
     ymd: ymd, parseYmd: parseYmd, addMonths: addMonths, dowMon: dowMon,
     relDayLabel: relDayLabel, fechaLarga: fechaLarga,
-    money: money, moneyShort: moneyShort, signed: signed, pct: pct, num2: num2,
+    money: money, moneyShort: moneyShort, signed: signed, pct: pct,
+    num0: num0, num2: num2,
 
     /* tema */
     getTheme: getTheme, setTheme: setTheme, applyTheme: applyTheme,
