@@ -12,6 +12,21 @@
   var S = A.S, U = A.U, Up = A.Up, $ = A.$, $$ = A.$$, esc = A.esc, icon = A.icon, ui = A.ui;
   var DIAS_LARGO = A.DIAS_LARGO;
 
+  function dentroTxt(n) {
+    if (!n) return "";
+    return n + (n === 1 ? " subcategoría · " : " subcategorías · ");
+  }
+
+  /* «10 categorías · 3 subcategorías», que es lo que hay: las de dentro
+     no son una categoría más de la lista, pero existen y se cuentan. */
+  function cuentaCategorias() {
+    var todas = S.CATEGORIES;
+    var dentro = todas.filter(function (c) { return c.parentId; }).length;
+    var madres = todas.length - dentro;
+    return madres + (madres === 1 ? " categoría" : " categorías") +
+      (dentro ? " · " + dentro + (dentro === 1 ? " subcategoría" : " subcategorías") : "");
+  }
+
   /* Puentes a lo que vive en otro archivo. Se resuelven en la llamada,
      así que da igual el orden en que se carguen los scripts. */
   function bigAmount() { return A.bigAmount.apply(null, arguments); }
@@ -311,12 +326,16 @@
         '<div class="card__head card__pad--tight" style="margin-bottom:0">' +
           '<div>' +
             '<h2 class="card__title">Categorías</h2>' +
-            '<p class="card__sub">' + S.CATEGORIES.length + ' en total</p>' +
+            '<p class="card__sub">' + esc(cuentaCategorias()) + '</p>' +
           '</div>' +
           '<button type="button" class="card__link" data-form="category">+ Nueva</button>' +
         '</div>' +
         ["out", "in"].map(function (kind) {
-          var list = S.categoriesOf(kind);
+          /* Solo las madres. Las de dentro se ven y se editan en la ficha
+             de la suya, que es donde se buscan: aquí sueltas, mezcladas
+             con las demás, aparentaban ser una categoría más y había dos
+             sitios donde tocar lo mismo. */
+          var list = S.categoriasMadre(kind);
           if (!list.length) return "";
           return '<p class="cat-list__head">' +
                    (kind === "out" ? "Gastos" : "Ingresos") + '</p>' +
@@ -329,12 +348,9 @@
                     '<span class="cat-list__body">' +
                       '<span class="cat-list__name">' + esc(c.name) + '</span>' +
                       '<span class="cat-list__meta">' +
-                        /* Las de dentro llevan la cara de su madre, así que
-                           en una lista plana salen varias con el mismo
-                           icono: aquí se dice de quién es cada una. */
-                        (c.parentId && S.catById(c.parentId)
-                          ? "En " + esc(S.catById(c.parentId).name) + " · "
-                          : "") +
+                        /* Cuántas lleva dentro, que es lo que dice si al
+                           entrar hay algo más que ver. */
+                        dentroTxt(S.hijasDe(c.id).length) +
                         (use.transactions
                           ? use.transactions + " movimiento" + (use.transactions === 1 ? "" : "s")
                           : "Sin movimientos") +

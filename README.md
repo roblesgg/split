@@ -486,9 +486,13 @@ una dice de quién es: «En Comida · 3 movimientos».
 ### Las de dentro, dentro
 
 Editando una categoría se ven **sus subcategorías** y se crea una ahí mismo, con
-lo que ha usado cada una. Buscarlas en la lista general de Ajustes —que las
-enseña todas mezcladas— es justo lo que no se quiere hacer mientras se está
-mirando una.
+lo que ha usado cada una. Y ese es el **único** sitio donde se editan: en
+**Ajustes → Categorías** solo salen las madres, cada una diciendo cuántas lleva
+dentro. Sueltas en esa lista aparentaban ser una categoría más y dejaban dos
+sitios donde tocar lo mismo.
+
+Al apuntar un gasto pasa igual: la rejilla enseña **solo las madres**, y tocar
+una abre las suyas debajo para afinar. Elegir «Comida» a secas sigue valiendo.
 
 Saltar de la madre a una de dentro **guarda antes lo que llevaras escrito**: si
 no, cambiarle el nombre y tocar «Nueva subcategoría» se comería el cambio sin
