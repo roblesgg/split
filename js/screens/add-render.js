@@ -71,6 +71,91 @@
     mountIcons(box);
   }
 
+  /* La rejilla de categorías, con las de dentro abriéndose EN SU FILA.
+     Antes el cajón iba al final de la rejilla: con doce categorías se
+     abría fuera de la pantalla y parecía que tocar no hacía nada.
+
+     El truco es de rejilla: se mete un bloque a todo el ancho justo
+     detrás de la última categoría de la fila que se ha tocado, así que
+     empuja hacia abajo solo lo que hay de esa fila para adelante. La
+     flechita apunta a la columna que tocaste, que es lo que ata una
+     cosa con la otra sin tener que explicarlo. */
+  var COLS = 3;
+
+  function cajonHijas(d, abierta, hijas, col) {
+    var madre = catOf(abierta);
+    if (!madre) return "";
+    /* el centro de la columna tocada, en tanto por ciento del ancho */
+    var flecha = ((col + 0.5) / COLS) * 100;
+
+    return '<div class="cat-sub" style="--flecha:' + flecha.toFixed(2) + '%">' +
+        '<p class="cat-sub__titulo">' +
+          esc(madre.emoji || "") + ' Dentro de ' + esc(madre.name) +
+        '</p>' +
+        '<div class="chips">' +
+          hijas.map(function (h, i) {
+            return '<button type="button" class="chip" data-cat="' + esc(h.id) + '" ' +
+                     'style="--i:' + i + '" ' +
+                     'aria-pressed="' + (h.id === d.categoryId) + '">' +
+                   esc(h.emoji || "") + ' ' + esc(h.name) + '</button>';
+          }).join("") +
+          '<button type="button" class="chip chip--add" ' +
+                  'style="--i:' + hijas.length + '" ' +
+                  'data-cat-new-hija="' + esc(abierta) + '">' +
+            icon("plus", 12) + 'Crear subcategoría' +
+          '</button>' +
+        '</div>' +
+        '<p class="cat-sub__pie">' +
+          (hijas.length
+            ? 'O déjalo en ' + esc(madre.name) + ' a secas.'
+            : 'Aquí dentro no hay nada todavía. Lo que crees seguirá ' +
+              'sumando en ' + esc(madre.name) + '.') +
+        '</p>' +
+      '</div>';
+  }
+
+  function rejillaCategorias(d, cats, abierta, hijas, elegida) {
+    /* La de «Nueva» es una más para la cuenta de filas: si no, el cajón
+       se colaría delante de ella cuando la madre tocada es la última. */
+    var total = cats.length + 1;
+    var iAbierta = abierta
+      ? cats.findIndex(function (c) { return c.id === abierta; })
+      : -1;
+    /* Tras cuál de las casillas hay que meter el cajón: la última de su
+       misma fila, o la última de todas si esa fila está a medias. */
+    var trasIndice = iAbierta < 0 ? -1
+      : Math.min(total - 1, Math.floor(iAbierta / COLS) * COLS + (COLS - 1));
+
+    var casillas = cats.map(function (c) {
+      /* Marcada si es la elegida, y también si lo elegido es una hija
+         suya: si no, al afinar dentro de Comida la rejilla se quedaba
+         entera sin marcar y parecía que no habías elegido nada. */
+      var dentro = elegida && elegida.parentId === c.id;
+      return '<button type="button" class="cat-pick" data-cat="' + esc(c.id) + '" ' +
+               'aria-pressed="' + (c.id === d.categoryId) + '"' +
+               (c.id === abierta ? ' data-abierta="1"' : '') +
+               (dentro ? ' data-dentro="1"' : '') + '>' +
+          catFace(c, 26, "cat-pick__icon") +
+          '<span class="cat-pick__name">' + esc(c.name) + '</span>' +
+        '</button>';
+    });
+
+    casillas.push(
+      '<button type="button" class="cat-pick cat-pick--add" ' +
+              'data-cat-new="' + esc(d.kind) + '">' +
+        '<span class="cat-pick__icon">' + icon("plus", 18) + '</span>' +
+        '<span class="cat-pick__name">Nueva</span>' +
+      '</button>');
+
+    if (trasIndice >= 0) {
+      casillas.splice(trasIndice + 1, 0,
+        cajonHijas(d, abierta, hijas, iAbierta % COLS));
+    }
+
+    return '<div class="cat-grid">' + casillas.join("") + '</div>' +
+      '<p class="field__hint">Mantén pulsada una categoría para editarla.</p>';
+  }
+
   function renderAddSheet() {
     var d = ui.draft;
     var body = $("#sheetAddBody");
@@ -134,59 +219,7 @@
               '')
         : '<div class="field">' +
             '<span class="field__label">Categoría</span>' +
-            '<div class="cat-grid">' +
-              cats.map(function (c) {
-                /* Marcada si es la elegida, y también si lo elegido es una
-                   hija suya: si no, al afinar dentro de Comida la rejilla
-                   se quedaba entera sin marcar y parecía que no habías
-                   elegido nada. */
-                var dentro = elegida && elegida.parentId === c.id;
-                return '<button type="button" class="cat-pick" data-cat="' + c.id + '" ' +
-                         'aria-pressed="' + (c.id === d.categoryId) + '"' +
-                         (c.id === abierta ? ' data-abierta="1"' : '') +
-                         (dentro ? ' data-dentro="1"' : '') + '>' +
-                    catFace(c, 26, "cat-pick__icon") +
-                    '<span class="cat-pick__name">' + esc(c.name) + '</span>' +
-                  '</button>';
-              }).join("") +
-              '<button type="button" class="cat-pick cat-pick--add" ' +
-                      'data-cat-new="' + d.kind + '">' +
-                '<span class="cat-pick__icon">' + icon("plus", 18) + '</span>' +
-                '<span class="cat-pick__name">Nueva</span>' +
-              '</button>' +
-            '</div>' +
-
-            /* Las de dentro, al tocar una madre. Se abre SIEMPRE, tenga
-               hijas o no: si solo se abriera cuando ya las tiene, no
-               habría forma de crear la primera —que es justo cuando
-               hace falta—. Y quedarse en la madre sigue siendo válido:
-               elegir «Comida» a secas es una respuesta.
-
-               El cajón va debajo de la rejilla, así que abrirlo no mueve
-               ni el teclado ni las categorías bajo el dedo. */
-            (abierta
-              ? '<div class="chips" style="margin-top:var(--sp-3)">' +
-                  hijas.map(function (h) {
-                    return '<button type="button" class="chip" data-cat="' + h.id + '" ' +
-                             'aria-pressed="' + (h.id === d.categoryId) + '">' +
-                           esc(h.emoji || "") + ' ' + esc(h.name) + '</button>';
-                  }).join("") +
-                  '<button type="button" class="chip chip--add" ' +
-                          'data-cat-new-hija="' + esc(abierta) + '">' +
-                    icon("plus", 12) + 'Crear subcategoría' +
-                  '</button>' +
-                '</div>' +
-                '<p class="field__hint">' +
-                  (hijas.length
-                    ? 'Estás en <strong>' + esc(catOf(abierta).name) + '</strong>. ' +
-                      'Afina si quieres, o déjalo así.'
-                    : 'Dentro de <strong>' + esc(catOf(abierta).name) + '</strong> no hay ' +
-                      'nada todavía. Puedes crear algo como «almuerzos de trabajo» y ' +
-                      'seguirá sumando en ' + esc(catOf(abierta).name) + '.') +
-                '</p>'
-              : "") +
-
-            '<p class="field__hint">Mantén pulsada una categoría para editarla.</p>' +
+            rejillaCategorias(d, cats, abierta, hijas, elegida) +
           '</div>') +
 
       /* Solo en un traspaso hacen falta las dos cuentas delante. */

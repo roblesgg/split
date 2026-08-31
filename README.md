@@ -458,10 +458,17 @@ Quedarse en la madre sigue siendo una respuesta válida: elegir «Comida» a sec
 vale, y afinar es un toque más. Volver a tocarla cierra el cajón y te deja en
 ella.
 
-El cajón va **debajo** de la rejilla, así que abrirlo no mueve ni el teclado ni
-las categorías bajo el dedo. Y la madre se queda marcada cuando lo elegido es una
-hija suya: sin eso, al afinar la rejilla se quedaba entera sin marcar y parecía
-que no habías elegido nada.
+El cajón se abre **en la fila de la categoría que tocas**, no al final de la
+rejilla: con doce categorías, abajo quedaba fuera de la pantalla y tocar parecía
+no hacer nada. Es un bloque a todo el ancho metido justo detrás de la última
+casilla de esa fila, así que solo empuja lo que hay de ahí para abajo, y una
+flechita apunta a la columna que tocaste — que es lo que ata una cosa con la
+otra sin tener que explicarlo. Los chips entran uno detrás de otro para que se
+vea de dónde salen.
+
+Y la madre se queda marcada cuando lo elegido es una hija suya: sin eso, al
+afinar la rejilla se quedaba entera sin marcar y parecía que no habías elegido
+nada.
 
 ### Una subcategoría lleva la cara de su madre
 

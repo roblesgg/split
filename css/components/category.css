@@ -8,6 +8,76 @@
    Con tres, cada una respira y el nombre cabe entero en una línea. */
 .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); }
 
+/* ---------- las de dentro, en su fila ----------
+   El cajón de subcategorías se mete en la propia rejilla, a todo el
+   ancho y justo detrás de la fila que se ha tocado. Al final de la
+   rejilla —que es donde estaba— con doce categorías se abría fuera de
+   la pantalla, y tocar parecía no hacer nada.
+
+   La flechita apunta a la columna tocada: es lo que ata el cajón con su
+   categoría sin tener que explicarlo. */
+.cat-sub {
+  grid-column: 1 / -1;
+  position: relative;
+  margin-top: 4px;
+  padding: var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  box-shadow: var(--nm-in);
+  animation: cat-sub-abre var(--dur-base) var(--ease-ios) both;
+}
+
+.cat-sub::before {
+  content: "";
+  position: absolute;
+  top: -7px;
+  left: var(--flecha, 50%);
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  border-radius: 4px 0 0 0;
+  background: var(--surface-2);
+  transform: rotate(45deg);
+}
+
+@keyframes cat-sub-abre {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cat-sub { animation-duration: .01ms; }
+}
+
+.cat-sub__titulo {
+  margin: 0 0 var(--sp-3);
+  font-size: var(--t-min);
+  font-weight: var(--w-semi);
+  color: var(--text-secondary);
+}
+
+.cat-sub__pie {
+  margin: var(--sp-3) 0 0;
+  font-size: var(--t-min);
+  color: var(--text-muted);
+}
+
+/* Los chips de dentro entran uno detrás de otro, no todos de golpe:
+   así se ve que salen de la categoría que has tocado. */
+.cat-sub .chip {
+  animation: chip-entra var(--dur-fast) var(--ease-out) both;
+  animation-delay: calc(60ms + var(--i, 0) * 30ms);
+}
+
+@keyframes chip-entra {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cat-sub .chip { animation: none; }
+}
+
 .cat-pick {
   display: flex;
   flex-direction: column;
