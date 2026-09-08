@@ -23,6 +23,12 @@
    larga y no aporta nada que no diga ya el espacio. */
 .row:hover { background: var(--surface-2); }
 
+.row--pendiente {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.row--pendiente .row__meta { color: var(--accent); font-weight: var(--w-medium); }
+
 .row__body { flex: 1; min-width: 0; }
 
 .row__title {
@@ -54,8 +60,10 @@
   font-variant-numeric: tabular-nums;
 }
 
-.row__amount[data-kind="in"]  { color: var(--money-in); }
-.row__amount[data-kind="out"] { color: var(--money-out); }
+.row__amount[data-kind="in"],
+.row__amount[data-flow="in"]  { color: var(--money-in); }
+.row__amount[data-kind="out"],
+.row__amount[data-flow="out"] { color: var(--money-out); }
 
 .day-head {
   display: flex;

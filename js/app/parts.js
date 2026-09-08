@@ -53,9 +53,29 @@
           '<span class="row__meta">' + esc(S.nombreLargo(t.categoryId) || cat.name) +
             ' · ' + esc(S.relDayLabel(t.date)) + '</span>' +
         '</span>' +
-        '<span class="row__amount" data-kind="' + (isIn ? "in" : "out") + '">' +
+        '<span class="row__amount" data-flow="' + (isIn ? "in" : "out") + '">' +
           (isIn ? "+" : "−") + esc(money(t.amount)) +
         '</span>' +
+      '</button>';
+  }
+
+  /* Movimiento pendiente de confirmar (sueldo, etc.): se ve en la lista
+     y al tocarlo se abre la hoja para decir el importe. */
+  function pendRowHtml(p) {
+    var cat = catOf(p.categoryId);
+    var isIn = p.kind === "in";
+    var importe = +p.amount > 0 ? ((isIn ? "+" : "−") + money(p.amount)) : "¿?";
+    return '' +
+      '<button type="button" class="row row--pendiente" data-pendiente="' + esc(p.id) + '">' +
+        catFace(cat, 22, "avatar-letter") +
+        '<span class="row__body">' +
+          '<span class="row__title">' + esc(p.note || cat.name) + '</span>' +
+          '<span class="row__meta">Por confirmar · ' +
+            esc(S.nombreLargo(p.categoryId) || cat.name) +
+            ' · ' + esc(S.relDayLabel(p.date)) + '</span>' +
+        '</span>' +
+        '<span class="row__amount" data-flow="' + (isIn ? "in" : "out") + '">' +
+          esc(importe) + '</span>' +
       '</button>';
   }
 
@@ -167,6 +187,7 @@
   A.accountSelect = accountSelect;
   A.emptyHtml = emptyHtml;
   A.txRowHtml = txRowHtml;
+  A.pendRowHtml = pendRowHtml;
   A.wrapStagger = wrapStagger;
 
 })();

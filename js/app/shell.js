@@ -250,7 +250,17 @@
                 cuandoCuenta ? { accountId: cuandoCuenta } : null);
         return;
       }
+      if ((node = e.target.closest("[data-pendiente]"))) {
+        abrirCobros();
+        return;
+      }
+      if ((node = e.target.closest("[data-movs-kind]"))) {
+        ui.movsKind = node.getAttribute("data-movs-kind");
+        renderMovs(); U.haptic("light"); return;
+      }
       if ((node = e.target.closest("[data-kind]"))) {
+        /* Solo el segmented viejo u otros filtros; no los importes de fila */
+        if (node.classList.contains("row__amount")) return;
         ui.movsKind = node.getAttribute("data-kind");
         renderMovs(); U.haptic("light"); return;
       }
