@@ -14,9 +14,12 @@ body {
   margin: 0;
   font-family: var(--font);
   background: var(--page);
+  background-image: var(--page-grad);
+  background-attachment: fixed;
   color: var(--text-primary);
-  font-size: 15px;
+  font-size: var(--t-body);
   line-height: 1.45;
+  letter-spacing: -0.011em;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior-y: none;
@@ -155,7 +158,7 @@ svg { display: block; }
   align-items: center;
   gap: var(--sp-3);
   padding: var(--sp-4) var(--sp-5) var(--sp-3);
-  background: var(--page);
+  background: transparent;
 }
 
 .topbar__titles { flex: 1; min-width: 0; }
@@ -167,10 +170,10 @@ svg { display: block; }
   place-items: center;
   width: 46px;
   height: 46px;
-  border-radius: var(--r-full);
-  background: var(--btn-grad);
-  color: var(--btn-ink);
-  box-shadow: var(--nm-out-sm);
+  border-radius: var(--r-sm);
+  background: var(--accent-grad);
+  color: var(--accent-ink);
+  box-shadow: var(--glow-accent);
 }
 
 @media (max-width: 899px) {
@@ -189,9 +192,10 @@ svg { display: block; }
 
 .topbar__title {
   margin-top: 2px;
+  font-family: var(--font-display);
   font-size: 26px;
   font-weight: var(--w-bold);
-  letter-spacing: -0.038em;
+  letter-spacing: -0.045em;
   line-height: 1.15;
 }
 
@@ -201,23 +205,25 @@ svg { display: block; }
   gap: var(--sp-2);
 }
 
-/* botón de icono: pastilla elevada que se hunde al pulsar */
+/* botón de icono */
 .icon-btn {
   display: grid;
   place-items: center;
   width: var(--tap-min);
   height: var(--tap-min);
-  border-radius: var(--r-full);
+  border-radius: var(--r-sm);
   background: var(--surface-1);
   color: var(--text-secondary);
+  border: 1px solid var(--hairline);
   box-shadow: var(--nm-out-sm);
-  transition: box-shadow var(--dur-fast) var(--ease-out),
-              color var(--dur-fast) var(--ease-out);
+  transition: border-color var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out),
+              background var(--dur-fast) var(--ease-out);
 }
 
-.icon-btn:hover { color: var(--text-primary); }
-.icon-btn:active { box-shadow: var(--nm-in); }
-.icon-btn:disabled { opacity: 0.35; pointer-events: none; box-shadow: var(--nm-out-sm); }
+.icon-btn:hover { color: var(--text-primary); border-color: var(--hairline-strong); }
+.icon-btn:active { background: var(--surface-2); }
+.icon-btn:disabled { opacity: 0.35; pointer-events: none; }
 
 /* ---------- área de scroll ---------- */
 
@@ -348,9 +354,12 @@ svg { display: block; }
   right: var(--sp-4);
   top: 4px;
   bottom: calc(var(--safe-b) + 8px);
-  border-radius: var(--r-full);
-  background: var(--surface-1);
+  border-radius: var(--r-xl);
+  background: var(--surface-nav);
+  border: 1px solid var(--hairline);
   box-shadow: var(--nm-out);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   pointer-events: auto;
 }
 
@@ -394,7 +403,6 @@ svg { display: block; }
   height: 7px;
   border-radius: var(--r-full);
   background: var(--accent);
-  box-shadow: var(--glow-accent);
   opacity: 0;
   transform: scale(0.4);
   transition: opacity var(--dur-base) var(--ease-out),
@@ -414,16 +422,16 @@ svg { display: block; }
   width: 56px;
   height: 56px;
   margin-bottom: 14px;
-  border-radius: var(--r-full);
-  background: var(--btn-grad);
-  color: var(--btn-ink);
-  box-shadow: var(--nm-out), var(--glow-accent);
-  transition: box-shadow var(--dur-fast) var(--ease-out),
-              transform var(--dur-fast) var(--ease-out);
+  border-radius: var(--r-md);
+  background: var(--accent-grad);
+  color: var(--accent-ink);
+  box-shadow: var(--glow-accent);
+  transition: transform var(--dur-fast) var(--ease-out),
+              box-shadow var(--dur-fast) var(--ease-out);
 }
 
 .tab--add:hover .fab { transform: translateY(-2px); }
-.tab--add:active .fab { box-shadow: var(--nm-in); transform: scale(0.94); }
+.tab--add:active .fab { transform: scale(0.94); }
 
 /* ============================================================
    ESCRITORIO — a partir de 900px
@@ -457,7 +465,8 @@ svg { display: block; }
     width: var(--sidebar-w);
     height: 100%;
     padding: var(--sp-5) var(--sp-4);
-    background: var(--page);
+    background: transparent;
+    border-right: 1px solid var(--hairline);
   }
 
   .brand {
@@ -470,18 +479,24 @@ svg { display: block; }
   .brand__mark {
     display: grid;
     place-items: center;
-    width: 34px;
-    height: 34px;
-    border-radius: var(--r-xs);
-    background: var(--btn-grad);
-    color: var(--btn-ink);
-    font-size: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: var(--r-sm);
+    background: var(--accent-grad);
+    color: var(--accent-ink);
+    font-family: var(--font-display);
+    font-size: 17px;
     font-weight: var(--w-bold);
-    letter-spacing: -0.05em;
-    box-shadow: var(--nm-out-sm);
+    letter-spacing: -0.06em;
+    box-shadow: var(--glow-accent);
   }
 
-  .brand__name { font-size: 18px; font-weight: var(--w-bold); letter-spacing: -0.04em; }
+  .brand__name {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: var(--w-bold);
+    letter-spacing: -0.05em;
+  }
 
   .sidenav { display: flex; flex-direction: column; gap: var(--sp-2); }
 
@@ -503,12 +518,12 @@ svg { display: block; }
 
   .navitem:hover { color: var(--text-primary); }
 
-  /* la sección activa queda tallada en el material */
+  /* la sección activa */
   .navitem[aria-selected="true"] {
-    background: var(--surface-2);
-    box-shadow: var(--nm-in);
-    color: var(--text-primary);
+    background: var(--accent-wash);
+    color: var(--accent);
     font-weight: var(--w-semi);
+    box-shadow: none;
   }
 
   .navitem__icon { flex: none; }

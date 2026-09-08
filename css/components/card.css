@@ -43,9 +43,10 @@
 }
 
 .card__title {
+  font-family: var(--font-display);
   font-size: 18px;
   font-weight: var(--w-semi);
-  letter-spacing: -0.026em;
+  letter-spacing: -0.03em;
 }
 
 .card__sub {

@@ -1,148 +1,134 @@
 /* ============================================================
    split — tokens de diseño
-   Lenguaje: neumorfismo en escala de grises. Las piezas parecen
-   talladas en el mismo material: no hay bordes, hay dos sombras
-   enfrentadas (una oscura y una clara) que dan el relieve.
-   El color aparece en muy pocos sitios y siempre porque significa
-   algo: el anillo de progreso, la marca de pestaña activa y los
-   colores de categoría dentro de los gráficos.
 
-   Paleta de DATOS validada con validate_palette.js contra las
-   superficies reales de este tema: #ECEDF1 claro, #22242A oscuro.
+   Lenguaje: "ink & kelp". Papel frío con atmósfera en degradado,
+   tipografía geométrica (Sora), acento verde-alga y superficies
+   planas con filo claro. Sin neumorfismo y sin morado de marca.
+
+   Las variables --nm-* se mantienen como alias de elevación plana
+   para no romper componentes existentes.
    ============================================================ */
 
 :root {
   color-scheme: light;
 
-  /* --- superficies: casi el mismo tono, el relieve lo hace la sombra --- */
-  --page: #e7e9ee;
-  --surface-1: #ecedf1;          /* pieza elevada / superficie de gráfico */
-  --surface-2: #e4e6ec;          /* hueco, un paso por debajo */
-  --surface-3: #dcdee6;          /* pista de medidor */
-  --surface-raised: #eceef2;     /* sheet, tooltip */
-  --surface-nav: #e7e9ee;
-  --scrim: rgba(28, 30, 36, 0.42);
+  /* --- atmósfera --- */
+  --page: #e9eef2;
+  --page-spot: #d7ebe6;
+  --page-grad:
+    radial-gradient(120% 80% at 12% -10%, var(--page-spot) 0%, transparent 55%),
+    radial-gradient(90% 60% at 100% 0%, #dfe7f0 0%, transparent 50%),
+    linear-gradient(180deg, #f4f7f9 0%, var(--page) 48%, #e4eaef 100%);
 
-  /* --- las dos luces del neumorfismo --- */
-  --nm-dark: rgba(158, 164, 180, 0.62);
-  --nm-light: rgba(255, 255, 255, 0.96);
+  --surface-1: #ffffff;
+  --surface-2: #f3f6f8;
+  --surface-3: #e5ebf0;
+  --surface-raised: #ffffff;
+  --surface-nav: rgba(255, 255, 255, 0.72);
+  --scrim: rgba(10, 18, 22, 0.48);
 
-  --nm-out:     7px 7px 15px var(--nm-dark), -7px -7px 15px var(--nm-light);
-  --nm-out-sm:  4px 4px 9px var(--nm-dark),  -4px -4px 9px var(--nm-light);
-  --nm-out-lg: 14px 14px 30px var(--nm-dark), -12px -12px 26px var(--nm-light);
-  --nm-in:     inset 4px 4px 9px var(--nm-dark), inset -3px -3px 8px var(--nm-light);
-  --nm-in-deep: inset 7px 7px 14px var(--nm-dark), inset -5px -5px 12px var(--nm-light);
-  --nm-flat:   1px 1px 3px var(--nm-dark), -1px -1px 3px var(--nm-light);
-  /* Sombra de tarjeta: mucho mas suave que el relieve de un boton.
-     El relieve fuerte se reserva a lo que se pulsa. */
-  --card-shadow: 0 1px 2px rgba(20, 22, 29, 0.05), 0 10px 24px -12px rgba(20, 22, 29, 0.14);
+  /* --- elevación plana (alias de relieve antiguo) --- */
+  --nm-dark: rgba(15, 28, 36, 0.12);
+  --nm-light: transparent;
+
+  --nm-out:     0 1px 2px rgba(15, 28, 36, 0.05), 0 10px 28px -14px rgba(15, 28, 36, 0.22);
+  --nm-out-sm:  0 1px 2px rgba(15, 28, 36, 0.06), 0 4px 12px -4px rgba(15, 28, 36, 0.12);
+  --nm-out-lg:  0 18px 48px -20px rgba(15, 28, 36, 0.35);
+  --nm-in:      inset 0 0 0 1px rgba(15, 28, 36, 0.06), inset 0 2px 6px rgba(15, 28, 36, 0.06);
+  --nm-in-deep: inset 0 0 0 1px rgba(15, 28, 36, 0.08), inset 0 4px 10px rgba(15, 28, 36, 0.1);
+  --nm-flat:    0 1px 0 rgba(15, 28, 36, 0.04);
+
+  --card-shadow: 0 1px 0 rgba(15, 28, 36, 0.04), 0 12px 32px -18px rgba(15, 28, 36, 0.28);
 
   /* --- tinta --- */
-  --text-primary: #16181d;
-  --text-secondary: #5a5f6e;
-  --text-muted: #8a8f9e;
+  --text-primary: #10181c;
+  --text-secondary: #4d5c66;
+  --text-muted: #7a8a94;
   --text-on-accent: #ffffff;
 
-  /* --- filos: casi invisibles; el relieve ya separa --- */
-  --hairline: rgba(22, 24, 29, 0.07);
-  --hairline-strong: rgba(22, 24, 29, 0.13);
+  --hairline: rgba(16, 24, 28, 0.08);
+  --hairline-strong: rgba(16, 24, 28, 0.14);
 
-  /* --- botón principal: degradado de grafito, blanco y negro puro --- */
-  --btn-grad: linear-gradient(145deg, #3b3f49 0%, #191b20 100%);
+  /* --- botones: tinta + kelp --- */
+  --btn-grad: linear-gradient(145deg, #1a2a30 0%, #0d161a 100%);
   --btn-ink: #ffffff;
 
-  /* --- el único color de marca, usado con cuentagotas --- */
-  --accent: #5b62f0;
-  --accent-hover: #4a51e8;
-  --accent-grad: linear-gradient(145deg, #7c81ff 0%, #4a51e8 100%);
-  --accent-wash: rgba(91, 98, 240, 0.1);
+  /* --- marca: kelp (verde-alga), no morado --- */
+  --accent: #0f766e;
+  --accent-hover: #0b5f59;
+  --accent-grad: linear-gradient(145deg, #14b8a6 0%, #0f766e 100%);
+  --accent-wash: rgba(15, 118, 110, 0.12);
   --accent-ink: #ffffff;
-  --glow-accent: 0 6px 22px rgba(91, 98, 240, 0.4);
+  --glow-accent: 0 10px 28px -8px rgba(15, 118, 110, 0.45);
 
-  /* --- semántica de dinero (nunca solo color: siempre con signo) --- */
-  --money-in: #05702f;
+  --money-in: #0a7a3e;
   --money-out: var(--text-primary);
 
-  /* --- estado (reservado: siempre con icono + etiqueta) --- */
   --status-good: #0ca30c;
-  --status-warning: #fab219;
-  --status-serious: #ec835a;
-  --status-critical: #d03b3b;
+  --status-warning: #d97706;
+  --status-serious: #ea580c;
+  --status-critical: #dc2626;
   --status-good-wash: rgba(12, 163, 12, 0.12);
-  --status-warning-wash: rgba(250, 178, 25, 0.16);
-  --status-critical-wash: rgba(208, 59, 59, 0.12);
+  --status-warning-wash: rgba(217, 119, 6, 0.14);
+  --status-critical-wash: rgba(220, 38, 38, 0.12);
 
   /* --- cromo de gráfico --- */
-  --grid: #dcdee6;
-  --axis: #c6c9d4;
-  --chart-ink: #16181d;          /* la serie protagonista */
-  --deemphasis: #7f8494;         /* contexto; validado a >=3:1 */
+  --grid: #e2e8ee;
+  --axis: #c5ced6;
+  --chart-ink: #10181c;
+  --deemphasis: #6b7a85;
 
-  /* --- categóricos (orden fijo, nunca ciclado) --- */
-  --series-1: #2a78d6;  /* azul     */
-  --series-2: #eb6834;  /* naranja  */
-  --series-3: #1baf7a;  /* aqua     */
-  --series-4: #eda100;  /* amarillo */
-  --series-5: #e87ba4;  /* magenta  */
-  --series-6: #008300;  /* verde    */
-  --series-7: #4a3aa7;  /* violeta  */
-  --series-8: #e34948;  /* rojo     */
+  /* --- categóricos (orden fijo) --- */
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #1baf7a;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --series-6: #008300;
+  --series-7: #4a3aa7;
+  --series-8: #e34948;
 
-  /* --- paleta de categorías: 8 familias de tono x 2 luminosidades ---
-     Los pares de una misma familia (azul/azul hondo, rojo/granate…) se
-     separan por claro-oscuro, que el daltonismo no toca; las familias
-     entre sí, por tono. Las posiciones 1,3,5,7,9,11,13,15 coinciden con
-     los --series-* ya validados.
+  --cat-1:  #2a78d6;
+  --cat-2:  #17427f;
+  --cat-3:  #1baf7a;
+  --cat-4:  #0b5f4e;
+  --cat-5:  #eda100;
+  --cat-6:  #7d5a12;
+  --cat-7:  #e34948;
+  --cat-8:  #8f1f2a;
+  --cat-9:  #4a3aa7;
+  --cat-10: #8f7fe8;
+  --cat-11: #e87ba4;
+  --cat-12: #8c2a6b;
+  --cat-13: #eb6834;
+  --cat-14: #a3663c;
+  --cat-15: #008300;
+  --cat-16: #55636f;
 
-     Con 16 colores no hay separación perfecta bajo daltonismo: el suelo
-     es ΔE 4,2 en claro y 2,2 en oscuro (azul/violeta, heredado de la
-     paleta de series). No es un problema aquí porque el color de una
-     categoría nunca viaja solo: siempre lleva su emoji y su nombre. */
-  --cat-1:  #2a78d6;   /* azul        */
-  --cat-2:  #17427f;   /* azul hondo  */
-  --cat-3:  #1baf7a;   /* aqua        */
-  --cat-4:  #0b5f4e;   /* teal        */
-  --cat-5:  #eda100;   /* amarillo    */
-  --cat-6:  #7d5a12;   /* oro         */
-  --cat-7:  #e34948;   /* rojo        */
-  --cat-8:  #8f1f2a;   /* granate     */
-  --cat-9:  #4a3aa7;   /* violeta     */
-  --cat-10: #8f7fe8;   /* lila        */
-  --cat-11: #e87ba4;   /* magenta     */
-  --cat-12: #8c2a6b;   /* ciruela     */
-  --cat-13: #eb6834;   /* naranja     */
-  --cat-14: #a3663c;   /* marrón      */
-  --cat-15: #008300;   /* verde       */
-  --cat-16: #55636f;   /* pizarra     */
+  --seq-100: #e2e8ee;
+  --seq-200: #c9d2da;
+  --seq-300: #a8b5c0;
+  --seq-400: #8796a3;
+  --seq-500: #667786;
+  --seq-600: #455563;
+  --seq-700: #24313b;
 
-  /* --- secuencial: una sola tinta, aquí gris; 100 = cerca de cero --- */
-  --seq-100: #d8dae2;
-  --seq-200: #c2c5d0;
-  --seq-300: #a9adbb;
-  --seq-400: #8f94a4;
-  --seq-500: #6f7484;
-  --seq-600: #4d515f;
-  --seq-700: #2b2e37;
+  --div-pos: #10181c;
+  --div-neg: #dc2626;
+  --div-mid: #e2e8ee;
 
-  /* --- divergente en clave monocroma: tinta arriba, rojo abajo --- */
-  --div-pos: #16181d;
-  --div-neg: #d03b3b;
-  --div-mid: #dcdee6;
-
-  /* --- elevación para lo que flota (sheets, tooltips) --- */
   --shadow-sm: var(--nm-out-sm);
-  --shadow-md: 0 10px 30px rgba(28, 30, 36, 0.14);
-  --shadow-lg: 0 24px 64px rgba(28, 30, 36, 0.26);
+  --shadow-md: 0 12px 36px -12px rgba(15, 28, 36, 0.28);
+  --shadow-lg: 0 28px 64px -16px rgba(15, 28, 36, 0.4);
 
-  /* --- radios: muy generosos, es parte del lenguaje --- */
-  --r-xs: 12px;
-  --r-sm: 16px;
-  --r-md: 20px;
-  --r-lg: 26px;
-  --r-xl: 34px;
+  /* radios: generosos pero no “pill everywhere” */
+  --r-xs: 10px;
+  --r-sm: 14px;
+  --r-md: 18px;
+  --r-lg: 22px;
+  --r-xl: 28px;
   --r-full: 999px;
 
-  /* --- espaciado --- */
   --sp-1: 4px;
   --sp-2: 8px;
   --sp-3: 12px;
@@ -153,69 +139,36 @@
   --sp-8: 40px;
   --sp-9: 56px;
 
-  /* --- tipografía ---
-
-     La familia de emojis va DELANTE de todo a propósito. Una fuente de
-     emojis solo lleva emojis, así que las letras normales caen solas en la
-     siguiente de la lista; ponerla al final no serviría de nada, porque
-     `sans-serif` ya resuelve los emojis con los del sistema y no se
-     llegaría a mirar más allá.
-
-     Con «Sistema» apunta a una familia que no existe a propósito: la lista
-     sigue siendo válida y cada carácter acaba donde acababa siempre. */
   --emoji: "SplitEmojiDelSistema";
+  --font-display: "Sora", system-ui, sans-serif;
+  --font: var(--emoji), "Sora", system-ui, "Segoe UI", sans-serif;
 
-  --font: var(--emoji), -apple-system, BlinkMacSystemFont, "SF Pro Display",
-          "SF Pro Text", "Segoe UI Variable Display", "Segoe UI", system-ui,
-          Roboto, Inter, sans-serif;
-
-  /* Gordas a propósito. La app se mira de reojo y con una mano: un texto
-     fino se lee peor al vuelo, y en una pantalla llena de cifras el peso
-     es lo que separa lo importante de lo accesorio. Los cuatro escalones
-     caen en pesos que existen de verdad en las fuentes del sistema —500,
-     700 y 900—, así que no hay ninguno que el móvil tenga que fingir. */
-  --w-normal: 600;
-  --w-medium: 700;
-  --w-semi: 800;
-  --w-bold: 900;
-
-  /* El grosor de una barra de progreso. Una sola escala para todas: la
-     de una lista y la de dentro de una tarjeta, que es más corta y por
-     eso se queda un punto por debajo. Barritas de 6 px no se ven. */
-  --barra: 16px;
-  --barra-sm: 12px;
+  --w-normal: 500;
+  --w-medium: 600;
+  --w-semi: 700;
+  --w-bold: 800;
   --w-heavy: 800;
 
-  /* --- la escala de texto ---
-     Nada por debajo de --t-min. Un texto que hay que acercarse a leer no
-     está diciendo nada: o sube o sobra. Las medidas van aquí y no
-     sueltas por cada archivo, para que subir el suelo sea una línea. */
-  --t-min: 12.5px;        /* el suelo: pies de gráfico y poco más */
-  --t-hint: 13.5px;       /* ayudas, pies y lo secundario */
-  --t-body: 15px;         /* el texto normal */
-  --t-label: 16px;        /* etiquetas de campo y filas */
-  --t-title: 19px;        /* títulos de tarjeta */
+  --barra: 16px;
+  --barra-sm: 12px;
+
+  --t-min: 12.5px;
+  --t-hint: 13.5px;
+  --t-body: 15px;
+  --t-label: 16px;
+  --t-title: 19px;
 
   --eyebrow-size: var(--t-min);
-  --eyebrow-track: 0.06em;
+  --eyebrow-track: 0.08em;
 
-  /* --- la escala de cifra ---
-     El número ES el dato, así que manda sobre el texto que lo acompaña.
-     Una tarjeta enseña UNA cifra grande, nunca dos: si hay dos, ninguna
-     es la importante. */
-  --num-hero: 42px;       /* la cifra de la pantalla: la que se teclea */
-  --num-xl: 34px;         /* la protagonista de una tarjeta */
-  --num-l: 26px;          /* la de un KPI */
-  --num-m: 19px;          /* la de una fila de lista */
+  --num-hero: 42px;
+  --num-xl: 34px;
+  --num-l: 26px;
+  --num-m: 19px;
 
-  /* --- lo que se pulsa ---
-     Fallar un toque en una app de dinero da miedo, así que los objetivos
-     son grandes. --tap para lo que se pulsa a propósito; --tap-min es el
-     suelo de lo secundario, y por debajo no baja nada. */
   --tap: 56px;
   --tap-min: 48px;
 
-  /* --- movimiento --- */
   --ease-ios: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
@@ -224,67 +177,69 @@
   --dur-base: 260ms;
   --dur-slow: 420ms;
 
-  /* --- métricas de layout --- */
   --shell-max: 520px;
   --content-max: 1280px;
-  --sidebar-w: 244px;
+  --sidebar-w: 252px;
   --tabbar-h: 74px;
   --topbar-h: 72px;
-  /* Hueco de la barra de navegación. Lo manda MainActivity en
-     --safe-b-native, porque en el WebView de Android el env() no es de
-     fiar; fuera de ahí (iOS, navegador) manda el env() de siempre. */
   --safe-b: var(--safe-b-native, env(safe-area-inset-bottom, 0px));
 }
 
-/* ============================================================
-   Modo oscuro. En neumorfismo oscuro la luz superior es un blanco
-   muy tenue y la sombra un negro profundo; invertir los mismos
-   valores del claro no funciona, así que van elegidos aparte.
-   ============================================================ */
+/* ---------- oscuro ---------- */
 
 @media (prefers-color-scheme: dark) {
   :root:where(:not([data-theme="light"])) {
     color-scheme: dark;
 
-    --page: #1c1e22;
-    --surface-1: #22242a;
-    --surface-2: #1e2025;
-    --surface-3: #2b2e36;
-    --surface-raised: #24262c;
-    --surface-nav: #1c1e22;
-    --scrim: rgba(0, 0, 0, 0.66);
+    --page: #0c1214;
+    --page-spot: #12332f;
+    --page-grad:
+      radial-gradient(100% 70% at 10% -15%, var(--page-spot) 0%, transparent 55%),
+      radial-gradient(80% 50% at 100% 0%, #152028 0%, transparent 48%),
+      linear-gradient(180deg, #10181c 0%, var(--page) 55%, #0a1012 100%);
 
-    --nm-dark: rgba(0, 0, 0, 0.58);
-    --nm-light: rgba(255, 255, 255, 0.055);
+    --surface-1: #151c20;
+    --surface-2: #10171b;
+    --surface-3: #1e272c;
+    --surface-raised: #1a2226;
+    --surface-nav: rgba(21, 28, 32, 0.82);
+    --scrim: rgba(0, 0, 0, 0.7);
 
-    --text-primary: #f2f3f6;
-    --text-secondary: #a5aab8;
-    --text-muted: #7d8494;
+    --nm-dark: rgba(0, 0, 0, 0.45);
+    --nm-out:     0 1px 2px rgba(0, 0, 0, 0.35), 0 14px 32px -16px rgba(0, 0, 0, 0.7);
+    --nm-out-sm:  0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 14px -6px rgba(0, 0, 0, 0.55);
+    --nm-out-lg:  0 22px 48px -18px rgba(0, 0, 0, 0.75);
+    --nm-in:      inset 0 0 0 1px rgba(255, 255, 255, 0.06), inset 0 2px 8px rgba(0, 0, 0, 0.45);
+    --nm-in-deep: inset 0 0 0 1px rgba(255, 255, 255, 0.07), inset 0 4px 12px rgba(0, 0, 0, 0.55);
+    --nm-flat:    0 1px 0 rgba(255, 255, 255, 0.04);
+
+    --text-primary: #eef3f5;
+    --text-secondary: #9aabb4;
+    --text-muted: #70818a;
 
     --hairline: rgba(255, 255, 255, 0.07);
     --hairline-strong: rgba(255, 255, 255, 0.14);
 
-    /* en oscuro el botón principal es el claro: sigue siendo blanco y negro */
-    --btn-grad: linear-gradient(145deg, #f5f6f9 0%, #d7dae2 100%);
-    --btn-ink: #16181d;
+    --btn-grad: linear-gradient(145deg, #2dd4bf 0%, #0f766e 100%);
+    --btn-ink: #042f2e;
 
-    --accent: #8b90ff;
-    --accent-hover: #a2a6ff;
-    --accent-grad: linear-gradient(145deg, #9ca0ff 0%, #6a70f5 100%);
-    --accent-wash: rgba(139, 144, 255, 0.16);
-    --accent-ink: #14162b;
-    --glow-accent: 0 6px 24px rgba(139, 144, 255, 0.32);
+    --accent: #2dd4bf;
+    --accent-hover: #5eead4;
+    --accent-grad: linear-gradient(145deg, #5eead4 0%, #14b8a6 100%);
+    --accent-wash: rgba(45, 212, 191, 0.14);
+    --accent-ink: #042f2e;
+    --glow-accent: 0 10px 28px -8px rgba(45, 212, 191, 0.35);
 
-    --money-in: #35c759;
+    --money-in: #34d399;
 
-    --status-good-wash: rgba(53, 199, 89, 0.16);
-    --status-warning-wash: rgba(250, 178, 25, 0.16);
-    --status-critical-wash: rgba(230, 103, 103, 0.16);
+    --status-good-wash: rgba(52, 211, 153, 0.14);
+    --status-warning-wash: rgba(251, 191, 36, 0.14);
+    --status-critical-wash: rgba(248, 113, 113, 0.14);
 
-    --grid: #2b2e36;
-    --axis: #383c45;
-    --chart-ink: #f2f3f6;
-    --deemphasis: #8b91a0;         /* validado a >=3:1 sobre #22242A */
+    --grid: #1e272c;
+    --axis: #2c373e;
+    --chart-ink: #eef3f5;
+    --deemphasis: #8a9aa3;
 
     --series-1: #3987e5;
     --series-2: #d95926;
@@ -295,7 +250,6 @@
     --series-7: #9085e9;
     --series-8: #e66767;
 
-    /* paleta de categorías, variante oscura (ver el bloque claro) */
     --cat-1:  #3987e5;
     --cat-2:  #2f6bb5;
     --cat-3:  #199e70;
@@ -313,65 +267,76 @@
     --cat-15: #008300;
     --cat-16: #8291a6;
 
-    --seq-100: #2e313a;
-    --seq-200: #3a3e49;
-    --seq-300: #4a4f5c;
-    --seq-400: #5e6472;
-    --seq-500: #767d8c;
-    --seq-600: #949aa8;
-    --seq-700: #b8bec9;
+    --seq-100: #1a2226;
+    --seq-200: #243038;
+    --seq-300: #33424c;
+    --seq-400: #465762;
+    --seq-500: #5f7280;
+    --seq-600: #8496a2;
+    --seq-700: #b2c0c8;
 
-    --div-pos: #f2f3f6;
-    --div-neg: #e66767;
-    --div-mid: #2b2e36;
+    --div-pos: #eef3f5;
+    --div-neg: #f87171;
+    --div-mid: #1e272c;
 
-    --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 24px -12px rgba(0, 0, 0, 0.55);
-    --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.5);
-    --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.66);
+    --card-shadow: 0 1px 0 rgba(255, 255, 255, 0.04), 0 16px 36px -18px rgba(0, 0, 0, 0.7);
+    --shadow-md: 0 14px 36px -10px rgba(0, 0, 0, 0.6);
+    --shadow-lg: 0 28px 64px -12px rgba(0, 0, 0, 0.75);
   }
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --page: #1c1e22;
-  --surface-1: #22242a;
-  --surface-2: #1e2025;
-  --surface-3: #2b2e36;
-  --surface-raised: #24262c;
-  --surface-nav: #1c1e22;
-  --scrim: rgba(0, 0, 0, 0.66);
+  --page: #0c1214;
+  --page-spot: #12332f;
+  --page-grad:
+    radial-gradient(100% 70% at 10% -15%, var(--page-spot) 0%, transparent 55%),
+    radial-gradient(80% 50% at 100% 0%, #152028 0%, transparent 48%),
+    linear-gradient(180deg, #10181c 0%, var(--page) 55%, #0a1012 100%);
 
-  --nm-dark: rgba(0, 0, 0, 0.58);
-  --nm-light: rgba(255, 255, 255, 0.055);
+  --surface-1: #151c20;
+  --surface-2: #10171b;
+  --surface-3: #1e272c;
+  --surface-raised: #1a2226;
+  --surface-nav: rgba(21, 28, 32, 0.82);
+  --scrim: rgba(0, 0, 0, 0.7);
 
-  --text-primary: #f2f3f6;
-  --text-secondary: #a5aab8;
-  --text-muted: #7d8494;
+  --nm-dark: rgba(0, 0, 0, 0.45);
+  --nm-out:     0 1px 2px rgba(0, 0, 0, 0.35), 0 14px 32px -16px rgba(0, 0, 0, 0.7);
+  --nm-out-sm:  0 1px 2px rgba(0, 0, 0, 0.4), 0 6px 14px -6px rgba(0, 0, 0, 0.55);
+  --nm-out-lg:  0 22px 48px -18px rgba(0, 0, 0, 0.75);
+  --nm-in:      inset 0 0 0 1px rgba(255, 255, 255, 0.06), inset 0 2px 8px rgba(0, 0, 0, 0.45);
+  --nm-in-deep: inset 0 0 0 1px rgba(255, 255, 255, 0.07), inset 0 4px 12px rgba(0, 0, 0, 0.55);
+  --nm-flat:    0 1px 0 rgba(255, 255, 255, 0.04);
+
+  --text-primary: #eef3f5;
+  --text-secondary: #9aabb4;
+  --text-muted: #70818a;
 
   --hairline: rgba(255, 255, 255, 0.07);
   --hairline-strong: rgba(255, 255, 255, 0.14);
 
-  --btn-grad: linear-gradient(145deg, #f5f6f9 0%, #d7dae2 100%);
-  --btn-ink: #16181d;
+  --btn-grad: linear-gradient(145deg, #2dd4bf 0%, #0f766e 100%);
+  --btn-ink: #042f2e;
 
-  --accent: #8b90ff;
-  --accent-hover: #a2a6ff;
-  --accent-grad: linear-gradient(145deg, #9ca0ff 0%, #6a70f5 100%);
-  --accent-wash: rgba(139, 144, 255, 0.16);
-  --accent-ink: #14162b;
-  --glow-accent: 0 6px 24px rgba(139, 144, 255, 0.32);
+  --accent: #2dd4bf;
+  --accent-hover: #5eead4;
+  --accent-grad: linear-gradient(145deg, #5eead4 0%, #14b8a6 100%);
+  --accent-wash: rgba(45, 212, 191, 0.14);
+  --accent-ink: #042f2e;
+  --glow-accent: 0 10px 28px -8px rgba(45, 212, 191, 0.35);
 
-  --money-in: #35c759;
+  --money-in: #34d399;
 
-  --status-good-wash: rgba(53, 199, 89, 0.16);
-  --status-warning-wash: rgba(250, 178, 25, 0.16);
-  --status-critical-wash: rgba(230, 103, 103, 0.16);
+  --status-good-wash: rgba(52, 211, 153, 0.14);
+  --status-warning-wash: rgba(251, 191, 36, 0.14);
+  --status-critical-wash: rgba(248, 113, 113, 0.14);
 
-  --grid: #2b2e36;
-  --axis: #383c45;
-  --chart-ink: #f2f3f6;
-  --deemphasis: #8b91a0;
+  --grid: #1e272c;
+  --axis: #2c373e;
+  --chart-ink: #eef3f5;
+  --deemphasis: #8a9aa3;
 
   --series-1: #3987e5;
   --series-2: #d95926;
@@ -382,7 +347,6 @@
   --series-7: #9085e9;
   --series-8: #e66767;
 
-  /* paleta de categorías, variante oscura (ver el bloque claro) */
   --cat-1:  #3987e5;
   --cat-2:  #2f6bb5;
   --cat-3:  #199e70;
@@ -400,19 +364,19 @@
   --cat-15: #008300;
   --cat-16: #8291a6;
 
-  --seq-100: #2e313a;
-  --seq-200: #3a3e49;
-  --seq-300: #4a4f5c;
-  --seq-400: #5e6472;
-  --seq-500: #767d8c;
-  --seq-600: #949aa8;
-  --seq-700: #b8bec9;
+  --seq-100: #1a2226;
+  --seq-200: #243038;
+  --seq-300: #33424c;
+  --seq-400: #465762;
+  --seq-500: #5f7280;
+  --seq-600: #8496a2;
+  --seq-700: #b2c0c8;
 
-  --div-pos: #f2f3f6;
-  --div-neg: #e66767;
-  --div-mid: #2b2e36;
+  --div-pos: #eef3f5;
+  --div-neg: #f87171;
+  --div-mid: #1e272c;
 
-  --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 24px -12px rgba(0, 0, 0, 0.55);
-  --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.66);
+  --card-shadow: 0 1px 0 rgba(255, 255, 255, 0.04), 0 16px 36px -18px rgba(0, 0, 0, 0.7);
+  --shadow-md: 0 14px 36px -10px rgba(0, 0, 0, 0.6);
+  --shadow-lg: 0 28px 64px -12px rgba(0, 0, 0, 0.75);
 }
