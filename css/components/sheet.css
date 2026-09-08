@@ -97,7 +97,7 @@
   padding: var(--sp-5) var(--sp-4);
   border-radius: var(--r-lg);
   background: var(--surface-2);
-  box-shadow: var(--nm-in);
+  box-shadow: none;
   font-size: var(--num-hero);
   font-weight: var(--w-bold);
   letter-spacing: -0.045em;
@@ -114,7 +114,7 @@
   height: 56px;
   border-radius: var(--r-md);
   background: var(--surface-1);
-  box-shadow: var(--nm-out-sm);
+  box-shadow: none;
   font-size: 20px;
   font-weight: var(--w-semi);
   letter-spacing: -0.03em;
@@ -124,7 +124,7 @@
   transition: box-shadow var(--dur-xfast) var(--ease-out);
 }
 
-.key:active { box-shadow: var(--nm-in); }
+.key:active { box-shadow: none; }
 
 /* La coma es un signo pequeño y colgado de la línea base: al tamaño de
    los dígitos se pierde en una tecla de 56 px. Se agranda y se sube un

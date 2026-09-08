@@ -65,16 +65,13 @@
 
 .chart .series-line {
   fill: none;
-  /* Gorda: una línea de 2 px se pierde en un móvil a plena luz, y este
-     trazo es el dato entero del gráfico. */
-  stroke-width: 3.5;
+  stroke-width: 2;
   stroke-linejoin: round;
   stroke-linecap: round;
 }
 
-/* lavado, nunca bloque saturado. Va en fill-opacity y no en opacity
-   para que la animación de entrada (que anima opacity) no lo pise. */
-.chart .series-area { fill-opacity: 0.1; }
+/* lavado suave bajo la línea */
+.chart .series-area { fill-opacity: 0.06; }
 
 /* con degradado la opacidad ya va en los stops (0.24 → 0) */
 .chart .series-area--grad { fill-opacity: 1; }

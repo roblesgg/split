@@ -160,7 +160,7 @@ select.field__input { appearance: none; cursor: pointer; padding-right: var(--sp
   padding: 8px 14px;
   border-radius: var(--r-full);
   background: var(--surface-1);
-  box-shadow: var(--nm-out-sm);
+  box-shadow: none;
   font-size: var(--t-min);
   font-weight: var(--w-medium);
   color: var(--text-secondary);
@@ -170,7 +170,7 @@ select.field__input { appearance: none; cursor: pointer; padding-right: var(--sp
 
 /* elegida: hundida, como el resto de lo que se pulsa en esta app */
 .chip[aria-pressed="true"] {
-  box-shadow: var(--nm-in);
+  box-shadow: none;
   color: var(--text-primary);
   font-weight: var(--w-semi);
 }
@@ -196,7 +196,7 @@ select.field__input { appearance: none; cursor: pointer; padding-right: var(--sp
   border-radius: var(--r-sm);
   overflow: hidden;
   background: var(--surface-2);
-  box-shadow: var(--card-shadow);
+  box-shadow: none;
   display: block;
 }
 
@@ -226,4 +226,4 @@ select.field__input { appearance: none; cursor: pointer; padding-right: var(--sp
   transition: color var(--dur-fast) var(--ease-out);
 }
 
-.attach__add:active { box-shadow: var(--nm-in); }
+.attach__add:active { box-shadow: none; }

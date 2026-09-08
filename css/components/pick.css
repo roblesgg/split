@@ -383,7 +383,7 @@
   padding: var(--sp-4);
   border-radius: var(--r-lg);
   background: var(--surface-2);
-  box-shadow: var(--nm-in);
+  box-shadow: none;
 }
 
 .ajuste__txt { font-size: var(--t-hint); color: var(--text-secondary); }
@@ -411,12 +411,12 @@
   padding: var(--sp-3) var(--sp-4);
   border-radius: var(--r-lg);
   background: var(--surface-1);
-  box-shadow: var(--nm-out-sm);
+  box-shadow: none;
   text-align: left;
   transition: box-shadow var(--dur-fast) var(--ease-out);
 }
 
-.mini-list__row:active { box-shadow: var(--nm-in); }
+.mini-list__row:active { box-shadow: none; }
 
 .mini-list__text { flex: 1; min-width: 0; }
 

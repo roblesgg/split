@@ -39,7 +39,7 @@
   padding: 5px;
   border-radius: var(--r-full);
   background: var(--surface-2);
-  box-shadow: var(--nm-in);
+  box-shadow: none;
 }
 
 .range-pill {
@@ -59,7 +59,7 @@
 
 .range-pill[aria-pressed="true"] {
   background: var(--surface-1);
-  box-shadow: var(--nm-out-sm);
+  box-shadow: none;
   color: var(--text-primary);
 }
 
@@ -97,7 +97,7 @@
   height: 26px;
   border-radius: var(--r-full);
   background: var(--surface-1);
-  box-shadow: var(--nm-out-sm);
+  box-shadow: none;
   color: var(--text-secondary);
   opacity: 0;
   pointer-events: none;
@@ -130,7 +130,7 @@
   padding: 0 var(--sp-2);
   border-radius: var(--r-full);
   background: var(--surface-1);
-  box-shadow: var(--nm-out-sm);
+  box-shadow: none;
   font-size: var(--t-min);
   font-weight: var(--w-semi);
   color: var(--text-secondary);
@@ -139,7 +139,7 @@
 }
 
 .quick:hover { color: var(--text-primary); }
-.quick:active { box-shadow: var(--nm-in); }
+.quick:active { box-shadow: none; }
 .quick__icon { flex: none; color: var(--text-muted); }
 
 /* ---------- lecturas ---------- */
@@ -391,7 +391,7 @@
   margin-top: -5px;
   border-radius: var(--r-full);
   background: var(--surface-1);
-  box-shadow: var(--nm-out-sm);
+  box-shadow: none;
 }
 
 .range::-moz-range-thumb {
@@ -400,7 +400,7 @@
   border: 0;
   border-radius: var(--r-full);
   background: var(--surface-1);
-  box-shadow: var(--nm-out-sm);
+  box-shadow: none;
 }
 
 /* barra que resume el reparto */

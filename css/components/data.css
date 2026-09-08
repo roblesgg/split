@@ -82,7 +82,7 @@
   padding: 0 12px;
   border-radius: var(--r-full);
   background: var(--surface-1);
-  box-shadow: var(--nm-out-sm);
+  box-shadow: none;
   font-size: var(--t-min);
   font-weight: var(--w-semi);
   color: var(--text-secondary);
@@ -92,7 +92,7 @@
 }
 
 .mini-select:hover { color: var(--text-primary); }
-.mini-select:active { box-shadow: var(--nm-in); }
+.mini-select:active { box-shadow: none; }
 .mini-select:disabled { opacity: 0.4; pointer-events: none; }
 
 /* ---------- stat tile (KPI) ---------- */
@@ -121,7 +121,7 @@
   border-radius: var(--r-md);
   background: var(--surface-1);
   border: 1px solid var(--hairline);
-  box-shadow: var(--card-shadow);
+  box-shadow: none;
   min-width: 0;
 }
 
@@ -190,7 +190,7 @@
   border-radius: var(--r-md);
   background: var(--surface-1);
   border: 1px solid var(--hairline);
-  box-shadow: var(--card-shadow);
+  box-shadow: none;
   text-align: left;
   transition: box-shadow var(--dur-fast) var(--ease-out),
               transform var(--dur-fast) var(--ease-out);
@@ -241,7 +241,7 @@
   border-radius: var(--r-lg);
   background: var(--surface-1);
   border: 1px solid var(--hairline);
-  box-shadow: var(--card-shadow);
+  box-shadow: none;
   color: var(--text-primary);
   text-align: left;
   transition: transform var(--dur-fast) var(--ease-out);
@@ -366,14 +366,14 @@
   border: 0;
   border-radius: var(--r-full);
   background: var(--surface-2);
-  box-shadow: var(--nm-out-sm);
+  box-shadow: none;
   color: var(--text-secondary);
   display: grid;
   place-items: center;
   cursor: pointer;
 }
 
-.apartado__mas:active { box-shadow: var(--nm-in); }
+.apartado__mas:active { box-shadow: none; }
 
 /* ---------- la tarjeta de UN límite ----------
    La cifra que manda es lo que te QUEDA: «me quedan 170 €» es la frase
@@ -454,7 +454,7 @@
   height: var(--barra);
   border-radius: var(--r-full);
   background: var(--surface-2);
-  box-shadow: var(--nm-in);
+  box-shadow: none;
 }
 
 .limcard__fill {
@@ -484,7 +484,7 @@
   padding: 1px 7px;
   border-radius: var(--r-full);
   background: var(--surface-1);
-  box-shadow: var(--nm-out-sm);
+  box-shadow: none;
   font-size: 10px;
   font-weight: var(--w-semi);
   color: var(--text-secondary);

@@ -197,7 +197,7 @@
   padding: 0 15px;
   border-radius: var(--r-full);
   background: var(--surface-1);
-  box-shadow: var(--nm-out-sm);
+  box-shadow: none;
   font-size: var(--t-hint);
   font-weight: var(--w-semi);
   color: var(--text-secondary);
@@ -211,7 +211,7 @@
 /* seleccionado = hundido, no relleno de color */
 .chip[aria-pressed="true"] {
   background: var(--surface-2);
-  box-shadow: var(--nm-in);
+  box-shadow: none;
   color: var(--text-primary);
 }
 
