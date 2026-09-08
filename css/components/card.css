@@ -10,11 +10,11 @@
 
 .card {
   position: relative;
-  border-radius: var(--r-lg);
+  border-radius: var(--r-xl);
   background: var(--surface-1);
   border: none;
   box-shadow: var(--lift-sm);
-  padding: var(--sp-6);
+  padding: var(--sp-5);
 }
 
 /* Recorta a las esquinas redondeadas, pero dejando sitio para que las
@@ -109,9 +109,9 @@
      carril. La sombra grande se va a 44 px, así que con los 12 de antes
      salía cortada por arriba y por abajo: se le da el hueco entero y se
      devuelve con el margen negativo, que si no la fila entera bajaría. */
-  padding: 46px var(--sp-5);
+  padding: 46px var(--sp-4);
   margin-block: -42px;
-  margin-inline: calc(var(--sp-5) * -1);
+  margin-inline: calc(var(--sp-4) * -1);
 }
 
 .cards__track::-webkit-scrollbar { display: none; }
@@ -129,14 +129,14 @@
      vistazo cuántas cuentas hay y cuál es la que manda, sin deslizar a
      ciegas. El panel de debajo es lo que se viene a mirar, y cuanto
      menos alto sea esto, antes se llega a él. */
-  flex: 0 0 66%;
+  flex: 0 0 86%;
   scroll-snap-align: center;
   overflow: hidden;
-  min-height: 124px;
+  min-height: 148px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: var(--sp-4);
+  padding: var(--sp-5);
   border-radius: var(--r-xl);
   /* respaldo para navegadores sin color-mix: gris de tarjeta, nunca el
      color a pelo, que con el amarillo dejaría el texto ilegible */
@@ -279,7 +279,7 @@
 
 .paycard__value {
   margin-top: 2px;
-  font-size: var(--num-l);
+  font-size: var(--num-xl);
   font-weight: var(--w-bold);
   letter-spacing: -0.042em;
   line-height: 1.05;

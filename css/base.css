@@ -157,53 +157,33 @@ svg { display: block; }
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-  padding: var(--sp-4) var(--sp-5) var(--sp-3);
+  padding: var(--sp-3) var(--sp-4) var(--sp-2);
   background: transparent;
 }
 
-.topbar__titles { flex: 1; min-width: 0; }
-
-/* avatar: solo en móvil */
-.avatar {
-  flex: none;
-  display: none;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: var(--r-full);
-  background: var(--btn-grad);
-  color: var(--btn-ink);
-  box-shadow: none;
-}
-
-@media (max-width: 899px) {
-  .avatar { display: grid; }
-  .topbar__titles { text-align: center; }
-  .topbar__actions { min-width: 46px; justify-content: flex-end; }
-}
-
-.topbar__eyebrow {
-  font-size: var(--eyebrow-size);
-  font-weight: var(--w-semi);
-  letter-spacing: var(--eyebrow-track);
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
+.topbar__titles { flex: 1; min-width: 0; text-align: left; }
 
 .topbar__title {
-  margin-top: 2px;
   font-family: var(--font-display);
-  font-size: 26px;
+  font-size: 28px;
   font-weight: var(--w-bold);
   letter-spacing: -0.045em;
   line-height: 1.15;
 }
 
-.topbar__actions {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
+/* En Resumen la cabecera se apaga: el contenido manda, como en las
+   referencias. Queda solo el acceso a Ajustes. */
+.topbar[data-bare="true"] .topbar__title {
+  opacity: 0;
+  pointer-events: none;
 }
+
+.icon-btn--quiet {
+  background: transparent;
+  box-shadow: none;
+}
+
+.icon-btn--quiet:hover { background: var(--surface-2); }
 
 /* botón de icono */
 .icon-btn {
@@ -238,8 +218,9 @@ svg { display: block; }
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-  /* holgura extra: las sombras neumórficas sobresalen ~15px */
-  padding: var(--sp-2) var(--sp-5);
+  /* márgenes laterales tipo app de banca: aire, pero el contenido
+     llega casi de borde a borde */
+  padding: var(--sp-1) var(--sp-4);
   padding-bottom: calc(var(--tabbar-h) + var(--safe-b) + var(--sp-8));
 }
 
@@ -300,7 +281,7 @@ svg { display: block; }
   min-width: 0;
 }
 
-.single { max-width: 760px; }
+.single { max-width: none; }
 
 /* ============================================================
    Barra inferior (solo móvil): flotante y elevada
@@ -515,17 +496,17 @@ svg { display: block; }
 
   .topbar {
     height: var(--topbar-h);
-    padding: 0 var(--sp-7);
+    padding: 0 var(--sp-6);
   }
 
-  .topbar__eyebrow { display: none; }
-  .topbar__title { margin-top: 0; font-size: 22px; }
+  .topbar__title { margin-top: 0; font-size: 24px; }
+  .topbar[data-bare="true"] .topbar__title { opacity: 1; }
 
-  .scroll-area { padding: var(--sp-4) var(--sp-7) var(--sp-8); }
+  .scroll-area { padding: var(--sp-4) var(--sp-6) var(--sp-8); }
   .scroll-inner { max-width: var(--content-max); }
 
   .dash { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
-  .single { max-width: 820px; }
+  .single { max-width: 920px; }
 }
 
 /* ============================================================

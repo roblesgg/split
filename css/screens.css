@@ -143,8 +143,8 @@
 .mac-act__icon {
   display: grid;
   place-items: center;
-  width: 52px;
-  height: 52px;
+  width: 58px;
+  height: 58px;
   border-radius: 18px;
   background: var(--surface-1);
   box-shadow: var(--lift-sm);

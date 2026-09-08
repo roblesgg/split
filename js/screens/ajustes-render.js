@@ -285,7 +285,7 @@
         '<div class="card__head card__pad--tight" style="margin-bottom:0">' +
           '<h2 class="card__title">Apariencia</h2>' +
         '</div>' +
-        settingRow("sun", "Tema", themeLabel(theme), "theme", themeShort(theme)) +
+        settingRow("sun", "Tema claro u oscuro", themeLabel(theme), "theme", themeShort(theme)) +
       '</section>' +
 
       '<section class="card card--flush">' +

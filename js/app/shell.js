@@ -88,8 +88,9 @@
 
   function setTopbar(view) {
     var t = TITLES[view] || TITLES.inicio;
-    $("#topbarEyebrow").textContent = t.eyebrow || todayLabel();
     $("#topbarTitle").textContent = t.title;
+    /* En Resumen la cabecera no compite con el saldo: solo el engranaje. */
+    $("#topbar").setAttribute("data-bare", String(view === "inicio"));
   }
 
   function todayLabel() {
@@ -122,12 +123,7 @@
   }
 
   function updateThemeIcon() {
-    var t = S.getTheme();
-    var effectiveDark = t === "dark" || (t === "auto" && window.matchMedia &&
-                        window.matchMedia("(prefers-color-scheme: dark)").matches);
-    var btn = $("#themeBtn");
-    btn.innerHTML = icon(effectiveDark ? "moon" : "sun", 18);
-    btn.setAttribute("aria-label", "Tema: " + themeLabel(t) + ". Pulsa para cambiar");
+    /* El tema se cambia solo desde Ajustes; ya no hay botón en la cabecera. */
   }
   /* ============================================================
      Botón atrás
@@ -177,7 +173,6 @@
     });
 
     $("#settingsBtn").addEventListener("click", function () { goTo("ajustes"); });
-    $("#themeBtn").addEventListener("click", cycleTheme);
 
     var scroll = $("#scrollArea");
     scroll.addEventListener("scroll", function () {

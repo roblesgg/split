@@ -169,11 +169,11 @@
   --dur-base: 280ms;
   --dur-slow: 480ms;
 
-  --shell-max: 520px;
-  --content-max: 1280px;
+  --shell-max: 100%;
+  --content-max: 1480px;
   --sidebar-w: 252px;
   --tabbar-h: 72px;
-  --topbar-h: 72px;
+  --topbar-h: 56px;
   --safe-b: var(--safe-b-native, env(safe-area-inset-bottom, 0px));
 }
 
