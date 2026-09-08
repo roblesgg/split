@@ -81,11 +81,10 @@
       return (b.tx.createdAt || 0) - (a.tx.createdAt || 0);
     });
 
-    /* Los KPIs solo cuentan lo ya apuntado: un pendiente no es ingreso
-       hasta que se confirma. */
-    var confirmados = list.filter(function (it) { return !it.pendiente; })
-      .map(function (it) { return it.tx; });
-    var t = S.totals(confirmados);
+    /* Entró / Salió / Balance incluyen los sueldos (y demás) por confirmar
+       si ya traen importe: son del ciclo aunque falte el toque final.
+       Si el importe es «¿?», amount es 0 y totals() no suma nada. */
+    var t = S.totals(list.map(function (it) { return it.tx; }));
     var groups = [], byDay = {};
     list.forEach(function (it) {
       var day = it.tx.date;
@@ -174,7 +173,6 @@
                       '<span>' + esc(S.relDayLabel(day)) + '</span>' +
                       '<span class="day-head__sum">' +
                         esc(S.signed(S.totals(byDay[day]
-                          .filter(function (it) { return !it.pendiente; })
                           .map(function (it) { return it.tx; })).net)) +
                       '</span>' +
                     '</div>' +
