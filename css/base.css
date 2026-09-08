@@ -297,7 +297,7 @@ svg { display: block; }
   bottom: 0;
   z-index: 40;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   align-items: center;
   height: calc(var(--tabbar-h) + var(--safe-b));
   /* Las columnas se reparten DENTRO del carril, no en todo el ancho
@@ -388,6 +388,28 @@ svg { display: block; }
 }
 
 .tab[aria-selected="true"]::after { opacity: 1; transform: none; }
+
+/* botón central: sobresale del carril */
+.tab--add {
+  overflow: visible;
+}
+
+.tab--add .fab {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  margin-bottom: 14px;
+  border-radius: var(--r-full);
+  background: var(--accent-grad);
+  color: var(--btn-ink);
+  box-shadow: var(--glow-accent);
+  transition: transform var(--dur-fast) var(--ease-out),
+              opacity var(--dur-fast) var(--ease-out);
+}
+
+.tab--add:hover .fab { transform: translateY(-1px); }
+.tab--add:active .fab { transform: scale(0.94); opacity: 0.9; }
 
 /* ============================================================
    ESCRITORIO — a partir de 900px

@@ -93,9 +93,9 @@
   align-items: baseline;
   justify-content: center;
   gap: 3px;
-  margin-bottom: var(--sp-5);
-  padding: var(--sp-5) var(--sp-4);
-  border-radius: var(--r-lg);
+  margin-bottom: var(--sp-4);
+  padding: var(--sp-6) var(--sp-4);
+  border-radius: var(--r-xl);
   background: var(--surface-2);
   box-shadow: none;
   font-size: var(--num-hero);
@@ -108,29 +108,39 @@
 .amount-display__cur { font-size: 0.44em; color: var(--text-muted); align-self: center; }
 .amount-display.is-zero { color: var(--text-muted); }
 
-.keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-3); }
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px var(--sp-2);
+  margin-bottom: var(--sp-2);
+  padding: var(--sp-2) 0;
+}
 
 .key {
-  height: 56px;
-  border-radius: var(--r-md);
-  background: var(--surface-1);
+  height: 58px;
+  border-radius: var(--r-lg);
+  background: var(--surface-2);
+  color: var(--text-primary);
   box-shadow: none;
-  font-size: 20px;
+  border: none;
+  font-size: 22px;
   font-weight: var(--w-semi);
   letter-spacing: -0.03em;
   font-variant-numeric: tabular-nums;
   display: grid;
   place-items: center;
-  transition: box-shadow var(--dur-xfast) var(--ease-out);
+  transition: background var(--dur-xfast) var(--ease-out),
+              transform var(--dur-xfast) var(--ease-out);
 }
 
-.key:active { box-shadow: none; }
+.key:active {
+  background: var(--surface-3);
+  transform: scale(0.96);
+}
 
-/* La coma es un signo pequeño y colgado de la línea base: al tamaño de
-   los dígitos se pierde en una tecla de 56 px. Se agranda y se sube un
-   poco para que ocupe el centro como lo ocupa un número. */
+/* La coma es un signo pequeño: se agranda para ocupar el centro. */
 .key--coma {
-  font-size: 30px;
+  font-size: 32px;
   line-height: 1;
-  padding-bottom: 14px;
+  padding-bottom: 12px;
 }

@@ -152,7 +152,7 @@
 }
 
 .mac-act__icon--accent {
-  background: var(--accent);
+  background: var(--accent-grad);
   color: var(--text-on-accent);
   box-shadow: var(--glow-accent);
 }
