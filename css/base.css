@@ -178,12 +178,14 @@ svg { display: block; }
   pointer-events: none;
 }
 
-.icon-btn--quiet {
+.icon-btn--quiet,
+.icon-btn--ghost {
   background: transparent;
   box-shadow: none;
 }
 
-.icon-btn--quiet:hover { background: var(--surface-2); }
+.icon-btn--quiet:hover,
+.icon-btn--ghost:hover { background: var(--surface-2); }
 
 /* botón de icono */
 .icon-btn {

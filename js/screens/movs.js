@@ -71,16 +71,18 @@
     root.innerHTML =
       '<div class="single">' +
         '<div class="filter-row">' +
-          '<button type="button" class="icon-btn" data-ciclo="-1" aria-label="' + esc(Periodo()) + ' anterior" ' +
-                  'data-icon="chevLeft" data-icon-size="17"></button>' +
-          '<div class="month-nav">' +
-            '<p class="month-nav__label">' + esc(S.etiquetaCiclo(key)) + '</p>' +
-            '<p class="month-nav__sub">' + list.length + ' movimiento' +
-              (list.length === 1 ? "" : "s") + '</p>' +
+          '<div class="period-card">' +
+            '<button type="button" class="icon-btn icon-btn--ghost" data-ciclo="-1" aria-label="' + esc(Periodo()) + ' anterior" ' +
+                    'data-icon="chevLeft" data-icon-size="17"></button>' +
+            '<div class="month-nav">' +
+              '<p class="month-nav__label">' + esc(S.etiquetaCiclo(key)) + '</p>' +
+              '<p class="month-nav__sub">' + list.length + ' movimiento' +
+                (list.length === 1 ? "" : "s") + '</p>' +
+            '</div>' +
+            '<button type="button" class="icon-btn icon-btn--ghost" data-ciclo="1" aria-label="' + esc(Periodo()) + ' siguiente" ' +
+                    'data-icon="chevron" data-icon-size="17"' +
+                    (ui.movsCicloOffset === 0 ? " disabled" : "") + '></button>' +
           '</div>' +
-          '<button type="button" class="icon-btn" data-ciclo="1" aria-label="' + esc(Periodo()) + ' siguiente" ' +
-                  'data-icon="chevron" data-icon-size="17"' +
-                  (ui.movsCicloOffset === 0 ? " disabled" : "") + '></button>' +
         '</div>' +
 
         '<div class="stagger">' +

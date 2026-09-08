@@ -86,6 +86,46 @@
 .sheet__title { font-size: 18px; font-weight: var(--w-semi); letter-spacing: -0.03em; }
 .sheet__body { flex: 1; overflow-y: auto; padding: 0 var(--sp-5) var(--sp-6); }
 
+/* Tipo + importe + teclado en un solo bloque redondo */
+.compose {
+  padding: var(--sp-3);
+  margin-bottom: var(--sp-5);
+  border-radius: var(--r-xl);
+  background: var(--surface-2);
+  border: 1px solid var(--hairline);
+}
+
+.compose .segmented {
+  background: var(--surface-1);
+  box-shadow: var(--lift-sm);
+}
+
+.compose .segmented__thumb {
+  background: var(--surface-2);
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.compose .amount-display {
+  margin: var(--sp-2) 0;
+  padding: var(--sp-5) var(--sp-3);
+  border-radius: var(--r-lg);
+  background: transparent;
+}
+
+.compose .keypad {
+  margin-bottom: 0;
+  padding: 0;
+  gap: 4px;
+}
+
+.compose .key {
+  background: var(--surface-1);
+  border-radius: var(--r-md);
+}
+
+.compose .key:active { background: var(--surface-3); }
+
 /* ---------- importe + teclado ---------- */
 
 .amount-display {

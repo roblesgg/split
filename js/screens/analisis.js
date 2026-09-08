@@ -162,14 +162,14 @@
       '</div>' +
 
       '<div class="filter-row" style="flex-direction:column;align-items:stretch;gap:var(--sp-3)">' +
-        '<div style="display:flex;align-items:center;gap:var(--sp-2)">' +
-          '<button type="button" class="icon-btn" data-aciclo="-1" aria-label="' + esc(Periodo()) + ' anterior" ' +
+        '<div class="period-card">' +
+          '<button type="button" class="icon-btn icon-btn--ghost" data-aciclo="-1" aria-label="' + esc(Periodo()) + ' anterior" ' +
                   'data-icon="chevLeft" data-icon-size="17"></button>' +
           '<div class="month-nav">' +
             '<p class="month-nav__label">' + esc(S.etiquetaCiclo(key)) + '</p>' +
             '<p class="month-nav__sub">' + esc(money(t.expense)) + ' gastados</p>' +
           '</div>' +
-          '<button type="button" class="icon-btn" data-aciclo="1" aria-label="' + esc(Periodo()) + ' siguiente" ' +
+          '<button type="button" class="icon-btn icon-btn--ghost" data-aciclo="1" aria-label="' + esc(Periodo()) + ' siguiente" ' +
                   'data-icon="chevron" data-icon-size="17"' +
                   (ui.cicloOffset === 0 ? " disabled" : "") + '></button>' +
         '</div>' +
