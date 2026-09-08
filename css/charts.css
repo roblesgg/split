@@ -9,6 +9,19 @@
   width: 100%;
 }
 
+.chart__canvas-wrap {
+  position: relative;
+  width: 100%;
+  /* El canvas de Chart.js necesita altura fija; el wrap la fija. */
+}
+
+.chart__canvas-wrap canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+  touch-action: pan-y;
+}
+
 /* el contenedor incluye la banda del eje x: nada de scroll anidado */
 .chart__svg {
   width: 100%;

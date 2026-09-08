@@ -31,6 +31,64 @@
   color: var(--text-secondary);
 }
 
+/* ---------- objetivo de cuenta: euros + % ---------- */
+
+.obj-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-2) 0 var(--sp-4);
+}
+
+.obj-hero__label {
+  font-size: var(--t-min);
+  font-weight: var(--w-semi);
+  color: var(--text-muted);
+}
+
+.obj-hero__value {
+  margin-top: 2px;
+  font-size: var(--num-l);
+  font-weight: var(--w-bold);
+  letter-spacing: -0.04em;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+}
+
+.obj-hero__sub {
+  margin-top: 2px;
+  font-size: var(--t-min);
+  color: var(--text-secondary);
+}
+
+.obj-hero__pct {
+  flex: none;
+  min-width: 72px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: color-mix(in srgb, var(--lim-fill, var(--accent)) 14%, var(--surface-2));
+  text-align: center;
+}
+
+.obj-hero__pct-n {
+  display: block;
+  font-size: 22px;
+  font-weight: var(--w-bold);
+  letter-spacing: -0.04em;
+  color: var(--lim-fill, var(--accent));
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.obj-hero__pct-l {
+  display: block;
+  margin-top: 4px;
+  font-size: 10px;
+  font-weight: var(--w-semi);
+  color: var(--text-muted);
+}
+
 /* ---------- anillo grande (tasa de ahorro) ---------- */
 
 .big-ring {
@@ -398,9 +456,9 @@
 
 .limcard__cara {
   flex: none;
-  width: 38px;
-  height: 38px;
-  border-radius: var(--r-full);
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
   font-size: 19px;
 }
 
@@ -427,14 +485,44 @@
   white-space: nowrap;
 }
 
-.limcard__chev { flex: none; color: var(--text-muted); }
+.limcard__pct {
+  flex: none;
+  min-width: 52px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--lim-fill, var(--accent)) 16%, var(--surface-2));
+  color: var(--lim-fill, var(--accent));
+  font-size: 15px;
+  font-weight: var(--w-bold);
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  line-height: 1;
+}
+
+.limcard[data-nivel="pasado"] .limcard__pct {
+  background: var(--status-critical-wash);
+  color: var(--status-critical);
+}
+
+.limcard[data-nivel="cerca"] .limcard__pct {
+  background: var(--status-warning-wash);
+  color: var(--status-warning);
+}
+
+.limcard__body {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  margin-top: var(--sp-4);
+}
 
 .limcard__cifra {
-  margin-top: var(--sp-4);
   display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 6px;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .limcard__grande {
@@ -442,30 +530,54 @@
   font-weight: var(--w-bold);
   letter-spacing: -0.04em;
   color: var(--text-primary);
+  line-height: 1.05;
 }
 
-.limcard__de { font-size: var(--t-min); color: var(--text-secondary); }
+.limcard__de {
+  font-size: var(--t-min);
+  color: var(--text-secondary);
+}
+
+.limcard__used {
+  flex: none;
+  text-align: right;
+}
+
+.limcard__used-val {
+  display: block;
+  font-size: 15px;
+  font-weight: var(--w-semi);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.limcard__used-lbl {
+  display: block;
+  margin-top: 1px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
 
 /* Hueco arriba para el globito de «Hoy», que se sale de la barra. */
 .limcard__barra { margin-top: 22px; }
 
 .limcard__track {
   position: relative;
-  height: var(--barra);
+  height: 10px;
   border-radius: var(--r-full);
   background: var(--surface-2);
-  box-shadow: none;
+  overflow: visible;
 }
 
 .limcard__fill {
   height: 100%;
   border-radius: var(--r-full);
   transform-origin: left center;
+  transform: scaleX(0);
   animation: meter-grow var(--dur-slow) var(--ease-out) both;
 }
 
-/* La marca de hoy: una línea sobre la barra con su etiqueta encima. Va
-   en gris, no en color: no es un estado, es una referencia. */
 .limcard__hoy {
   position: absolute;
   top: -4px;
@@ -474,6 +586,7 @@
   border-radius: 2px;
   background: var(--text-muted);
   transform: translateX(-1px);
+  pointer-events: none;
 }
 
 .limcard__hoy-txt {
@@ -484,17 +597,24 @@
   padding: 1px 7px;
   border-radius: var(--r-full);
   background: var(--surface-1);
-  box-shadow: none;
+  box-shadow: var(--lift-sm);
   font-size: 10px;
   font-weight: var(--w-semi);
   color: var(--text-secondary);
   white-space: nowrap;
 }
 
-/* El pie no se tiñe con el color de estado: a este tamaño el amarillo y
-   el rojo de la paleta no dan contraste sobre la tarjeta. La severidad
-   la llevan el icono y las palabras, como en el resto de la app; el
-   color vive en la barra, que es donde se ve. */
+.limcard__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  margin-top: 8px;
+  font-size: 11px;
+  font-weight: var(--w-medium);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
 .limcard__pie {
   display: flex;
   align-items: center;

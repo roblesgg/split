@@ -117,16 +117,27 @@
   function limiteHtml(est, cuenta) {
     var fill = colorDeLimite(est, cuenta);
     var pasado = est.nivel === "pasado";
+    var pctGrande = pasado
+      ? Math.round(est.ratio * 100)
+      : est.pct;
     return '' +
-      '<div class="hero-center" style="padding-bottom:var(--sp-4)">' +
-        '<p class="hero-center__label">' +
-          (pasado ? "Te has pasado" : "Te queda de tu objetivo") + '</p>' +
-        '<p class="hero-center__value" style="' + (pasado ? "color:" + fill : "") + '">' +
-          esc(S.pct(pasado ? Math.round((est.ratio - 1) * 100) : est.pctQueda)) + '</p>' +
+      '<div class="obj-hero">' +
+        '<div class="obj-hero__main">' +
+          '<p class="obj-hero__label">' +
+            (pasado ? "Te has pasado" : "Te queda") + '</p>' +
+          '<p class="obj-hero__value" style="' + (pasado ? "color:" + fill : "") + '">' +
+            esc(S.money(Math.abs(est.queda))) + '</p>' +
+          '<p class="obj-hero__sub">de ' + esc(S.money(est.limite)) + '</p>' +
+        '</div>' +
+        '<div class="obj-hero__pct" style="--lim-fill:' + fill + '">' +
+          '<span class="obj-hero__pct-n">' + pctGrande + ' %</span>' +
+          '<span class="obj-hero__pct-l">' + (pasado ? "usado" : "del tope") + '</span>' +
+        '</div>' +
       '</div>' +
       '<div class="meter">' +
         '<div class="meter__track">' +
-          '<div class="meter__fill" style="width:' + est.pct + '%;background:' + fill + '"></div>' +
+          '<div class="meter__fill" style="width:' + Math.min(100, est.pct) +
+            '%;background:' + fill + '"></div>' +
         '</div>' +
         '<p class="meter__foot">' + pieDeLimite(est) + '</p>' +
       '</div>';

@@ -54,8 +54,10 @@
     var fill = over ? "var(--status-critical)"
              : near ? "var(--status-warning)"
              : "var(--cat-" + b.color + ")";
+    var pctUsado = Math.round(b.ratio * 100);
+    var pctTxt = over ? pctUsado + " %" : (b.pct + " %");
 
-    return '<section class="card limcard" data-limcard="' + esc(b.id) + '">' +
+    return '<section class="card limcard" data-limcard="' + esc(b.id) + '" data-nivel="' + esc(b.nivel) + '">' +
         '<button type="button" class="limcard__head" data-form="limite" ' +
                 'data-form-id="' + esc(b.id) + '" aria-label="Editar ' + esc(b.name) + '">' +
           '<span class="limcard__cara cat-face cat-face--svg" ' +
@@ -65,24 +67,33 @@
             '<span class="limcard__nombre">' + esc(b.name) + '</span>' +
             '<span class="limcard__sub">' + esc(S.textoAmbitoCortoLimite(b)) + '</span>' +
           '</span>' +
-          '<span class="limcard__chev" data-icon="chevron" data-icon-size="16"></span>' +
+          '<span class="limcard__pct" style="--lim-fill:' + fill + '" aria-label="' +
+            esc(pctTxt + " usado") + '">' + esc(pctTxt) + '</span>' +
         '</button>' +
 
-        '<p class="limcard__cifra">' +
-          '<span class="limcard__grande">' + esc(S.money(Math.abs(b.queda))) + '</span>' +
-          '<span class="limcard__de">' +
-            (over ? " de más sobre " : " restante de ") + esc(S.money(b.limite)) + '</span>' +
-        '</p>' +
+        '<div class="limcard__body">' +
+          '<div class="limcard__cifra">' +
+            '<p class="limcard__grande">' + esc(S.money(Math.abs(b.queda))) + '</p>' +
+            '<p class="limcard__de">' +
+              (over ? "de más · tope " : "restante de ") + esc(S.money(b.limite)) + '</p>' +
+          '</div>' +
+          '<div class="limcard__used">' +
+            '<span class="limcard__used-val">' + esc(S.moneyShort(b.gastado)) + '</span>' +
+            '<span class="limcard__used-lbl">gastados</span>' +
+          '</div>' +
+        '</div>' +
 
         '<div class="limcard__barra">' +
           '<div class="limcard__track">' +
             '<div class="limcard__fill" style="width:' + Math.min(100, b.ratio * 100).toFixed(1) +
               '%;background:' + fill + '"></div>' +
-            /* Dónde estaría el gasto si lo repartieras por igual: si la
-               barra de color va por delante de esta marca, vas rápido. */
             '<span class="limcard__hoy" style="left:' + b.pctTiempo + '%">' +
               '<span class="limcard__hoy-txt">Hoy</span>' +
             '</span>' +
+          '</div>' +
+          '<div class="limcard__meta">' +
+            '<span>' + esc(b.pct) + ' % del tope</span>' +
+            '<span>' + esc(b.pctTiempo) + ' % del mes</span>' +
           '</div>' +
         '</div>' +
 
@@ -142,29 +153,29 @@
   function meterHtml(b, i) {
     var over = b.nivel === "pasado";
     var near = b.nivel === "cerca";
-    /* el relleno lleva la severidad; el color del límite cuando va bien */
     var fill = over ? "var(--status-critical)"
              : near ? "var(--status-warning)"
              : "var(--cat-" + b.color + ")";
+    var pct = Math.round(b.ratio * 100);
     return '' +
-      '<div class="meter">' +
-        /* El nombre se lleva la línea entera y la cifra va debajo. Con
-           los dos en la misma fila, y con la tipografía gorda de la app,
-           «Suscripciones» se quedaba en «Suscripcio…»: el nombre es lo
-           que dice de qué límite hablamos, así que no se recorta. */
+      '<div class="meter" data-nivel="' + esc(b.nivel) + '">' +
         '<div class="meter__head">' +
           '<span class="meter__dot" style="background:' + fill + '"></span>' +
           '<span class="meter__label">' + esc(b.name) + '</span>' +
+          '<span class="meter__pct" style="color:' + fill + '">' + pct + ' %</span>' +
         '</div>' +
         '<p class="meter__cifra">' + esc(S.moneyShort(b.gastado)) + ' de ' +
-          esc(S.moneyShort(b.limite)) + '</p>' +
+          esc(S.moneyShort(b.limite)) +
+          '<span class="meter__queda">' +
+            (over
+              ? esc(S.moneyShort(-b.queda)) + " de más"
+              : "quedan " + esc(S.moneyShort(b.queda))) +
+          '</span>' +
+        '</p>' +
         '<div class="meter__track">' +
           '<div class="meter__fill" style="width:' + Math.min(100, b.ratio * 100).toFixed(1) + '%;' +
             'background:' + fill + ';--delay:' + (i * 55 + 90) + 'ms"></div>' +
         '</div>' +
-        /* El porcentaje manda y los euros van detrás: lo que se quiere
-           saber de un vistazo es cuánto margen queda, no la resta. Y el
-           color de estado nunca va solo: siempre con icono y texto. */
         (over
           ? '<p class="meter__foot">' + icon("warning", 11) + ' Te has pasado un ' +
             esc(S.pct(Math.round((b.ratio - 1) * 100))) + ' · ' +

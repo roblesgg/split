@@ -101,23 +101,41 @@
   text-overflow: ellipsis;
 }
 
+.meter__pct {
+  flex: none;
+  font-size: 14px;
+  font-weight: var(--w-bold);
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
 /* La cifra va debajo del nombre, no a su lado: así el nombre nunca se
    recorta y las dos se leen enteras. */
 .meter__cifra {
   margin: 2px 0 8px 23px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
   font-size: 14px;
   font-weight: var(--w-semi);
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
 }
 
+.meter__queda {
+  font-size: 12px;
+  font-weight: var(--w-medium);
+  color: var(--text-muted);
+}
+
 /* La pista va hundida en el material. Gorda a propósito: una barra fina
    se lee como un adorno y hay que fijarse para ver cuánto lleva. */
 .meter__track {
   position: relative;
-  height: 16px;
+  height: 10px;
   border-radius: var(--r-full);
-  background: var(--surface-3);
+  background: var(--surface-2);
   overflow: hidden;
 }
 

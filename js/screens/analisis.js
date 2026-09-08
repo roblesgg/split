@@ -28,6 +28,7 @@
 
   function renderAnalisis() {
     var root = $("#view-analisis");
+    C.destroyChartsIn(root);
     var key = cicloVisible();
     var series = seriesEnding(key, ui.range);
     var cats = S.byCategory(key, "out");
