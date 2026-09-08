@@ -58,9 +58,9 @@
     return '<section class="card limcard" data-limcard="' + esc(b.id) + '">' +
         '<button type="button" class="limcard__head" data-form="limite" ' +
                 'data-form-id="' + esc(b.id) + '" aria-label="Editar ' + esc(b.name) + '">' +
-          '<span class="limcard__cara cat-face" ' +
-                'style="--cat-color:var(--cat-' + b.color + ')">' +
-            esc(b.emoji || "🎯") + '</span>' +
+          '<span class="limcard__cara cat-face cat-face--svg" ' +
+                'style="--cat-color:var(--cat-' + b.color + ')" ' +
+                'aria-hidden="true" data-icon="' + esc(b.icon || "target") + '" data-icon-size="20"></span>' +
           '<span class="limcard__titulos">' +
             '<span class="limcard__nombre">' + esc(b.name) + '</span>' +
             '<span class="limcard__sub">' + esc(S.textoAmbitoCortoLimite(b)) + '</span>' +
@@ -154,7 +154,7 @@
            que dice de qué límite hablamos, así que no se recorta. */
         '<div class="meter__head">' +
           '<span class="meter__dot" style="background:' + fill + '"></span>' +
-          '<span class="meter__label">' + esc(b.emoji || "") + ' ' + esc(b.name) + '</span>' +
+          '<span class="meter__label">' + esc(b.name) + '</span>' +
         '</div>' +
         '<p class="meter__cifra">' + esc(S.moneyShort(b.gastado)) + ' de ' +
           esc(S.moneyShort(b.limite)) + '</p>' +
@@ -198,18 +198,24 @@
   /* --- acciones rápidas --- */
   bloque("acciones", {
     nombre: "Botones rápidos",
-    sub: "Apuntar un gasto o un ingreso, y el atajo a Análisis",
+    sub: "Apuntar, ingresar, traspasar o ir a Mi dinero",
     render: function (ctx) {
       /* Con una cuenta abierta, lo que apuntes va a esa cuenta: es lo
          que espera cualquiera que esté mirándola. */
       var attr = ctx.accId ? ' data-quick-cuenta="' + esc(ctx.accId) + '"' : "";
-      return '<div class="actions">' +
-          '<button type="button" class="btn btn--primary" data-quick="gasto"' + attr + '>' +
-            icon("minus", 18) + 'Nuevo gasto</button>' +
-          '<button type="button" class="action-circle" data-quick="ingreso"' + attr + ' ' +
-                  'aria-label="Registrar un ingreso" data-icon="plus" data-icon-size="19"></button>' +
-          '<button type="button" class="action-circle" data-goto="analisis" ' +
-                  'aria-label="Ir a Análisis" data-icon="chart" data-icon-size="18"></button>' +
+      return '<div class="mac-actions">' +
+          '<button type="button" class="mac-act" data-quick="gasto"' + attr + '>' +
+            '<span class="mac-act__icon" data-icon="send" data-icon-size="20"></span>' +
+            '<span class="mac-act__label">Gasto</span></button>' +
+          '<button type="button" class="mac-act" data-quick="ingreso"' + attr + '>' +
+            '<span class="mac-act__icon mac-act__icon--accent" data-icon="plus" data-icon-size="20"></span>' +
+            '<span class="mac-act__label">Ingreso</span></button>' +
+          '<button type="button" class="mac-act" data-quick="traspaso"' + attr + '>' +
+            '<span class="mac-act__icon" data-icon="swap" data-icon-size="20"></span>' +
+            '<span class="mac-act__label">Traspaso</span></button>' +
+          '<button type="button" class="mac-act" data-goto="ahorro">' +
+            '<span class="mac-act__icon" data-icon="grid" data-icon-size="20"></span>' +
+            '<span class="mac-act__label">Más</span></button>' +
         '</div>';
     }
   });
@@ -290,13 +296,13 @@
     opciones: function () {
       return S.limites().map(function (l) {
         return { id: "limite:" + l.id,
-                 nombre: (l.emoji ? l.emoji + " " : "") + l.name,
+                 nombre: l.name,
                  sub: S.textoAmbitoCortoLimite(l) };
       });
     },
     nombreDe: function (arg) {
       var l = arg && S.limitePorId(arg);
-      return l ? (l.emoji ? l.emoji + " " : "") + l.name : "Un límite del mes";
+      return l ? l.name : "Un límite del mes";
     },
     render: function (ctx) {
       /* Un límite borrado se lleva su módulo: devolver "" hace que ni se
@@ -320,7 +326,7 @@
           '<span class="limit__ring" data-limit-ring="' +
             Math.min(1, peor.ratio) + '"></span>' +
           '<span class="limit__body">' +
-            '<span class="limit__label">' + esc(peor.emoji) + ' ' + esc(peor.name) + '</span>' +
+            '<span class="limit__label">' + esc(peor.name) + '</span>' +
             '<span class="limit__value">' + esc(S.moneyShort(peor.gastado)) + ' de ' +
               esc(S.moneyShort(peor.limite)) + '</span>' +
           '</span>' +
@@ -368,7 +374,7 @@
             return '<div class="meter">' +
                 '<div class="meter__head">' +
                   '<span class="meter__dot" style="background:' + fill + '"></span>' +
-                  '<span class="meter__label">' + esc(ap.emoji) + ' ' + esc(ap.name) + '</span>' +
+                  '<span class="meter__label">' + esc(ap.name) + '</span>' +
                 '</div>' +
                 '<p class="meter__cifra">' + esc(S.moneyShort(e.saldo)) + '</p>' +
                 '<div class="meter__track">' +

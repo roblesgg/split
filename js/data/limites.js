@@ -75,6 +75,7 @@
       id: slugId("lim", data.name || "limite"),
       name: (data.name || "Límite").trim(),
       emoji: data.emoji || "🎯",
+      icon: data.icon || "target",
       color: normalizeColor(data.color != null ? data.color : 1),
       importe: importeValido(data.importe),
       ambito: normalizarAmbito(data.ambito),
@@ -90,6 +91,7 @@
     if (!lim) return null;
     if (patch.name != null) lim.name = String(patch.name).trim() || lim.name;
     if (patch.emoji != null) lim.emoji = patch.emoji;
+    if (patch.icon != null) lim.icon = patch.icon;
     if (patch.color != null) lim.color = normalizeColor(patch.color);
     if (patch.importe != null) lim.importe = importeValido(patch.importe);
     if (patch.ambito != null) lim.ambito = normalizarAmbito(patch.ambito);
@@ -179,6 +181,7 @@
       key: key,
       name: lim.name,
       emoji: lim.emoji,
+      icon: lim.icon || "target",
       color: lim.color,
       ambito: lim.ambito,
       /* Copia, no la lista de verdad: quien pinta no puede cambiar el

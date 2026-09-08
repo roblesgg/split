@@ -13,7 +13,7 @@
   border-radius: var(--r-lg);
   background: var(--surface-1);
   border: none;
-  box-shadow: none;
+  box-shadow: var(--lift-sm);
   padding: var(--sp-6);
 }
 
@@ -144,7 +144,7 @@
   background: linear-gradient(145deg,
               color-mix(in srgb, var(--acc-color, var(--cat-16)) 60%, #101318) 0%,
               color-mix(in srgb, var(--acc-color, var(--cat-16)) 38%, #101318) 100%);
-  box-shadow: none;
+  box-shadow: var(--lift-md);
   color: #ffffff;
   /* ahora son botones (tocar una tarjeta abre esa cuenta) y los botones
      centran el texto por defecto */

@@ -116,11 +116,23 @@ module.exports = function () {
   var copia = JSON.parse(JSON.stringify(antes));
   var s = D.migrate(JSON.parse(JSON.stringify(antes)));
 
-  t.es("sube a la versión 18", s.version, 18);
+  t.es("sube a la versión 19", s.version, 19);
   t.es("no se pierde ningún movimiento", s.transactions.length, copia.transactions.length);
   t.es("los movimientos salen tal cual", s.transactions, copia.transactions);
   t.es("no se pierde ninguna cuenta", s.accounts, copia.accounts);
-  t.es("no se pierde ninguna categoría, ni la propia", s.categories, copia.categories);
+  t.es("no se pierde ninguna categoría, ni la propia",
+       s.categories.map(function (c) {
+         return { id: c.id, name: c.name, emoji: c.emoji, color: c.color,
+                  kind: c.kind, icon: c.icon };
+       }),
+       [
+         { id: "comida", name: "Comida", emoji: "🍽️", color: 1, kind: "out", icon: "utensils" },
+         { id: "gasolina", name: "Gasolina", emoji: "⛽", color: 5, kind: "out", icon: "fuel" },
+         { id: "hogar", name: "Hogar", emoji: "🏠", color: 8, kind: "out", icon: "home" },
+         { id: "subs", name: "Suscripciones", emoji: "📺", color: 11, kind: "out", icon: "repeat" },
+         { id: "nomina", name: "Sueldo", emoji: "💼", color: 3, kind: "in", icon: "briefcase" },
+         { id: "perro", name: "El perro", emoji: "🐕", color: 14, kind: "out", icon: "box" }
+       ]);
   t.es("las etiquetas siguen ahí", s.tags, copia.tags);
   t.es("las metas siguen ahí", s.goals, copia.goals);
   /* v15: el reparto por porcentajes se convierte en límites con nombre,
@@ -208,7 +220,7 @@ module.exports = function () {
   };
   var viejo = D.migrate(JSON.parse(JSON.stringify(v1)));
 
-  t.es("llega hasta la 18", viejo.version, 18);
+  t.es("llega hasta la 19", viejo.version, 19);
   t.es("el movimiento de hace dos años sigue ahí", viejo.transactions.length, 1);
   /* El presupuesto en euros de la v1 pasó a porcentaje en la v2 y vuelve
      a euros en la v15, ya como límites con nombre. Un viaje de ida y
@@ -233,7 +245,7 @@ module.exports = function () {
 
   /* ---------- las subcategorías se ponen la cara de su madre ---------- */
 
-  t.grupo("Las de dentro heredan el icono (v18)");
+  t.grupo("Las de dentro heredan el icono (v18→v19)");
 
   var conHijas = D.migrate({
     version: 17,
@@ -250,14 +262,14 @@ module.exports = function () {
   });
   var cara = function (id) {
     var c = conHijas.categories.find(function (x) { return x.id === id; });
-    return [c.name, c.emoji];
+    return [c.name, c.emoji, c.icon];
   };
 
-  t.es("las dos de dentro de Comida se ponen su icono",
+  t.es("las dos de dentro de Comida se ponen su emoji e icono",
        [cara("alm"), cara("cena")],
-       [["Almuerzos", "🍽️"], ["Cenas fuera", "🍽️"]]);
-  t.es("la madre no se toca", cara("comida"), ["Comida", "🍽️"]);
-  t.es("y una suelta tampoco", cara("ocio"), ["Ocio", "🎬"]);
+       [["Almuerzos", "🍽️", "utensils"], ["Cenas fuera", "🍽️", "utensils"]]);
+  t.es("la madre no se toca", cara("comida"), ["Comida", "🍽️", "utensils"]);
+  t.es("y una suelta tampoco", cara("ocio"), ["Ocio", "🎬", "film"]);
   t.es("el nombre de cada una se respeta",
        conHijas.categories.map(function (c) { return c.name; }),
        ["Comida", "Almuerzos", "Cenas fuera", "Ocio"]);
@@ -273,7 +285,7 @@ module.exports = function () {
   t.es("se le ponen las categorías de fábrica", roto.categories.length > 0, true);
   t.es("se le pone un ciclo", roto.ciclo, { dia: 1 });
   t.es("y una lista de apartados vacía", roto.apartados, []);
-  t.es("sin lista de programados, no falla", D.migrate({ version: 11 }).version, 18);
+  t.es("sin lista de programados, no falla", D.migrate({ version: 11 }).version, 19);
 
   /* ---------- y lo que carga la app de verdad ---------- */
 
@@ -284,10 +296,10 @@ module.exports = function () {
   guardado[D.KEY] = JSON.stringify(estadoV11());
   var cargado = D.load();
 
-  t.es("carga y migra lo que había guardado", cargado.version, 18);
+  t.es("carga y migra lo que había guardado", cargado.version, 19);
   t.es("con todos sus movimientos", cargado.transactions.length, 5);
   t.es("y deja guardado ya el formato nuevo",
-       JSON.parse(guardado[D.KEY]).version, 18);
+       JSON.parse(guardado[D.KEY]).version, 19);
   t.es("de forma que la siguiente vez no cambia nada",
        JSON.parse(guardado[D.KEY]), cargado);
 };

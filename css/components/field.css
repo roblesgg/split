@@ -127,8 +127,53 @@ select.field__input { appearance: none; cursor: pointer; padding-right: var(--sp
   color: var(--text-primary);
 }
 
-/* dentro de una fila el emoji va en su círculo hundido, como el avatar */
+/* cara SVG: mismo hueco teñido, icono monocromo */
+.cat-face--svg {
+  color: var(--cat-color);
+  font-size: 0;
+}
+
+.cat-face--svg svg {
+  display: block;
+}
+
+.cat-face--lg {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-md);
+  margin-inline: auto;
+  box-shadow: var(--lift-sm);
+}
+
+/* dentro de una fila el icono va en su círculo, como el avatar */
 .avatar-letter.cat-face { font-weight: 400; }
+
+/* rejilla de iconos del formulario de identidad */
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+}
+
+.icon-pick {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: 14px;
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  transition: background var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out),
+              box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.icon-pick[aria-pressed="true"] {
+  background: var(--accent-wash);
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1.5px var(--accent);
+}
+
+.icon-pick:active { transform: scale(0.94); }
 
 /* ---------- notas largas ---------- */
 

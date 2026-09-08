@@ -63,7 +63,7 @@
       row.innerHTML =
         '<div class="rank__head">' +
           '<span class="rank__dot" style="background:' + catColor(it) + '"></span>' +
-          '<span class="rank__name">' + (it.emoji ? it.emoji + " " : "") + it.name + '</span>' +
+          '<span class="rank__name">' + esc(it.name) + '</span>' +
           '<span class="rank__val">' + fmt(it.value) + '</span>' +
           '<span class="rank__pct">' + Math.round(share) + '%</span>' +
         '</div>' +

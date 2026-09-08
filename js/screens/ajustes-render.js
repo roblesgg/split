@@ -61,9 +61,9 @@
     return '<div class="pres-fila">' +
         '<button type="button" class="pres-fila__main" data-lim-abrir="' +
                 esc(e.id) + '" aria-label="Editar ' + esc(e.name) + '">' +
-          '<span class="pres-fila__cara cat-face" ' +
-                'style="--cat-color:var(--cat-' + e.color + ')" aria-hidden="true">' +
-            esc(e.emoji) + '</span>' +
+          '<span class="pres-fila__cara cat-face cat-face--svg" ' +
+                'style="--cat-color:var(--cat-' + e.color + ')" aria-hidden="true" ' +
+                'data-icon="' + esc(e.icon || S.catIcon(e) || "target") + '" data-icon-size="18"></span>' +
           '<span class="pres-fila__texto">' +
           /* La cifra va arriba con el nombre y no abajo con el ámbito:
              en un móvil estrecho las dos cosas juntas en una línea no
@@ -286,21 +286,6 @@
           '<h2 class="card__title">Apariencia</h2>' +
         '</div>' +
         settingRow("sun", "Tema", themeLabel(theme), "theme", themeShort(theme)) +
-        settingRow("sparkle", "Emojis", emojiHint(S.getEmojiSet()), "emojis",
-                   emojiCorto(S.getEmojiSet())) +
-        /* Twemoji es CC-BY: dejar el crédito a la vista mientras se usa no
-           es un detalle bonito, es la condición de la licencia. */
-        (S.getEmojiSet() === "twemoji"
-          ? '<p class="card__sub card__pad--tight" style="padding-bottom:var(--sp-4)">' +
-              'Emojis de <a href="https://github.com/twitter/twemoji" ' +
-                'target="_blank" rel="noopener">Twemoji</a>, con licencia ' +
-              'CC-BY 4.0.</p>'
-          : S.getEmojiSet() === "noto"
-          ? '<p class="card__sub card__pad--tight" style="padding-bottom:var(--sp-4)">' +
-              'Emojis de <a href="https://github.com/googlefonts/noto-emoji" ' +
-                'target="_blank" rel="noopener">Noto Emoji</a>, con licencia ' +
-              'SIL OFL 1.1.</p>'
-          : "") +
       '</section>' +
 
       '<section class="card card--flush">' +

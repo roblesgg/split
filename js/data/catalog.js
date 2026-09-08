@@ -22,34 +22,45 @@
   var CAT_COLORS = 16;
 
   var DEFAULT_CATEGORIES = [
-    { id: "comida",   name: "Comida",        emoji: "🍽️", color: 3,  kind: "out" },
-    { id: "compras",  name: "Compras",       emoji: "🛍️", color: 11, kind: "out" },
-    { id: "gasolina", name: "Gasolina",      emoji: "⛽", color: 13, kind: "out" },
-    { id: "transp",   name: "Transporte",    emoji: "🚌", color: 1,  kind: "out" },
-    { id: "hogar",    name: "Hogar",         emoji: "🏠", color: 5,  kind: "out" },
-    { id: "ocio",     name: "Ocio",          emoji: "🎬", color: 9,  kind: "out" },
-    { id: "salud",    name: "Salud",         emoji: "💊", color: 7,  kind: "out" },
-    { id: "subs",     name: "Suscripciones", emoji: "🔁", color: 4,  kind: "out" },
-    { id: "regalos",  name: "Regalos",       emoji: "🎁", color: 12, kind: "out" },
-    { id: "otros",    name: "Otros",         emoji: "📦", color: 16, kind: "out" },
-    /* El ingreso genérico va primero: no todo lo que entra es un sueldo. */
-    { id: "ingreso",  name: "Ingreso",       emoji: "💰", color: 3,  kind: "in" },
-    { id: "nomina",   name: "Sueldo",        emoji: "💼", color: 15, kind: "in" },
-    { id: "extra",    name: "Extra",         emoji: "⏰", color: 6,  kind: "in" },
-    { id: "regalo",   name: "Regalo",        emoji: "🎁", color: 10, kind: "in" },
-
-    /* Las dos del corregir saldo. No son un gasto ni un ingreso de verdad:
-       son la diferencia entre lo que la app creía y lo que hay. Van en su
-       propia categoría para que se vea cuánto se escapa sin apuntar, en
-       vez de disfrazarse de «Otros». */
-    { id: "ajuste",   name: "Ajuste de saldo", emoji: "⚖️", color: 8, kind: "out", sistema: true },
-    { id: "ajusteIn", name: "Ajuste de saldo", emoji: "⚖️", color: 8, kind: "in",  sistema: true }
+    { id: "comida",   name: "Comida",        icon: "utensils",  emoji: "🍽️", color: 3,  kind: "out" },
+    { id: "compras",  name: "Compras",       icon: "bag",       emoji: "🛍️", color: 11, kind: "out" },
+    { id: "gasolina", name: "Gasolina",      icon: "fuel",      emoji: "⛽", color: 13, kind: "out" },
+    { id: "transp",   name: "Transporte",    icon: "car",       emoji: "🚌", color: 1,  kind: "out" },
+    { id: "hogar",    name: "Hogar",         icon: "home",      emoji: "🏠", color: 5,  kind: "out" },
+    { id: "ocio",     name: "Ocio",          icon: "film",      emoji: "🎬", color: 9,  kind: "out" },
+    { id: "salud",    name: "Salud",         icon: "heart",     emoji: "💊", color: 7,  kind: "out" },
+    { id: "subs",     name: "Suscripciones", icon: "repeat",    emoji: "🔁", color: 4,  kind: "out" },
+    { id: "regalos",  name: "Regalos",       icon: "gift",      emoji: "🎁", color: 12, kind: "out" },
+    { id: "otros",    name: "Otros",         icon: "box",       emoji: "📦", color: 16, kind: "out" },
+    { id: "ingreso",  name: "Ingreso",       icon: "cash",      emoji: "💰", color: 3,  kind: "in" },
+    { id: "nomina",   name: "Sueldo",        icon: "briefcase", emoji: "💼", color: 15, kind: "in" },
+    { id: "extra",    name: "Extra",         icon: "clock",     emoji: "⏰", color: 6,  kind: "in" },
+    { id: "regalo",   name: "Regalo",        icon: "gift",      emoji: "🎁", color: 10, kind: "in" },
+    { id: "ajuste",   name: "Ajuste de saldo", icon: "scale", emoji: "⚖️", color: 8, kind: "out", sistema: true },
+    { id: "ajusteIn", name: "Ajuste de saldo", icon: "scale", emoji: "⚖️", color: 8, kind: "in",  sistema: true }
   ];
 
-  /* Cuando una categoría se borra pero algo todavía la nombra. No debería
-     pasar (borrar está bloqueado si está en uso), pero un import a mano
-     puede traer un id que no existe y la app no se puede caer por eso. */
-  var CAT_FALLBACK = { id: "otros", name: "Sin categoría", emoji: "❓", color: 16, kind: "out" };
+  var CAT_FALLBACK = { id: "otros", name: "Sin categoría", icon: "box", emoji: "❓", color: 16, kind: "out" };
+
+  /* Iconos por id si una categoría antigua no trae `icon`. */
+  var ICON_POR_ID = {
+    comida: "utensils", compras: "bag", gasolina: "fuel", transp: "car",
+    hogar: "home", ocio: "film", salud: "heart", subs: "repeat",
+    regalos: "gift", otros: "box", ingreso: "cash", nomina: "briefcase",
+    extra: "clock", regalo: "gift", ajuste: "scale", ajusteIn: "scale"
+  };
+
+  var ICONOS_CAT = [
+    "utensils", "bag", "fuel", "car", "home", "film", "heart", "repeat",
+    "gift", "box", "cash", "briefcase", "clock", "wallet", "piggy", "target",
+    "cart", "sparkle", "calendar", "sliders", "scale", "send"
+  ];
+
+  function catIcon(cat) {
+    if (!cat) return "box";
+    if (cat.icon) return cat.icon;
+    return ICON_POR_ID[cat.id] || "box";
+  }
 
   /* Índice por id, rehecho solo cuando cambian las categorías: se consulta
      en bucles de render y reconstruirlo en cada lectura se nota. */
@@ -129,7 +140,9 @@
   /* --- lo que se lleva el espacio común --- */
   D.CAT_COLORS = CAT_COLORS;
   D.DEFAULT_CATEGORIES = DEFAULT_CATEGORIES;
+  D.ICONOS_CAT = ICONOS_CAT;
   D.catById = catById;
+  D.catIcon = catIcon;
   D.catColorVar = catColorVar;
   D.catExacta = catExacta;
   D.categoriasMadre = categoriasMadre;

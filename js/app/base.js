@@ -53,14 +53,14 @@ window.App = (function () {
   function cicloMovs() { return S.addMonths(S.cicloActual(), -ui.movsCicloOffset); }
   function catOf(id) { return S.catById(id); }
 
-  /* Emoji de la categoría sobre un fondo teñido con su color. Sustituye al
-     icono SVG: el emoji lo elige el usuario y el color separa de un vistazo.
-     El nombre siempre viaja al lado, así que el color nunca es el único
-     canal que lleva el dato. */
+  /* Icono SVG de la categoría sobre un fondo teñido con su color.
+     Sustituye al emoji: queda integrado con el resto de la interfaz. */
   function catFace(cat, size, cls) {
-    return '<span class="' + (cls ? cls + " " : "") + 'cat-face" ' +
-           'style="--cat-color:' + S.catColorVar(cat) + ';font-size:' + (size || 18) + 'px" ' +
-           'aria-hidden="true">' + esc(cat.emoji || "\uD83D\uDCE6") + '</span>';
+    var ic = S.catIcon(cat);
+    var px = size || 18;
+    return '<span class="' + (cls ? cls + " " : "") + 'cat-face cat-face--svg" ' +
+           'style="--cat-color:' + S.catColorVar(cat) + '" ' +
+           'aria-hidden="true" data-icon="' + ic + '" data-icon-size="' + px + '"></span>';
   }
   function isDesktop() { return window.matchMedia("(min-width: 900px)").matches; }
 

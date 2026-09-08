@@ -60,7 +60,15 @@
     filter:   '<path d="M3.5 5.5h17l-6.6 7.6v5.6l-3.8 1.8v-7.4Z"/>',
     calendar: '<path d="M4 6.5h16V20H4Z"/><path d="M4 10.5h16"/><path d="M8.5 3.5v3M15.5 3.5v3"/>',
     lock:     '<path d="M5 10.5h14V20H5Z"/><path d="M8.2 10.5V7.8a3.8 3.8 0 0 1 7.6 0v2.7"/><circle cx="12" cy="15" r="1.2" fill="currentColor" stroke="none"/>',
-    briefcase:'<path d="M3 8.5h18V19H3Z"/><path d="M9 8.5V6.8A1.8 1.8 0 0 1 10.8 5h2.4A1.8 1.8 0 0 1 15 6.8v1.7"/><path d="M3 13h18"/>'
+    briefcase:'<path d="M3 8.5h18V19H3Z"/><path d="M9 8.5V6.8A1.8 1.8 0 0 1 10.8 5h2.4A1.8 1.8 0 0 1 15 6.8v1.7"/><path d="M3 13h18"/>',
+    utensils: '<path d="M7 4v7a2 2 0 0 0 2 2h0V20"/><path d="M7 4c0 3 1.5 4 1.5 7"/><path d="M5.5 4c0 3 1.5 4 1.5 7"/><path d="M16.5 4v6.5a2 2 0 0 0 2 2V20"/><path d="M16.5 4c1.8 0 3 1.4 3 3.5S18.3 11 16.5 11"/>',
+    film:     '<rect x="3.5" y="5" width="17" height="14" rx="2"/><path d="M7 5v14M17 5v14M3.5 9.5h17M3.5 14.5h17"/>',
+    fuel:     '<path d="M5 20V7.5A2.5 2.5 0 0 1 7.5 5h5A2.5 2.5 0 0 1 15 7.5V20"/><path d="M5 20h10"/><path d="M15 10h2.2A1.8 1.8 0 0 1 19 11.8V16a2 2 0 0 0 2 2"/><path d="M8 9h4v3H8Z"/>',
+    box:      '<path d="M3.5 8.5 12 4l8.5 4.5v9L12 22l-8.5-4.5Z"/><path d="M3.5 8.5 12 13l8.5-4.5M12 13V22"/>',
+    scale:    '<path d="M12 4v16"/><path d="M5 8h14"/><path d="M7 8 4.5 14h5L7 8Z"/><path d="M17 8 14.5 14h5L17 8Z"/>',
+    send:     '<path d="M4 11.5 20 4l-5.5 16-3.2-6.3Z"/><path d="m11.3 13.7 7.2-8"/>',
+    grid:     '<rect x="4" y="4" width="6.5" height="6.5" rx="1.2"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.2"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.2"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.2"/>',
+    more:     '<circle cx="6" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="18" cy="12" r="1.6" fill="currentColor" stroke="none"/>'
   };
 
   function icon(name, size, strokeWidth) {

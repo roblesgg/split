@@ -50,15 +50,14 @@
       d = { accountId: id, real: cuenta ? S.accountBalance(id) : 0 };
     } else if (type === "category") {
       d = it
-        ? { name: it.name, emoji: it.emoji, color: it.color, kind: it.kind,
-            parentId: it.parentId || "" }
+        ? { name: it.name, emoji: it.emoji, icon: it.icon || S.catIcon(it),
+            color: it.color, kind: it.kind, parentId: it.parentId || "" }
         : (function () {
-            /* al crear desde dentro de una madre, ya viene puesta, y con
-               ella la cara: una hija lleva la de su madre */
             var madreId = (opts && opts.parentId) || "";
             var madre = madreId && S.catById(madreId);
             return { name: "",
                      emoji: madre ? madre.emoji : "🏷️",
+                     icon: madre ? S.catIcon(madre) : "box",
                      color: madre ? madre.color : 1,
                      kind: (opts && opts.kind === "in") ? "in" : "out",
                      parentId: madreId };
@@ -79,19 +78,18 @@
             name: apAp ? apAp.name : "" };
     } else if (type === "apartado") {
       d = it
-        ? { name: it.name, emoji: it.emoji, color: it.color,
+        ? { name: it.name, emoji: it.emoji, icon: it.icon || "box", color: it.color,
             accountId: it.accountId, porCiclo: it.porCiclo || "",
             categoryIds: (it.categoryIds || []).slice() }
-        : { name: "", emoji: "📦",
+        : { name: "", emoji: "📦", icon: "box",
             color: ((S.APARTADOS.length * 5) % S.CAT_COLORS) + 1,
-            /* siempre nace dentro de una cuenta: se llega desde ella */
             accountId: (opts && opts.accountId) || accs[0].id,
             porCiclo: "", inicial: "", categoryIds: [] };
     } else if (type === "limite") {
       d = it
-        ? { name: it.name, emoji: it.emoji, color: it.color, importe: it.importe,
+        ? { name: it.name, emoji: it.emoji, icon: it.icon || "target", color: it.color, importe: it.importe,
             ambito: it.ambito, categoryIds: (it.categoryIds || []).slice() }
-        : { name: "", emoji: "🎯",
+        : { name: "", emoji: "🎯", icon: "target",
             color: ((S.limites().length * 5) % S.CAT_COLORS) + 1,
             importe: "", ambito: "todas", categoryIds: [] };
     } else if (type === "goal") {
@@ -420,23 +418,16 @@
          scroll para ver lo que estás cambiando. */
       if ((node = e.target.closest("[data-ident]"))) {
         var cual = node.getAttribute("data-ident");
+        if (cual === "emoji") cual = "icon";
         ui.form.abierto = ui.form.abierto === cual ? null : cual;
         renderForm();
-        if (ui.form.abierto === "emoji") {
-          var libre = $("#fEmoji", formBody);
-          if (libre) libre.focus();
-        }
         U.haptic("light");
         return;
       }
 
       if ((node = e.target.closest("[data-pemoji]"))) {
+        /* compat: ya no se usa, pero no rompe imports viejos */
         ui.form.d.emoji = node.getAttribute("data-pemoji");
-        var inp = $("#fEmoji", formBody);
-        if (inp) inp.value = ui.form.d.emoji;
-        $$("[data-pemoji]", formBody).forEach(function (b) {
-          b.setAttribute("aria-pressed", String(b === node));
-        });
         refreshCatPreview();
         U.haptic("light");
         return;
@@ -497,6 +488,7 @@
           b.setAttribute("aria-selected", String(b === node));
           b.setAttribute("aria-pressed", String(b === node));
         });
+        refreshCatPreview();
         U.haptic("light");
         return;
       }

@@ -129,7 +129,7 @@
   width: 100%;
   background: var(--btn-grad);
   color: var(--btn-ink);
-  box-shadow: none;
+  box-shadow: var(--glow-accent);
 }
 
 .btn--primary:hover { opacity: 0.92; }

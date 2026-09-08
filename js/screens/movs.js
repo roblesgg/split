@@ -116,7 +116,6 @@
                   (catFiltro
                     ? '<button type="button" class="chip" id="movsCatClear" ' +
                               'aria-pressed="true">' +
-                        esc(catFiltro.emoji ? catFiltro.emoji + " " : "") +
                         esc(catFiltro.name) +
                         '<span data-icon="close" data-icon-size="11"></span>' +
                       '</button>'

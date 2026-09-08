@@ -57,6 +57,7 @@
       id: slugId("ap", data.name || "apartado"),
       name: (data.name || "Apartado").trim(),
       emoji: data.emoji || "📦",
+      icon: data.icon || "box",
       color: normalizeColor(data.color != null ? data.color : 1),
       accountId: data.accountId,
       porCiclo: Math.max(0, Math.round((+data.porCiclo || 0) * 100) / 100),
@@ -80,6 +81,7 @@
     if (!ap) return null;
     if (patch.name != null) ap.name = String(patch.name).trim() || ap.name;
     if (patch.emoji != null) ap.emoji = patch.emoji;
+    if (patch.icon != null) ap.icon = patch.icon;
     if (patch.color != null) ap.color = normalizeColor(patch.color);
     if (patch.porCiclo != null) {
       ap.porCiclo = Math.max(0, Math.round((+patch.porCiclo || 0) * 100) / 100);

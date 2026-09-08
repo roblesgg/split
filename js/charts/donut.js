@@ -174,8 +174,7 @@
       var pct = Math.round((it.value / sumaVis) * 100);
       return '<li class="donut__ley">' +
           '<span class="donut__punto" style="background:' + catColor(it) + '"></span>' +
-          '<span class="donut__ley-nombre">' +
-            (it.emoji ? esc(it.emoji) + " " : "") + esc(it.name) + '</span>' +
+          '<span class="donut__ley-nombre">' + esc(it.name) + '</span>' +
           '<span class="donut__ley-pct">' + pct + ' %</span>' +
           '<span class="donut__ley-valor">' +
             esc(opts.format ? opts.format(it.value) : it.value) + '</span>' +

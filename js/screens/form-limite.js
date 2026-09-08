@@ -64,9 +64,9 @@
                    'aria-pressed="' + puesta(c) + '" ' +
                    (porLaMadre ? 'disabled ' : "") +
                    'aria-label="' + esc(S.nombreLargo(c.id) || c.name) + '">' +
-              '<span class="cat-pick__icon cat-face" ' +
-                    'style="--cat-color:var(--cat-' + c.color + ')">' +
-                esc(c.emoji) + '</span>' +
+              '<span class="cat-pick__icon cat-face cat-face--svg" ' +
+                    'style="--cat-color:var(--cat-' + c.color + ')" ' +
+                    'aria-hidden="true" data-icon="' + esc(c.icon || S.catIcon(c) || "box") + '" data-icon-size="22"></span>' +
               '<span class="cat-pick__name">' + esc(c.name) + '</span>' +
             '</button>';
         }).join("") +

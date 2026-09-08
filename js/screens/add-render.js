@@ -47,9 +47,9 @@
     return '<div class="field" style="margin-top:var(--sp-4)">' +
         '<button type="button" class="switch-row" id="addApartado" ' +
                 'role="switch" aria-checked="' + (!fuera) + '">' +
-          '<span class="cat-face apartado__face" ' +
-                'style="--cat-color:var(--cat-' + ap.color + ')" aria-hidden="true">' +
-            esc(ap.emoji) + '</span>' +
+          '<span class="cat-face cat-face--svg apartado__face" ' +
+                'style="--cat-color:var(--cat-' + ap.color + ')" ' +
+                'aria-hidden="true" data-icon="' + esc(ap.icon || "box") + '" data-icon-size="18"></span>' +
           '<span class="switch-row__text">' +
             '<span class="switch-row__label">Sale de ' + esc(ap.name) + '</span>' +
             '<span class="switch-row__hint">' +
@@ -89,15 +89,13 @@
     var flecha = ((col + 0.5) / COLS) * 100;
 
     return '<div class="cat-sub" style="--flecha:' + flecha.toFixed(2) + '%">' +
-        '<p class="cat-sub__titulo">' +
-          esc(madre.emoji || "") + ' Dentro de ' + esc(madre.name) +
-        '</p>' +
+        '<p class="cat-sub__titulo">Dentro de ' + esc(madre.name) + '</p>' +
         '<div class="chips">' +
           hijas.map(function (h, i) {
             return '<button type="button" class="chip" data-cat="' + esc(h.id) + '" ' +
                      'style="--i:' + i + '" ' +
                      'aria-pressed="' + (h.id === d.categoryId) + '">' +
-                   esc(h.emoji || "") + ' ' + esc(h.name) + '</button>';
+                   esc(h.name) + '</button>';
           }).join("") +
           '<button type="button" class="chip chip--add" ' +
                   'style="--i:' + hijas.length + '" ' +

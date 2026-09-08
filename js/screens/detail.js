@@ -31,18 +31,17 @@
 
     $("#sheetDetailBody").innerHTML =
       '<div style="text-align:center;padding:var(--sp-3) 0 var(--sp-5)">' +
-        '<span style="display:inline-grid;place-items:center;width:48px;height:48px;' +
-              'border-radius:var(--r-full);font-size:24px;line-height:1;' +
-              'background:var(--surface-2);box-shadow:var(--nm-in)" ' +
-              'aria-hidden="true">' + esc(cat.emoji || "\uD83D\uDCE6") + '</span>' +
-        '<p style="margin-top:var(--sp-3);font-size:30px;font-weight:640;letter-spacing:-.035em;' +
+        '<span class="cat-face cat-face--svg cat-face--lg" ' +
+              'style="--cat-color:' + S.catColorVar(cat) + '" ' +
+              'aria-hidden="true" data-icon="' + esc(S.catIcon(cat)) + '" data-icon-size="24"></span>' +
+        '<p style="margin-top:var(--sp-3);font-size:30px;font-weight:700;letter-spacing:-.035em;' +
            (isIn ? "color:var(--money-in)" : "") + '">' +
           (isIn ? "+" : "−") + esc(money(t.amount)) + '</p>' +
         '<p style="margin-top:2px;font-size:14px;color:var(--text-secondary)">' + esc(t.note) + '</p>' +
       '</div>' +
 
       '<div class="card card--quiet" style="padding:0;overflow:hidden">' +
-        detailRow("Categoría", cat.emoji + " " + cat.name) +
+        detailRow("Categoría", cat.name) +
         detailRow("Cuenta", acc ? acc.name : "—") +
         detailRow("Fecha", S.parseYmd(t.date).toLocaleDateString("es-ES", {
           weekday: "long", day: "numeric", month: "long", year: "numeric"
