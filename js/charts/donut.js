@@ -6,16 +6,7 @@
   "use strict";
 
   var G = window.Graficos;
-  var catColor = G.catColor, svgEl = G.svgEl;
-
-  /* El nombre de una categoría lo escribe el usuario, así que no puede
-     entrar en un innerHTML tal cual. Va aquí y no en el espacio común
-     porque es el único gráfico que arma HTML con texto de fuera. */
-  function esc(v) {
-    return String(v == null ? "" : v)
-      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-  }
+  var catColor = G.catColor, svgEl = G.svgEl, esc = G.esc;
 
   /* ============================================================
      3 bis) Rosco de reparto
@@ -174,8 +165,7 @@
       var pct = Math.round((it.value / sumaVis) * 100);
       return '<li class="donut__ley">' +
           '<span class="donut__punto" style="background:' + catColor(it) + '"></span>' +
-          '<span class="donut__ley-nombre">' +
-            (it.emoji ? esc(it.emoji) + " " : "") + esc(it.name) + '</span>' +
+          '<span class="donut__ley-nombre">' + esc(it.name) + '</span>' +
           '<span class="donut__ley-pct">' + pct + ' %</span>' +
           '<span class="donut__ley-valor">' +
             esc(opts.format ? opts.format(it.value) : it.value) + '</span>' +

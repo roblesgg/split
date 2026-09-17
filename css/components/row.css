@@ -23,6 +23,12 @@
    larga y no aporta nada que no diga ya el espacio. */
 .row:hover { background: var(--surface-2); }
 
+.row--pendiente {
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.row--pendiente .row__meta { color: var(--accent); font-weight: var(--w-medium); }
+
 .row__body { flex: 1; min-width: 0; }
 
 .row__title {
@@ -54,8 +60,10 @@
   font-variant-numeric: tabular-nums;
 }
 
-.row__amount[data-kind="in"]  { color: var(--money-in); }
-.row__amount[data-kind="out"] { color: var(--money-out); }
+.row__amount[data-kind="in"],
+.row__amount[data-flow="in"]  { color: var(--money-in); }
+.row__amount[data-kind="out"],
+.row__amount[data-flow="out"] { color: var(--money-out); }
 
 .day-head {
   display: flex;
@@ -101,23 +109,41 @@
   text-overflow: ellipsis;
 }
 
+.meter__pct {
+  flex: none;
+  font-size: 14px;
+  font-weight: var(--w-bold);
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+
 /* La cifra va debajo del nombre, no a su lado: así el nombre nunca se
    recorta y las dos se leen enteras. */
 .meter__cifra {
   margin: 2px 0 8px 23px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
   font-size: 14px;
   font-weight: var(--w-semi);
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
 }
 
+.meter__queda {
+  font-size: 12px;
+  font-weight: var(--w-medium);
+  color: var(--text-muted);
+}
+
 /* La pista va hundida en el material. Gorda a propósito: una barra fina
    se lee como un adorno y hay que fijarse para ver cuánto lleva. */
 .meter__track {
   position: relative;
-  height: 16px;
+  height: 10px;
   border-radius: var(--r-full);
-  background: var(--surface-3);
+  background: var(--surface-2);
   overflow: hidden;
 }
 
@@ -197,7 +223,7 @@
   padding: 0 15px;
   border-radius: var(--r-full);
   background: var(--surface-1);
-  box-shadow: var(--nm-out-sm);
+  box-shadow: none;
   font-size: var(--t-hint);
   font-weight: var(--w-semi);
   color: var(--text-secondary);
@@ -211,7 +237,7 @@
 /* seleccionado = hundido, no relleno de color */
 .chip[aria-pressed="true"] {
   background: var(--surface-2);
-  box-shadow: var(--nm-in);
+  box-shadow: none;
   color: var(--text-primary);
 }
 

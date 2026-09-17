@@ -20,6 +20,7 @@
   var averageExpense = D.averageExpense, averageIncome = D.averageIncome;
   var balance = D.balance, byCategory = D.byCategory, delCiclo = D.delCiclo;
   var catById = D.catById, catColorVar = D.catColorVar, catExacta = D.catExacta;
+  var catIcon = D.catIcon, ICONOS_CAT = D.ICONOS_CAT;
   var categoriasMadre = D.categoriasMadre, categories = D.categories, categoriesOf = D.categoriesOf;
   var categoryUsage = D.categoryUsage, clearAll = D.clearAll, confirmarPendiente = D.confirmarPendiente;
   var corregirSaldo = D.corregirSaldo, cuotasQueQuedan = D.cuotasQueQuedan;
@@ -94,9 +95,10 @@
 
     /* categorías: ya no son una lista fija, viven en el estado */
     get CATEGORIES() { return categories(); },
-    catById: catById, catExacta: catExacta,
+    catById: catById, catExacta: catExacta, catIcon: catIcon,
     categoriesOf: categoriesOf,
     catColorVar: catColorVar,
+    ICONOS_CAT: ICONOS_CAT,
     CAT_COLORS: CAT_COLORS,
     DEFAULT_CATEGORIES: DEFAULT_CATEGORIES,
     addCategory: addCategory, updateCategory: updateCategory,

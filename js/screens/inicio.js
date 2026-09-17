@@ -148,6 +148,7 @@
 
   function renderInicio() {
     var root = $("#view-inicio");
+    C.destroyChartsIn(root);
     var curKey = S.cicloActual();
     var accId = cuentaActiva();
 

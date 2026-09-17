@@ -1,65 +1,52 @@
 /* ============================================================
-   split — la identidad de una ficha: cara, nombre y color
+   split — la identidad de una ficha: icono SVG, nombre y color
 
-   Lo comparten la categoría, el apartado y el límite, que son las tres
-   cosas de la app que tienen emoji, nombre y color.
-
-   Antes esto eran cuatro campos apilados: una vista previa que no se
-   podía tocar, y debajo «Nombre», «Emoji» y «Color», cada uno con su
-   etiqueta y su rejilla siempre abierta. Media hoja de formulario para
-   decidir tres cosas, y había que bajar hasta el final para ver el
-   botón de guardar.
-
-   Ahora la vista previa ES el editor: tocas la cara y salen todos los
-   emojis, tocas el color y salen todos los colores, y el nombre se
-   escribe donde se ve. Solo se abre una cosa a la vez, así que la hoja
-   no crece por los dos lados.
+   Categoría, apartado y límite. Cara = icono vectorial integrado,
+   no emoji.
    ============================================================ */
 
 (function () {
   "use strict";
 
   var A = window.App;
-  var S = A.S, $ = A.$, esc = A.esc, ui = A.ui;
-  var EMOJI_SUGERIDOS = A.EMOJI_SUGERIDOS;
+  var S = A.S, $ = A.$, $$ = A.$$, esc = A.esc, icon = A.icon, ui = A.ui, mountIcons = A.mountIcons;
 
-  /* Cuál de los dos cajones está abierto vive en ui.form.abierto:
-     null, "emoji" o "color". */
+  /* Cuál cajón está abierto: null, "icon" o "color". */
+
+  function caraSvg(d, size) {
+    return '<span class="cat-face cat-face--svg" aria-hidden="true" ' +
+           'style="--cat-color:var(--cat-' + d.color + ')" ' +
+           'data-icon="' + esc(S.catIcon(d)) + '" data-icon-size="' + (size || 22) + '"></span>';
+  }
 
   function identHtml(d, opciones) {
     var o = opciones || {};
     var abierto = ui.form.abierto || null;
     var colores = [];
     for (var i = 1; i <= S.CAT_COLORS; i++) colores.push(i);
+    var iconos = S.ICONOS_CAT || [];
 
-    /* Una subcategoría no elige cara: lleva la de su madre. Antes el
-       color ya se heredaba pero la rejilla seguía ahí, así que elegías
-       uno y al guardar se perdía sin decir nada. Si no se puede cambiar,
-       no se enseña como si se pudiera: se enseña y se explica. */
     if (o.heredadoDe) {
       return '' +
         '<div class="ident ident--heredada">' +
-          '<span class="ident__cara cat-face" aria-hidden="true" ' +
-                'style="--cat-color:var(--cat-' + d.color + ')">' + esc(d.emoji) + '</span>' +
+          caraSvg(d, 26) +
           '<input type="text" class="ident__nombre" id="fName" data-f="Name" ' +
                  'maxlength="' + (o.max || 24) + '" ' +
                  'placeholder="' + esc(o.placeholder || "Sin nombre") + '" ' +
                  'aria-label="Nombre" value="' + esc(d.name) + '">' +
         '</div>' +
         '<p class="field__hint">Lleva el icono y el color de <strong>' +
-          esc(o.heredadoDe) + '</strong>: las de dentro son la misma cosa ' +
-          'contada más fina, y con cara propia parecerían categorías sueltas.</p>';
+          esc(o.heredadoDe) + '</strong>.</p>';
     }
 
     return '' +
       '<div class="ident">' +
-        '<button type="button" class="ident__cara cat-face" id="fPreview" ' +
-                'data-ident="emoji" aria-expanded="' + (abierto === "emoji") + '" ' +
+        '<button type="button" class="ident__cara cat-face cat-face--svg" id="fPreview" ' +
+                'data-ident="icon" aria-expanded="' + (abierto === "icon") + '" ' +
                 'style="--cat-color:var(--cat-' + d.color + ')" ' +
-                'aria-label="Cambiar el emoji">' + esc(d.emoji) + '</button>' +
+                'aria-label="Cambiar el icono" data-icon="' + esc(S.catIcon(d)) + '" ' +
+                'data-icon-size="22"></button>' +
 
-        /* El nombre es el campo, no una etiqueta encima de otro campo:
-           se toca donde se lee. */
         '<input type="text" class="ident__nombre" id="fName" data-f="Name" ' +
                'maxlength="' + (o.max || 24) + '" ' +
                'placeholder="' + esc(o.placeholder || "Sin nombre") + '" ' +
@@ -73,16 +60,14 @@
         '</button>' +
       '</div>' +
 
-      (abierto === "emoji"
+      (abierto === "icon"
         ? '<div class="ident__cajon">' +
-            '<input type="text" class="field__input ident__libre" id="fEmoji" ' +
-                   'data-f="Emoji" maxlength="8" autocomplete="off" ' +
-                   'aria-label="Otro emoji" placeholder="O escribe el que quieras" ' +
-                   'value="' + esc(d.emoji) + '">' +
-            '<div class="emoji-grid">' +
-              EMOJI_SUGERIDOS.map(function (e) {
-                return '<button type="button" class="emoji-pick" data-pemoji="' + esc(e) + '" ' +
-                         'aria-pressed="' + (e === d.emoji) + '">' + esc(e) + '</button>';
+            '<div class="icon-grid">' +
+              iconos.map(function (ic) {
+                return '<button type="button" class="icon-pick" data-picon="' + esc(ic) + '" ' +
+                         'aria-pressed="' + (ic === S.catIcon(d)) + '" aria-label="' + esc(ic) + '">' +
+                    '<span data-icon="' + esc(ic) + '" data-icon-size="20"></span>' +
+                  '</button>';
               }).join("") +
             '</div>' +
           '</div>'
@@ -104,21 +89,21 @@
       (o.hint ? '<p class="field__hint">' + o.hint + '</p>' : "");
   }
 
-  /* Al teclear o tocar un color se repinta solo lo que cambia: repintar
-     la hoja entera dejaría el campo sin foco a media palabra. */
   function refreshIdent() {
     var d = ui.form && ui.form.d;
     if (!d) return;
     var cara = $("#fPreview");
     if (cara) {
-      cara.textContent = d.emoji || "📦";
+      cara.setAttribute("data-icon", S.catIcon(d));
+      cara.removeAttribute("data-icon-done");
+      cara.innerHTML = icon(S.catIcon(d), 22);
+      cara.setAttribute("data-icon-done", "1");
       cara.style.setProperty("--cat-color", "var(--cat-" + d.color + ")");
     }
     var punto = $("#fPreviewColor");
     if (punto) punto.style.background = "var(--cat-" + d.color + ")";
   }
 
-  /* --- lo que usan otros archivos --- */
   A.identHtml = identHtml;
   A.refreshIdent = refreshIdent;
 })();

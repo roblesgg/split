@@ -47,9 +47,9 @@
     return '<div class="field" style="margin-top:var(--sp-4)">' +
         '<button type="button" class="switch-row" id="addApartado" ' +
                 'role="switch" aria-checked="' + (!fuera) + '">' +
-          '<span class="cat-face apartado__face" ' +
-                'style="--cat-color:var(--cat-' + ap.color + ')" aria-hidden="true">' +
-            esc(ap.emoji) + '</span>' +
+          '<span class="cat-face cat-face--svg apartado__face" ' +
+                'style="--cat-color:var(--cat-' + ap.color + ')" ' +
+                'aria-hidden="true" data-icon="' + esc(ap.icon || "box") + '" data-icon-size="18"></span>' +
           '<span class="switch-row__text">' +
             '<span class="switch-row__label">Sale de ' + esc(ap.name) + '</span>' +
             '<span class="switch-row__hint">' +
@@ -89,15 +89,13 @@
     var flecha = ((col + 0.5) / COLS) * 100;
 
     return '<div class="cat-sub" style="--flecha:' + flecha.toFixed(2) + '%">' +
-        '<p class="cat-sub__titulo">' +
-          esc(madre.emoji || "") + ' Dentro de ' + esc(madre.name) +
-        '</p>' +
+        '<p class="cat-sub__titulo">Dentro de ' + esc(madre.name) + '</p>' +
         '<div class="chips">' +
           hijas.map(function (h, i) {
             return '<button type="button" class="chip" data-cat="' + esc(h.id) + '" ' +
                      'style="--i:' + i + '" ' +
                      'aria-pressed="' + (h.id === d.categoryId) + '">' +
-                   esc(h.emoji || "") + ' ' + esc(h.name) + '</button>';
+                   esc(h.name) + '</button>';
           }).join("") +
           '<button type="button" class="chip chip--add" ' +
                   'style="--i:' + hijas.length + '" ' +
@@ -170,35 +168,37 @@
     var v = draftValue();
 
     body.innerHTML =
-      '<div class="segmented" id="addSeg" role="tablist">' +
-        '<span class="segmented__thumb" id="addThumb" aria-hidden="true"></span>' +
-        '<button type="button" class="segmented__btn" role="tab" data-dkind="out" ' +
-                'aria-selected="' + (d.kind === "out") + '">Gasto</button>' +
-        '<button type="button" class="segmented__btn" role="tab" data-dkind="in" ' +
-                'aria-selected="' + (d.kind === "in") + '">Ingreso</button>' +
-        '<button type="button" class="segmented__btn" role="tab" data-dkind="transfer" ' +
-                'aria-selected="' + (d.kind === "transfer") + '">Traspaso</button>' +
-      '</div>' +
+      '<div class="compose">' +
+        '<div class="segmented" id="addSeg" role="tablist">' +
+          '<span class="segmented__thumb" id="addThumb" aria-hidden="true"></span>' +
+          '<button type="button" class="segmented__btn" role="tab" data-dkind="out" ' +
+                  'aria-selected="' + (d.kind === "out") + '">Gasto</button>' +
+          '<button type="button" class="segmented__btn" role="tab" data-dkind="in" ' +
+                  'aria-selected="' + (d.kind === "in") + '">Ingreso</button>' +
+          '<button type="button" class="segmented__btn" role="tab" data-dkind="transfer" ' +
+                  'aria-selected="' + (d.kind === "transfer") + '">Traspaso</button>' +
+        '</div>' +
 
-      '<div class="amount-display' + (d.amount ? "" : " is-zero") + '" id="amountDisplay" ' +
-           'data-kind="' + d.kind + '" aria-live="polite">' +
-        '<span class="amount-display__sign">' +
-          (d.kind === "in" ? "+" : d.kind === "transfer" ? "" : "−") + '</span>' +
-        '<span id="amountText">' + esc(A.textoImporte(d.amount)) + '</span>' +
-        '<span class="amount-display__cur">€</span>' +
-      '</div>' +
+        '<div class="amount-display' + (d.amount ? "" : " is-zero") + '" id="amountDisplay" ' +
+             'data-kind="' + d.kind + '" aria-live="polite">' +
+          '<span class="amount-display__sign">' +
+            (d.kind === "in" ? "+" : d.kind === "transfer" ? "" : "−") + '</span>' +
+          '<span id="amountText">' + esc(A.textoImporte(d.amount)) + '</span>' +
+          '<span class="amount-display__cur">€</span>' +
+        '</div>' +
 
-      '<div class="keypad" id="keypad">' +
-        [1,2,3,4,5,6,7,8,9].map(function (n) {
-          return '<button type="button" class="key" data-key="' + n + '">' + n + '</button>';
-        }).join("") +
-        /* La coma donde antes estaba el «00». Los importes se teclean
-           enteros y los decimales solo salen si los pides, así que el
-           «00» dejó de tener sentido y la coma pasó a hacer falta. */
-        '<button type="button" class="key key--coma" data-key="," aria-label="Coma decimal">,</button>' +
-        '<button type="button" class="key" data-key="0">0</button>' +
-        '<button type="button" class="key" data-key="del" aria-label="Borrar">' +
-          icon("backspace", 18) + '</button>' +
+        '<div class="keypad" id="keypad">' +
+          [1,2,3,4,5,6,7,8,9].map(function (n) {
+            return '<button type="button" class="key" data-key="' + n + '">' + n + '</button>';
+          }).join("") +
+          /* La coma donde antes estaba el «00». Los importes se teclean
+             enteros y los decimales solo salen si los pides, así que el
+             «00» dejó de tener sentido y la coma pasó a hacer falta. */
+          '<button type="button" class="key key--coma" data-key="," aria-label="Coma decimal">,</button>' +
+          '<button type="button" class="key" data-key="0">0</button>' +
+          '<button type="button" class="key" data-key="del" aria-label="Borrar">' +
+            icon("backspace", 18) + '</button>' +
+        '</div>' +
       '</div>' +
 
       (d.kind === "transfer"

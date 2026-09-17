@@ -341,6 +341,32 @@
       s.version = 18;
     }
 
+    if (s.version < 19) {
+      /* v19: las categorías pasan a icono SVG. Se rellena `icon` desde el
+         id conocido; las personalizadas sin mapa caen en «box». El emoji
+         se conserva en el dato por si alguien lo exportó, pero la UI ya
+         no lo enseña. */
+      var iconDef = {};
+      DEFAULT_CATEGORIES.forEach(function (d) { iconDef[d.id] = d.icon; });
+      (s.categories || []).forEach(function (c) {
+        if (!c.icon) c.icon = iconDef[c.id] || "box";
+        if (c.parentId) {
+          var madre = (s.categories || []).find(function (x) { return x.id === c.parentId; });
+          if (madre && madre.icon) c.icon = madre.icon;
+        }
+      });
+      (s.accounts || []).forEach(function (a) {
+        if (!a.icon) a.icon = "wallet";
+      });
+      (s.apartados || []).forEach(function (a) {
+        if (!a.icon) a.icon = "box";
+      });
+      (s.limites || []).forEach(function (l) {
+        if (!l.icon) l.icon = "target";
+      });
+      s.version = 19;
+    }
+
     /* Red de seguridad, al margen de la versión: casi todo el código tira
        de las categorías por defecto cuando la lista no está, pero crear
        una necesita el array de verdad. Un estado importado a mano, o

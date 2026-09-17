@@ -45,7 +45,11 @@
         var elegida = String(o.value) === String(valor);
         return '<button type="button" class="pick" data-pick="' + esc(o.value) + '" ' +
                  'aria-pressed="' + elegida + '">' +
-            (o.emoji
+            (o.icon
+              ? '<span class="pick__cara cat-face cat-face--svg"' +
+                  (o.color ? ' style="--cat-color:var(--cat-' + o.color + ')"' : '') +
+                  ' aria-hidden="true" data-icon="' + esc(o.icon) + '" data-icon-size="18"></span>'
+              : o.emoji
               ? '<span class="pick__cara cat-face"' +
                   (o.color ? ' style="--cat-color:var(--cat-' + o.color + ')"' : '') +
                   '>' + esc(o.emoji) + '</span>'
@@ -110,7 +114,7 @@
         titulo: "¿Qué categoría?",
         lista: S.CATEGORIES.filter(function (c) { return c.kind === kind; })
           .map(function (c) {
-            return { value: c.id, label: c.name, emoji: c.emoji, color: c.color };
+            return { value: c.id, label: c.name, icon: S.catIcon(c), color: c.color };
           })
       };
     }
@@ -118,7 +122,7 @@
       var lista = [{ value: "", label: "Nada, va suelta" }];
       S.categoriasMadre(ui.form.d.kind).forEach(function (c) {
         if (c.id === ui.form.id || c.sistema) return;
-        lista.push({ value: c.id, label: c.name, emoji: c.emoji, color: c.color });
+        lista.push({ value: c.id, label: c.name, icon: S.catIcon(c), color: c.color });
       });
       return { titulo: "¿Dentro de cuál?", lista: lista };
     }

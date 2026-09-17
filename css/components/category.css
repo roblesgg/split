@@ -23,7 +23,7 @@
   padding: var(--sp-4);
   border-radius: var(--r-md);
   background: var(--surface-2);
-  box-shadow: var(--nm-in);
+  box-shadow: none;
   animation: cat-sub-abre var(--dur-base) var(--ease-ios) both;
 }
 
@@ -144,7 +144,7 @@
   padding: var(--sp-3) var(--sp-4);
   border-radius: var(--r-md);
   background: var(--surface-2);
-  box-shadow: var(--nm-in);
+  box-shadow: none;
 }
 
 .ident__cara {
@@ -197,7 +197,7 @@
   width: 22px;
   height: 22px;
   border-radius: var(--r-full);
-  box-shadow: var(--nm-out-sm);
+  box-shadow: none;
 }
 
 /* El cajón que se abre debajo, pegado a lo que lo abrió. */
@@ -275,7 +275,7 @@
   background: linear-gradient(145deg,
               color-mix(in srgb, var(--acc-color) 60%, #101318) 0%,
               color-mix(in srgb, var(--acc-color) 38%, #101318) 100%);
-  box-shadow: var(--card-shadow);
+  box-shadow: none;
   color: #fff;
 }
 
@@ -373,11 +373,11 @@
   border: 0;
   border-radius: var(--r-md);
   background: var(--surface-2);
-  box-shadow: var(--nm-in);
+  box-shadow: none;
   text-align: left;
   cursor: pointer;
 }
-.subcat:active { box-shadow: var(--nm-out-sm); }
+.subcat:active { box-shadow: none; }
 
 .subcat__cara {
   flex: none;

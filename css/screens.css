@@ -11,18 +11,46 @@
   display: flex;
   align-items: center;
   gap: var(--sp-2);
-  padding: var(--sp-3) 0 var(--sp-4);
-  background: var(--page);
+  padding: var(--sp-2) 0 var(--sp-4);
+  /* Sin franja negra cuadrada: el fondo se funde con la página */
+  background: transparent;
 }
 
 .filter-row .segmented { flex: 1; min-width: 0; }
 
+/* Mes / ciclo: una sola pastilla redonda, no dos botones negros sueltos */
+.period-card {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  width: 100%;
+  padding: 6px;
+  border-radius: var(--r-xl);
+  background: var(--surface-1);
+  box-shadow: var(--lift-sm);
+  border: 1px solid var(--hairline);
+}
+
+.period-card .icon-btn,
+.period-card .icon-btn--ghost {
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-secondary);
+}
+
+.period-card .icon-btn:hover,
+.period-card .icon-btn--ghost:hover {
+  background: var(--surface-2);
+  color: var(--text-primary);
+}
+
 .month-nav { flex: 1; min-width: 0; text-align: center; }
 
 .month-nav__label {
-  font-size: 14.5px;
+  font-size: 15px;
   font-weight: var(--w-semi);
   letter-spacing: -0.022em;
+  color: var(--text-primary);
 }
 
 .month-nav__sub {
@@ -39,7 +67,7 @@
   padding: 5px;
   border-radius: var(--r-full);
   background: var(--surface-2);
-  box-shadow: var(--nm-in);
+  box-shadow: none;
 }
 
 .range-pill {
@@ -59,7 +87,7 @@
 
 .range-pill[aria-pressed="true"] {
   background: var(--surface-1);
-  box-shadow: var(--nm-out-sm);
+  box-shadow: none;
   color: var(--text-primary);
 }
 
@@ -97,7 +125,7 @@
   height: 26px;
   border-radius: var(--r-full);
   background: var(--surface-1);
-  box-shadow: var(--nm-out-sm);
+  box-shadow: none;
   color: var(--text-secondary);
   opacity: 0;
   pointer-events: none;
@@ -117,7 +145,52 @@
 
 .search__clear[data-show="true"] { opacity: 1; pointer-events: auto; }
 
-/* ---------- accesos rápidos ---------- */
+/* ---------- accesos rápidos estilo Mac ---------- */
+
+.mac-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--sp-3);
+  padding: var(--sp-1) 0 var(--sp-2);
+}
+
+.mac-act {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 2px;
+  color: var(--text-secondary);
+  transition: color var(--dur-fast) var(--ease-out),
+              transform var(--dur-fast) var(--ease-out);
+}
+
+.mac-act:hover { color: var(--text-primary); }
+.mac-act:active { transform: scale(0.94); }
+
+.mac-act__icon {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  background: var(--surface-1);
+  box-shadow: var(--lift-sm);
+  color: var(--text-primary);
+}
+
+.mac-act__icon--accent {
+  background: var(--accent-grad);
+  color: var(--text-on-accent);
+  box-shadow: var(--glow-accent);
+}
+
+.mac-act__label {
+  font-size: 11px;
+  font-weight: var(--w-semi);
+  letter-spacing: -0.01em;
+  color: inherit;
+}
 
 .quick-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-3); }
 
@@ -130,7 +203,7 @@
   padding: 0 var(--sp-2);
   border-radius: var(--r-full);
   background: var(--surface-1);
-  box-shadow: var(--nm-out-sm);
+  box-shadow: var(--lift-sm);
   font-size: var(--t-min);
   font-weight: var(--w-semi);
   color: var(--text-secondary);
@@ -139,7 +212,7 @@
 }
 
 .quick:hover { color: var(--text-primary); }
-.quick:active { box-shadow: var(--nm-in); }
+.quick:active { box-shadow: none; }
 .quick__icon { flex: none; color: var(--text-muted); }
 
 /* ---------- lecturas ---------- */
@@ -391,7 +464,7 @@
   margin-top: -5px;
   border-radius: var(--r-full);
   background: var(--surface-1);
-  box-shadow: var(--nm-out-sm);
+  box-shadow: none;
 }
 
 .range::-moz-range-thumb {
@@ -400,7 +473,7 @@
   border: 0;
   border-radius: var(--r-full);
   background: var(--surface-1);
-  box-shadow: var(--nm-out-sm);
+  box-shadow: none;
 }
 
 /* barra que resume el reparto */

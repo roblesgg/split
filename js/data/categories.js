@@ -63,6 +63,7 @@
       id: slugId("cat", data.name || "categoria"),
       name: (data.name || "Categoría").trim(),
       emoji: firstGrapheme(data.emoji) || "📦",
+      icon: data.icon || "box",
       color: normalizeColor(data.color),
       kind: kind,
       parentId: madreValida(data.parentId, kind, null)
@@ -73,7 +74,11 @@
        maneras de gastar en lo mismo. */
     if (c.parentId) {
       var madre = catExacta(c.parentId);
-      if (madre) { c.color = madre.color; c.emoji = madre.emoji; }
+      if (madre) {
+        c.color = madre.color;
+        c.emoji = madre.emoji;
+        c.icon = madre.icon || c.icon;
+      }
     }
     D.state.categories.push(c);
     /* Antes una categoría de gasto nacía en el reparto al 0 %, y salía
@@ -90,12 +95,17 @@
     if (!c) return null;
     if (patch.name != null) c.name = String(patch.name).trim() || c.name;
     if (patch.emoji != null) c.emoji = firstGrapheme(patch.emoji) || c.emoji;
+    if (patch.icon != null) c.icon = String(patch.icon || c.icon);
     if (patch.color != null) c.color = normalizeColor(patch.color);
     if (patch.parentId !== undefined) {
       c.parentId = madreValida(patch.parentId, c.kind, c.id);
       if (c.parentId) {
         var madre = catExacta(c.parentId);
-        if (madre) { c.color = madre.color; c.emoji = madre.emoji; }
+        if (madre) {
+          c.color = madre.color;
+          c.emoji = madre.emoji;
+          c.icon = madre.icon || c.icon;
+        }
       }
     }
     /* Cambiar la cara de una madre la cambia en sus hijas: son la misma
@@ -105,6 +115,7 @@
       hijasDe(c.id).forEach(function (h) {
         if (patch.color != null) h.color = c.color;
         if (patch.emoji != null) h.emoji = c.emoji;
+        if (patch.icon != null) h.icon = c.icon;
       });
     }
     invalidateCats();

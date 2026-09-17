@@ -6,7 +6,7 @@
   "use strict";
 
   var G = window.Graficos;
-  var catColor = G.catColor;
+  var catColor = G.catColor, esc = G.esc;
 
   /* ============================================================
      6) Barra apilada horizontal + ranking (parte-todo)
@@ -63,7 +63,7 @@
       row.innerHTML =
         '<div class="rank__head">' +
           '<span class="rank__dot" style="background:' + catColor(it) + '"></span>' +
-          '<span class="rank__name">' + (it.emoji ? it.emoji + " " : "") + it.name + '</span>' +
+          '<span class="rank__name">' + esc(it.name) + '</span>' +
           '<span class="rank__val">' + fmt(it.value) + '</span>' +
           '<span class="rank__pct">' + Math.round(share) + '%</span>' +
         '</div>' +

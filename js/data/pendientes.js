@@ -231,13 +231,18 @@
     var desde = desdeDelResumen(cfg);
     var hasta = ymd(new Date());
 
-    return D.state.transactions.filter(function (t) {
+    function toca(t) {
       if (desde && (t.date < desde || t.date > hasta)) return false;
       if (!accId) return true;
       /* de un traspaso cuenta la punta que sea de esta cuenta, y como no
          son ni ingreso ni gasto da igual: totals() ya los ignora */
       return t.accountId === accId || t.toAccountId === accId;
-    });
+    }
+
+    /* Los sueldos por confirmar también cuentan en Ingresos del resumen
+       si ya traen importe: si no, amount es 0 y no mueven la cifra. */
+    return D.state.transactions.filter(toca)
+      .concat(pendientes().filter(toca));
   }
 
   function totalesResumen(accId) { return totals(txDelResumen(accId)); }

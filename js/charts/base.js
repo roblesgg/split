@@ -22,6 +22,17 @@
     return n;
   }
 
+  /* Un nombre de categoría lo escribe el usuario, así que no puede entrar
+     en un innerHTML tal cual. Vive aquí y no en cada gráfico porque ya son
+     dos los que arman HTML con texto de fuera —el rosco y el ranking— y
+     dos copias de esto es una de más: el día que una se quede corta, la
+     otra no se entera. */
+  function esc(v) {
+    return String(v == null ? "" : v)
+      .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
   function seriesColor(slot) { return "var(--series-" + slot + ")"; }
 
   /* Las categorías traen su color como índice 1..16 de la paleta --cat-*,
@@ -182,6 +193,7 @@
   G.catColor = catColor;
   G.colorOf = colorOf;
   G.ensureTooltip = ensureTooltip;
+  G.esc = esc;
   G.fmtTick = fmtTick;
   G.niceTicks = niceTicks;
   G.placeTooltip = placeTooltip;

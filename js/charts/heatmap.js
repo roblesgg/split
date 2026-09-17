@@ -75,6 +75,10 @@
       function hide() { if (tip) tip.setAttribute("data-open", "false"); }
 
       cell.addEventListener("pointerenter", show);
+      cell.addEventListener("pointerdown", function (e) {
+        e.preventDefault();
+        show();
+      });
       cell.addEventListener("pointerleave", hide);
       cell.addEventListener("focus", show);
       cell.addEventListener("blur", hide);

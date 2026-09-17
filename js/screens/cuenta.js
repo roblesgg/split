@@ -59,9 +59,9 @@
         '<button type="button" class="apartado__main" data-form="apartado" ' +
                 'data-form-id="' + esc(ap.id) + '">' +
           '<span class="apartado__head">' +
-            '<span class="cat-face apartado__face" ' +
-                  'style="--cat-color:var(--cat-' + ap.color + ')">' +
-              esc(ap.emoji) + '</span>' +
+            '<span class="cat-face cat-face--svg apartado__face" ' +
+                  'style="--cat-color:var(--cat-' + ap.color + ')" ' +
+                  'aria-hidden="true" data-icon="' + esc(ap.icon || "box") + '" data-icon-size="18"></span>' +
             '<span class="apartado__name">' + esc(ap.name) + '</span>' +
             '<span class="apartado__saldo">' + esc(S.moneyShort(e.saldo)) + '</span>' +
           '</span>' +
