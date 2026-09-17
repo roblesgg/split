@@ -47,6 +47,15 @@
        necesita. */
     sincronizarAvisos();
 
+    /* Si alguna cuenta lleva un icono que no es de los de casa, hace
+       falta la librería para dibujarlo: sin ella saldría el de reserva
+       y parecería que el icono se ha perdido. Se pide aquí y se repinta
+       al llegar; quien no haya tocado ningún icono no la descarga
+       nunca. */
+    if (S.state.accounts.some(function (a) { return a.icon && !U.tieneIcono(a.icon); })) {
+      U.cargarIconos().then(function (ok) { if (ok) renderAll(); });
+    }
+
     /* Y la foto para los widgets de la pantalla de inicio. Al arrancar
        porque puede haber cambiado algo sin abrir la app —un programado
        que ha vencido, un mes nuevo—, y luego al salir, que es cuando el

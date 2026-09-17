@@ -109,6 +109,124 @@
     { id: "sparkle",  nombre: "Caprichos" }
   ];
 
+  /* El campo del icono. De entrada, los de siempre: veintidós que cubren
+     casi cualquier cuenta y caben de un vistazo. Debajo, la puerta a la
+     librería entera —casi dos mil— con su buscador.
+
+     No se enseñan los dos mil de golpe a propósito: dos mil dibujos en
+     una hoja son un muro, y noventa y nueve de cada cien veces el que
+     buscas está en la primera fila. */
+  function campoIcono(d) {
+    /* El que ya tiene puesto va primero aunque sea de la librería: si
+       no, al abrir la ficha de una cuenta con un icono de los de fuera
+       la rejilla salía entera sin marcar y parecía que no tenía
+       ninguno. */
+    var suyo = d.icon && !ICONOS_CUENTA.some(function (o) { return o.id === d.icon; })
+      ? botonIcono(d.icon, d.icon.replace(/-/g, " "), true)
+      : "";
+
+    return '<div class="field">' +
+        '<span class="field__label">Icono</span>' +
+        '<div class="icon-grid" id="fIconos">' +
+          suyo +
+          ICONOS_CUENTA.map(function (o) {
+            return botonIcono(o.id, o.nombre, d.icon === o.id);
+          }).join("") +
+        '</div>' +
+        (ui.form.iconoTodos
+          ? bibliotecaHtml(d)
+          : '<button type="button" class="panel-add panel-add--dentro" id="fIconoMas">' +
+              icon("search", 15) + 'Buscar en más iconos</button>') +
+      '</div>';
+  }
+
+  function botonIcono(id, nombre, puesto) {
+    return '<button type="button" class="icon-pick" data-picon="' + esc(id) + '" ' +
+             'aria-pressed="' + !!puesto + '" ' +
+             'aria-label="' + esc(nombre) + '" title="' + esc(nombre) + '">' +
+        '<span data-icon="' + esc(id) + '" data-icon-size="20"></span>' +
+      '</button>';
+  }
+
+  /* La librería: buscador, grupos y la rejilla de resultados. Se pinta
+     una vez; al escribir o al cambiar de grupo se repinta SOLO la
+     rejilla, que si no el campo perdería el foco a media palabra. */
+  function bibliotecaHtml(d) {
+    var grupos = U.gruposDeIconos();
+    return '<div class="iconoteca" id="fIconoteca">' +
+        '<input type="search" class="field__input" id="fIconoBuscar" ' +
+               'placeholder="Busca: gasolina, banco, avión…" ' +
+               'autocomplete="off" aria-label="Buscar un icono" ' +
+               'value="' + esc(ui.form.iconoBusca || "") + '">' +
+        '<div class="chips iconoteca__grupos" id="fIconoGrupos">' +
+          '<button type="button" class="chip" data-igrupo="" ' +
+                  'aria-pressed="' + !ui.form.iconoGrupo + '">Todos</button>' +
+          grupos.map(function (g) {
+            return '<button type="button" class="chip" data-igrupo="' + esc(g.id) + '" ' +
+                     'aria-pressed="' + (ui.form.iconoGrupo === g.id) + '">' +
+                   esc(g.nombre) + '</button>';
+          }).join("") +
+        '</div>' +
+        '<div class="icon-grid iconoteca__rejilla" id="fIconoResultados">' +
+          resultadosHtml(d) +
+        '</div>' +
+        '<p class="field__hint" id="fIconoCuenta">' + esc(textoResultados()) + '</p>' +
+      '</div>';
+  }
+
+  /* Cuántos se pintan de una vez. Con más, la hoja va a tirones al
+     escribir; y si el que buscas no está en los primeros ciento veinte,
+     lo que hace falta es afinar la búsqueda, no bajar más. */
+  var TOPE = 120;
+
+  function candidatos() {
+    var grupos = U.gruposDeIconos();
+    var busca = String(ui.form.iconoBusca || "").trim().toLowerCase();
+    var grupo = ui.form.iconoGrupo || "";
+
+    var base = [];
+    grupos.forEach(function (g) {
+      if (!grupo || g.id === grupo) base = base.concat(g.iconos);
+    });
+    if (!busca) return base;
+    return base.filter(function (id) {
+      return U.palabrasDeIcono(id).indexOf(busca) >= 0;
+    });
+  }
+
+  function resultadosHtml(d) {
+    var lista = candidatos();
+    if (!lista.length) {
+      return '<p class="field__hint" style="grid-column:1/-1">Nada con eso. ' +
+        'Prueba con otra palabra, o en inglés.</p>';
+    }
+    return lista.slice(0, TOPE).map(function (id) {
+      return botonIcono(id, id.replace(/-/g, " "), d.icon === id);
+    }).join("");
+  }
+
+  function textoResultados() {
+    var n = candidatos().length;
+    if (!n) return "";
+    return n <= TOPE
+      ? (n === 1 ? "1 icono" : n + " iconos")
+      : "Los primeros " + TOPE + " de " + n + ". Afina la búsqueda para ver otros.";
+  }
+
+  /* Repinta solo la rejilla y su recuento, sin tocar el campo de texto. */
+  function refrescarIconos() {
+    var caja = $("#fIconoResultados");
+    if (!caja || !ui.form || !ui.form.d) return;
+    caja.innerHTML = resultadosHtml(ui.form.d);
+    var pie = $("#fIconoCuenta");
+    if (pie) pie.textContent = textoResultados();
+    $$("[data-igrupo]").forEach(function (b) {
+      b.setAttribute("aria-pressed",
+        String((b.getAttribute("data-igrupo") || "") === (ui.form.iconoGrupo || "")));
+    });
+    mountIcons(caja);
+  }
+
   function renderForm() {
     var body = $("#sheetFormBody");
     var t = ui.form.type, d = ui.form.d;
@@ -193,18 +311,7 @@
           '</p>' +
         '</div>' +
 
-        '<div class="field">' +
-          '<span class="field__label">Icono</span>' +
-          '<div class="icon-grid">' +
-            ICONOS_CUENTA.map(function (o) {
-              return '<button type="button" class="icon-pick" data-picon="' + esc(o.id) + '" ' +
-                       'aria-pressed="' + (d.icon === o.id) + '" ' +
-                       'aria-label="' + esc(o.nombre) + '" title="' + esc(o.nombre) + '">' +
-                  '<span data-icon="' + esc(o.id) + '" data-icon-size="20"></span>' +
-                '</button>';
-            }).join("") +
-          '</div>' +
-        '</div>' +
+        campoIcono(d) +
 
         '<div class="field">' +
           '<span class="field__label">Color de la tarjeta</span>' +
@@ -602,6 +709,7 @@
 
 
   /* --- lo que usan otros archivos --- */
+  A.refrescarIconos = refrescarIconos;
   A.renderForm = renderForm;
 
 })();

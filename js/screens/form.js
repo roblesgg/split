@@ -124,7 +124,11 @@
       if (!it) { d.freq = "mensual"; d.cada = 1; }
     }
 
-    ui.form = { type: type, id: id || null, d: d, abierto: null };
+    /* iconoTodos/iconoBusca/iconoGrupo son del selector de iconos de una
+       cuenta: nacen apagados en cada apertura, que es lo que se espera
+       al abrir una ficha. */
+    ui.form = { type: type, id: id || null, d: d, abierto: null,
+                iconoTodos: false, iconoBusca: "", iconoGrupo: "" };
     ui.opcionesRec = false;
 
     tituloForm();
@@ -320,7 +324,15 @@
       return false;
     }
 
+    /* Escribir en el buscador de iconos no repinta el formulario: solo
+       la rejilla. Repintarlo entero dejaría el campo sin foco a media
+       palabra. */
     formBody.addEventListener("input", function (e) {
+      if (e.target.id === "fIconoBuscar") {
+        ui.form.iconoBusca = e.target.value;
+        A.refrescarIconos();
+        return;
+      }
       if (!readField(e.target)) return;
       /* la vista previa la comparten la categoría, el apartado y el
          límite: los tres tienen cara, nombre y color */
@@ -488,6 +500,35 @@
         ui.form.d.ambito = node.getAttribute("data-flamb");
         /* la rejilla de categorías aparece o desaparece: hay que repintar */
         renderForm();
+        U.haptic("light");
+        return;
+      }
+      /* La librería entera se pide la primera vez que alguien la abre:
+         son casi dos mil dibujos y no tienen por qué pesar en el
+         arranque de quien nunca cambia el icono. */
+      if (e.target.closest("#fIconoMas")) {
+        var boton = e.target.closest("#fIconoMas");
+        boton.disabled = true;
+        boton.textContent = "Cargando…";
+        U.cargarIconos().then(function (ok) {
+          if (!ok) {
+            U.toast("No se ha podido cargar la librería", { icon: "warning" });
+            renderForm();
+            return;
+          }
+          ui.form.iconoTodos = true;
+          ui.form.iconoBusca = "";
+          ui.form.iconoGrupo = "";
+          renderForm();
+          var campo = $("#fIconoBuscar");
+          if (campo) campo.focus();
+        });
+        U.haptic("light");
+        return;
+      }
+      if ((node = e.target.closest("[data-igrupo]"))) {
+        ui.form.iconoGrupo = node.getAttribute("data-igrupo") || "";
+        A.refrescarIconos();
         U.haptic("light");
         return;
       }

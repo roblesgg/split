@@ -662,6 +662,40 @@ nombre va en el `aria-label` y en el `title`, así que quien no lo vea lo tiene
 igual. El elegido se marca con el acento **y con un aro**, que es una forma: el
 color no viaja solo.
 
+### Y si ninguno de los veintidós vale
+
+Debajo de la rejilla hay **Buscar en más iconos**, que abre otros **1.884**:
+los de [Lucide](https://lucide.dev), repartidos en trece grupos con nombre en
+español —Dinero, Compras, Comida, Casa, Transporte, Viajes, Ocio, Deporte,
+Salud, Trabajo, Tecnología, Naturaleza, Símbolos— y buscables **en español**,
+que la librería está en inglés y buscar «gasolina» tiene que encontrar el
+surtidor.
+
+Se dibujan con el mismo trazo que los de casa porque el envoltorio lo pone la
+misma función: de cada SVG solo se guarda lo de dentro y el tamaño, el grosor y
+el color los decide `icon()`. Puestos en fila con los veintidós, no se nota
+cuál vino de fuera.
+
+**No se cargan al arrancar.** Son 594 KB y la inmensa mayoría de las veces
+nadie va a abrir el buscador, así que `js/iconos.js` no está en `index.html`:
+lo pide `UI.cargarIconos()` la primera vez que se pulsa el botón, metiendo un
+`<script>` en la página. Un `<script>` y no un `fetch` porque la app también se
+abre desde `file://`, donde `fetch` no puede leer un archivo de al lado.
+
+Eso deja un cabo suelto: al reabrir la app, una cuenta con un icono de la
+librería no lo encontraría y se pintaría el de reserva. Por eso el arranque
+mira si alguna cuenta usa un icono que no conoce y, solo entonces, se baja la
+librería y repinta. Quien no haya salido de los veintidós no paga nada.
+
+De la búsqueda salen como mucho **120 resultados**. Pintar mil ochocientos
+dibujos de golpe no es una lista, es un bloqueo de dos segundos; y quien busca
+«coche» no necesita ver el número mil.
+
+La librería no se edita a mano: `js/iconos.js` lo escribe
+`herramientas/iconos.js`, que no corre nunca al abrir la app ni al compilar el
+APK. Las licencias —Lucide es ISC, y ciento quince de sus iconos vienen de
+Feather con MIT— están en `js/LICENCIAS.md`.
+
 ## Cuentas y metas
 
 Ambas se crean, editan y borran desde **Planes**.
@@ -853,6 +887,8 @@ js/
   avisos.js         qué recordatorios hacen falta (los pone la capa Android)
   widgets.js        la foto que pintan los widgets de la pantalla de inicio
   ui.js             iconos SVG, hojas arrastrables, toasts, háptica
+  iconos.js         la librería gorda: 1.884 iconos, se baja al pedirla
+  LICENCIAS.md      de dónde sale la librería (LICENSE-lucide.txt al lado)
   app/
     base.js         window.App: estado de interfaz, hojas y ayudantes
     importe.js      la regla de teclear una cantidad, para los dos teclados
@@ -869,10 +905,13 @@ js/
     form-apartado.js  form-limite.js  form-ident.js
     add.js   add-render.js     hoja de añadir movimiento
     detail.js  pick.js  cuenta.js  cobro.js  onboard.js
+herramientas/       no corre al abrir la app: se ejecuta a mano
+  iconos.js         rehace js/iconos.js a partir de Lucide
 tests/              sin dependencias: node tests/run.js
   ayuda.js          cuarenta líneas en vez de un framework
   ciclo.js  limites.js  apartados.js  programados.js  cuentas.js
   paneles.js        los bloques de cada cuenta
+  subcategorias.js  madres e hijas: icono, color y reparentar
   migracion.js      de una versión publicada a la de hoy, de punta a punta
 packaging/          convierte la app en un APK; si lo borras, la app sigue igual
   android/…/java/   lo poco que tiene que ser nativo:

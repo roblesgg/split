@@ -91,6 +91,67 @@
     briefcase:'<path d="M3 8.5h18V19H3Z"/><path d="M9 8.5V6.8A1.8 1.8 0 0 1 10.8 5h2.4A1.8 1.8 0 0 1 15 6.8v1.7"/><path d="M3 13h18"/>'
   };
 
+  /* ---------- la librería de fuera ----------
+     Los de arriba son los de casa: los que usa la app por su cuenta —la
+     barra de pestañas, los botones, los avisos— y nunca cambian.
+
+     Aparte hay casi dos mil de Lucide para que cada uno le ponga a sus
+     cuentas el que quiera. Esos NO se cargan al arrancar: pesan lo que
+     pesan dos mil dibujos y solo hacen falta cuando alguien va a elegir
+     uno, así que se piden la primera vez que se abre el selector.
+
+     Si un nombre de fuera choca con uno de casa, gana el de casa: la
+     app tiene que verse igual pase lo que pase con la librería. */
+
+  var GRUPOS_ICONOS = [];
+  var BUSCAR_ICONOS = {};
+  var pidiendoIconos = null;
+  var iconosListos = false;
+
+  function addIcons(paths, grupos, buscar) {
+    Object.keys(paths || {}).forEach(function (k) {
+      if (!PATHS[k]) PATHS[k] = paths[k];
+    });
+    GRUPOS_ICONOS = grupos || [];
+    BUSCAR_ICONOS = buscar || {};
+    iconosListos = true;
+  }
+
+  function hayIconos() { return iconosListos; }
+
+  /* Si un nombre se sabe dibujar ahora mismo. Lo pregunta el arranque:
+     una cuenta con un icono de la librería necesita que la librería
+     esté, y si no se pidiera saldría el de reserva. */
+  function tieneIcono(name) { return !!PATHS[name]; }
+
+  function gruposDeIconos() { return GRUPOS_ICONOS; }
+
+  /* Las palabras por las que se encuentra un icono: su nombre, sus
+     etiquetas y lo que se diría en español. */
+  function palabrasDeIcono(id) { return BUSCAR_ICONOS[id] || id; }
+
+  /* Pide la librería una sola vez. Se mete como <script> y no con fetch
+     a propósito: la app se abre también con doble clic desde el disco, y
+     ahí fetch no puede leer un archivo de al lado pero un <script> sí. */
+  function cargarIconos() {
+    if (iconosListos) return Promise.resolve(true);
+    if (pidiendoIconos) return pidiendoIconos;
+
+    pidiendoIconos = new Promise(function (resolver) {
+      var s = document.createElement("script");
+      s.src = "js/iconos.js";
+      s.onload = function () { resolver(true); };
+      s.onerror = function () {
+        /* Sin librería el selector se queda con los de casa, que son
+           pocos pero bastan: nada se rompe. */
+        pidiendoIconos = null;
+        resolver(false);
+      };
+      document.head.appendChild(s);
+    });
+    return pidiendoIconos;
+  }
+
   function icon(name, size, strokeWidth) {
     var d = PATHS[name] || PATHS.dots;
     var s = size || 22;
@@ -517,6 +578,9 @@
 
   window.UI = {
     icon: icon,
+    addIcons: addIcons, cargarIconos: cargarIconos, hayIconos: hayIconos,
+    gruposDeIconos: gruposDeIconos, palabrasDeIcono: palabrasDeIcono,
+    tieneIcono: tieneIcono,
     $: $, $$: $$, el: el, esc: esc,
     haptic: haptic, setHaptics: setHaptics,
     toast: toast,
