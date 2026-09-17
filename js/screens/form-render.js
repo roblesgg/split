@@ -79,6 +79,36 @@
       '</div>';
   }
 
+  /* Los iconos que se le pueden poner a una cuenta. Con cuatro —cartera,
+     hucha, billetes y diana— todas acababan pareciéndose; una cuenta es
+     un sitio donde tienes dinero y cada uno tiene su forma. El nombre va
+     en el aria-label porque el icono solo no dice cuál es para quien no
+     lo ve. */
+  var ICONOS_CUENTA = [
+    { id: "wallet",   nombre: "Cartera" },
+    { id: "banco",    nombre: "Banco" },
+    { id: "tarjeta",  nombre: "Tarjeta" },
+    { id: "cash",     nombre: "Efectivo" },
+    { id: "sobre",    nombre: "Sobre" },
+    { id: "piggy",    nombre: "Hucha" },
+    { id: "caja",     nombre: "Caja fuerte" },
+    { id: "monedas",  nombre: "Ahorros" },
+    { id: "movil",    nombre: "Móvil" },
+    { id: "briefcase",nombre: "Trabajo" },
+    { id: "chart",    nombre: "Inversión" },
+    { id: "gema",     nombre: "Joya" },
+    { id: "paraguas", nombre: "Colchón" },
+    { id: "avion",    nombre: "Viaje" },
+    { id: "car",      nombre: "Coche" },
+    { id: "home",     nombre: "Casa" },
+    { id: "cart",     nombre: "Compra" },
+    { id: "ticket",   nombre: "Recibos" },
+    { id: "gift",     nombre: "Regalos" },
+    { id: "heart",    nombre: "Salud" },
+    { id: "target",   nombre: "Meta" },
+    { id: "sparkle",  nombre: "Caprichos" }
+  ];
+
   function renderForm() {
     var body = $("#sheetFormBody");
     var t = ui.form.type, d = ui.form.d;
@@ -165,11 +195,12 @@
 
         '<div class="field">' +
           '<span class="field__label">Icono</span>' +
-          '<div class="cat-grid">' +
-            ["wallet", "piggy", "cash", "target"].map(function (ic) {
-              return '<button type="button" class="cat-pick" data-picon="' + ic + '" ' +
-                       'aria-pressed="' + (d.icon === ic) + '">' +
-                  '<span class="cat-pick__icon" data-icon="' + ic + '" data-icon-size="18"></span>' +
+          '<div class="icon-grid">' +
+            ICONOS_CUENTA.map(function (o) {
+              return '<button type="button" class="icon-pick" data-picon="' + esc(o.id) + '" ' +
+                       'aria-pressed="' + (d.icon === o.id) + '" ' +
+                       'aria-label="' + esc(o.nombre) + '" title="' + esc(o.nombre) + '">' +
+                  '<span data-icon="' + esc(o.id) + '" data-icon-size="20"></span>' +
                 '</button>';
             }).join("") +
           '</div>' +

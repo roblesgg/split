@@ -644,6 +644,24 @@ directo a la pantalla de ajustes donde se concede.
 Las alarmas **no sobreviven a un reinicio del teléfono**. Por eso se reponen
 todas cada vez que se abre la app.
 
+## El icono de una cuenta
+
+Veintidós, no cuatro. Con cartera, hucha, billetes y diana todas las cuentas
+acababan pareciéndose: una cuenta es **un sitio donde tienes dinero** y cada uno
+tiene su forma — el banco, la tarjeta, el sobre de efectivo, la caja fuerte, el
+móvil, el bote del viaje, el colchón.
+
+Los diez nuevos están dibujados en el mismo trazo que el resto de la app —24×24,
+1,7 px, `currentColor`— para que en una fila se lean como una familia y no como
+pegatinas traídas de fuera. Viven en `PATHS`, dentro de `js/ui.js`, como todos
+los demás.
+
+La rejilla no lleva el nombre debajo de cada uno: con la etiqueta puesta ocupaba
+media hoja y el icono, que es lo que se está eligiendo, quedaba pequeño. El
+nombre va en el `aria-label` y en el `title`, así que quien no lo vea lo tiene
+igual. El elegido se marca con el acento **y con un aro**, que es una forma: el
+color no viaja solo.
+
 ## Cuentas y metas
 
 Ambas se crean, editan y borran desde **Planes**.

@@ -406,3 +406,39 @@
 }
 
 .subcat__chev { flex: none; color: var(--text-muted); }
+
+/* ---------- elegir el icono de una cuenta ----------
+   Son veintidós y no llevan nombre debajo: con la etiqueta puesta la
+   rejilla ocupaba media hoja y el icono, que es lo que se está
+   eligiendo, quedaba pequeño. El nombre va en el aria-label y en el
+   title, así que quien no lo vea lo tiene igual. */
+
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+  gap: var(--sp-2);
+}
+
+.icon-pick {
+  display: grid;
+  place-items: center;
+  min-height: var(--tap-min);
+  padding: var(--sp-3) 0;
+  border: 0;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  box-shadow: var(--nm-in);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out),
+              box-shadow var(--dur-fast) var(--ease-out);
+}
+
+.icon-pick:active { box-shadow: var(--nm-out-sm); }
+
+/* El elegido: en el acento y con su aro. El color no viaja solo —el aro
+   es una forma—, y además aria-pressed lo dice. */
+.icon-pick[aria-pressed="true"] {
+  color: var(--accent);
+  box-shadow: var(--nm-out-sm), inset 0 0 0 2px var(--accent);
+}
