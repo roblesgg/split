@@ -99,7 +99,7 @@
     /* del mes en curso, y separando lo que entra de lo que sale */
     var entra = 0, sale = 0;
     propios.forEach(function (t) {
-      if (S.ciclo(t.date) !== curKey) return;
+      if (S.cicloDeMov(t) !== curKey) return;
       var e = efectoEnCuenta(t, a.id);
       if (e >= 0) entra += e; else sale += -e;
     });

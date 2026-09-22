@@ -18,6 +18,7 @@ console.log("\nsplit — pruebas");
  ["Límites de cuenta", "./limites"],
  ["Apartados", "./apartados"],
  ["Programados", "./programados"],
+ ["Cobrar por adelantado", "./adelantado"],
  ["Borrar una cuenta", "./cuentas"],
  ["Las de dentro", "./subcategorias"],
  ["El panel de cada cuenta", "./paneles"],

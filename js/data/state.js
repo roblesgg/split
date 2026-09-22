@@ -43,7 +43,7 @@
       var key = D.addMonths(cur, -i);
       var t = 0;
       (s.transactions || []).forEach(function (x) {
-        if (x.kind === "in" && D.Ciclo.de(x.date, dia) === key) t += x.amount;
+        if (x.kind === "in" && (x.ciclo || D.Ciclo.de(x.date, dia)) === key) t += x.amount;
       });
       if (t > 0) { suma += t; contados++; }
     }

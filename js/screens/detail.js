@@ -47,6 +47,13 @@
           weekday: "long", day: "numeric", month: "long", year: "numeric"
         })) +
         (t.time ? detailRow("Hora", t.time) : "") +
+        /* Solo cuando no es el de su fecha. Ponerlo siempre sería repetir
+           con otras palabras lo que dice la línea de arriba; ponerlo
+           cuando difieren es lo único que explica por qué este ingreso no
+           aparece en el mes en el que se cobró. */
+        (t.ciclo
+          ? detailRow("Cuenta para", S.etiquetaCiclo(S.cicloDeMov(t), "shortYear"))
+          : "") +
         detailRow("Tipo", isIn ? "Ingreso" : "Gasto") +
       '</div>' +
 

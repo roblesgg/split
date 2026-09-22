@@ -90,6 +90,70 @@ porque llamarle agosto sería mentir.
 Por dentro, un ciclo se identifica por el mes en el que **empieza**, así que
 sigue siendo una clave `AAAA-MM` y todo lo que ya guardaba meses no se entera.
 
+## Un sueldo que se cobra por adelantado
+
+Quien cobra el día 25 no cobra por el mes que se acaba: cobra para el que
+entra. Si eso no se pudiera decir, el día 1 el mes nuevo arrancaría marcando
+**cero ingresos** —y con ellos la tasa de ahorro, la media de lo que entra y lo
+que se puede repartir en límites— hasta que llegara el cobro siguiente.
+
+Por eso un ingreso programado tiene **«Cuenta para el mes siguiente»**. Con eso
+puesto, lo que se apunte cuenta para el mes que **arranca a partir de la
+fecha**, no para aquel en cuyo calendario cae.
+
+Es «el que arranca a partir de aquí» y no «el de después» por una razón muy
+concreta: en una casa con dos sueldos, uno entra el 25 y el otro el 1 —o el 30,
+si el 1 cae en fin de semana—. Con esa regla los tres casos caen en el mismo
+mes, que es el que se paga con ellos:
+
+| Se cobra el | Cuenta para (con el mes empezando el 1) |
+|---|---|
+| 25 de septiembre | octubre |
+| 30 de septiembre | octubre |
+| 1 de octubre | octubre — ese día ya **es** octubre |
+
+El interruptor solo sale en **ingresos mensuales**: en un gasto, o en un cobro
+semanal, «el mes siguiente» no quiere decir nada. Y la pista de debajo no
+explica la regla, dice el resultado con los meses de verdad —«lo que cobres el
+25 contará para octubre»—, que se entiende a la primera y se actualiza según
+escribes el día.
+
+### Y para un movimiento suelto
+
+Dentro de **Más detalles**, cualquier ingreso o gasto lleva **«Cuenta para»**
+con tres meses: el anterior, el suyo y el siguiente. Sirve para lo que la fecha
+no sabe contar —el sueldo que ya está apuntado y hay que recolocar, el recibo de
+diciembre que se carga en enero— y para deshacerlo, porque el mes propio viene
+marcado como «el de su fecha».
+
+Se ofrecen tres y no una lista entera porque más allá del mes de al lado esto
+deja de ser «lo cobré un poco antes» y pasa a ser otra cosa. Un traspaso no
+lleva el campo: no entra en ningún total, así que elegirle mes no cambiaría
+nada.
+
+### Por dentro
+
+El movimiento guarda **`ciclo`**, y solo cuando de verdad cambia algo: si
+coincide con el de su fecha no se escribe, porque sería un campo repitiendo lo
+que ya dice `date`. Todo lo que agrupa por mes pasa por `cicloDeMov(t)`, que
+devuelve `t.ciclo || ciclo(t.date)` — una sola función, para que los totales, la
+media de ingresos, la tasa de ahorro y los límites no puedan discrepar sobre el
+mismo dinero.
+
+El mes se calcula **al apuntar** y viaja escrito en el movimiento. No se deduce
+después a propósito: así un sueldo ya cobrado se queda donde estaba aunque luego
+se quite la marca del programado o se cambie el día en que empieza el mes. Lo
+que ya pasó no se recoloca solo.
+
+La única pantalla donde un movimiento así no aparece es el **mapa de calor** de
+gasto diario: su día no existe en ese ciclo, y pintarlo en el primero o en el
+último sería inventarse una fecha. Suma en los totales del mes igual.
+
+Y si prefieres no marcar nada: poner **el corte del mes en el 25** resuelve el
+mismo caso por otro lado, porque entonces el del 25, el del 30 y el del 1 caen
+todos dentro del ciclo `25 sep – 24 oct`. A cambio, los gastos del 25 al 30
+pasan a contar en ese mismo mes y la cabecera deja de decir «octubre».
+
 ## Cuánto cuentas al mes
 
 En **Ajustes** decides sobre cuánto dinero se habla:
@@ -911,6 +975,7 @@ tests/              sin dependencias: node tests/run.js
   ayuda.js          cuarenta líneas en vez de un framework
   ciclo.js  limites.js  apartados.js  programados.js  cuentas.js
   paneles.js        los bloques de cada cuenta
+  adelantado.js     el sueldo que se cobra para el mes que entra
   subcategorias.js  madres e hijas: icono, color y reparentar
   migracion.js      de una versión publicada a la de hoy, de punta a punta
 packaging/          convierte la app en un APK; si lo borras, la app sigue igual

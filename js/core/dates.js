@@ -113,6 +113,22 @@
     return { desde: ymd(new Date(+p[0], +p[1] - 1, dia)), hasta: ymd(fin) };
   }
 
+  /* El ciclo que EMPIEZA en cuanto cobras.
+
+     Un sueldo que llega el 25 no es dinero del mes que se está acabando:
+     es con lo que se vive el que entra. Así que no se pregunta «en qué
+     mes cae esta fecha» sino «qué mes arranca a partir de aquí»: si la
+     fecha ya es el primer día de un ciclo, ese mismo —cobrar el día 1 es
+     cobrar para ese mes—; si no, el siguiente que arranque.
+
+     Sale la misma respuesta para el que cobra el 25 y para el que cobra
+     el 30, que es justo lo que hace falta cuando en casa entran dos
+     sueldos en días distintos y los dos pagan el mismo mes. */
+  function cicloQueEmpieza(dateStr, dia) {
+    var k = cicloDe(dateStr, dia);
+    return String(dateStr) === rangoDeCiclo(k, dia).desde ? k : addMonths(k, 1);
+  }
+
   /* Días entre dos fechas. Se redondea porque el cambio de hora mete o
      saca una hora y 30 días pasarían a ser 29,96. */
   function diasEntre(a, b) {
@@ -174,6 +190,7 @@
     DIA_MAX: CICLO_DIA_MAX,
     diaValido: diaValido,
     de: cicloDe,
+    queEmpieza: cicloQueEmpieza,
     rango: rangoDeCiclo,
     dias: diasDelCiclo,
     diaDentro: diaDelCiclo,

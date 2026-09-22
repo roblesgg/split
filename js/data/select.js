@@ -18,7 +18,7 @@
      así que da igual el orden en que se carguen los scripts. */
   function addMonths() { return D.addMonths.apply(null, arguments); }
   function catById() { return D.catById.apply(null, arguments); }
-  function ciclo() { return D.ciclo.apply(null, arguments); }
+  function cicloDeMov() { return D.cicloDeMov.apply(null, arguments); }
   function cicloActual() { return D.cicloActual.apply(null, arguments); }
   function diaDeCiclo() { return D.diaDeCiclo.apply(null, arguments); }
   function diasCorridos() { return D.diasCorridos.apply(null, arguments); }
@@ -35,7 +35,7 @@
      ============================================================ */
 
   function txDeCiclo(key) {
-    return D.state.transactions.filter(function (t) { return ciclo(t.date) === key; });
+    return D.state.transactions.filter(function (t) { return cicloDeMov(t) === key; });
   }
 
   /* Un traspaso mueve dinero entre cuentas propias: no es ingreso ni
@@ -154,6 +154,11 @@
     delCiclo(key, accId).forEach(function (t) {
       if (t.kind !== "out") return;
       var i = diaDeCiclo(t.date, key) - 1;
+      /* Un movimiento al que se le ha dicho a mano que cuenta para otro
+         mes cae fuera de la rejilla: su día no está en este ciclo. Suma
+         en los totales del mes, pero aquí no se pinta, porque esto es un
+         calendario y ese día no existe en él. Ponerlo en el primero o en
+         el último sería inventarse una fecha. */
       if (i >= 0 && i < n) days[i] += t.amount;
     });
     return days.map(function (v, i) {

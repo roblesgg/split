@@ -11,6 +11,7 @@
      así que da igual el orden en que se carguen los scripts. */
   function apartadoParaGasto() { return D.apartadoParaGasto.apply(null, arguments); }
   function catById() { return D.catById.apply(null, arguments); }
+  function cicloValido() { return D.cicloValido.apply(null, arguments); }
   function save() { return D.save.apply(null, arguments); }
 
   /* A qué apartado va un gasto. Si te lo dan puesto, se respeta —incluido
@@ -51,6 +52,11 @@
       tags: normalizeTags(t.tags),
       attachments: Array.isArray(t.attachments) ? t.attachments.slice() : []
     };
+    /* Para qué mes cuenta, cuando no es el de su fecha. Solo se guarda si
+       de verdad cambia algo: un movimiento normal no tiene por qué cargar
+       con un campo que repite lo que ya dice la fecha. */
+    var paraCiclo = cicloValido(t.ciclo);
+    if (paraCiclo && paraCiclo !== D.ciclo(tx.date)) tx.ciclo = paraCiclo;
     var ap = apartadoDeMovimiento({
       kind: tx.kind, accountId: tx.accountId,
       categoryId: tx.categoryId, apartadoId: t.apartadoId
@@ -98,6 +104,13 @@
     }
     if (t.kind !== "out") delete t.apartadoId;
     if (patch.time != null) t.time = normalizeTime(patch.time);
+    /* El mes para el que cuenta se puede cambiar y se puede quitar. Y si
+       lo que queda coincide con el de la fecha, se quita solo: dejarlo
+       escrito no haría nada y sería un campo de más que mantener. */
+    if (patch.ciclo !== undefined || patch.date != null) {
+      var quiere = patch.ciclo !== undefined ? cicloValido(patch.ciclo) : cicloValido(t.ciclo);
+      if (quiere && quiere !== D.ciclo(t.date)) t.ciclo = quiere; else delete t.ciclo;
+    }
     if (patch.memo != null) t.memo = String(patch.memo).trim();
     if (patch.tags != null) t.tags = normalizeTags(patch.tags);
     sortTx();

@@ -33,7 +33,7 @@
        no están en transactions hasta que se diga cuánto: sin meterlos
        aquí, Movimientos parecía no tener ingresos. */
     S.pendientes().forEach(function (p) {
-      if (S.ciclo(p.date) !== key) return;
+      if (S.cicloDeMov(p) !== key) return;
       list.push({ tx: p, pendiente: true });
     });
 

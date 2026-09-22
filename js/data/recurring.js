@@ -25,6 +25,8 @@
   /* Puentes a lo que vive en otro archivo. Se resuelven en la llamada,
      así que da igual el orden en que se carguen los scripts. */
   function addMonths() { return D.addMonths.apply(null, arguments); }
+  function ciclo() { return D.ciclo.apply(null, arguments); }
+  function cicloQueEmpieza() { return D.cicloQueEmpieza.apply(null, arguments); }
   function diasEntre() { return D.diasEntre.apply(null, arguments); }
   function mesActual() { return D.mesActual.apply(null, arguments); }
   function daysInMonth() { return D.daysInMonth.apply(null, arguments); }
@@ -61,6 +63,12 @@
       weekdays: normalizarDias(data.weekdays, parseInt(data.weekday, 10) || 0),
       /* 14 pagas solo tiene sentido en un ingreso mensual */
       pagas: (data.kind === "in" && +data.pagas === 14) ? 14 : 12,
+
+      /* Un sueldo que se cobra por adelantado: el del día 25 no es dinero
+         del mes que se acaba, es con lo que se vive el que entra. Con esto
+         puesto, lo que se apunte cuenta para el mes que arranca después de
+         cobrarlo y no para aquel en cuyo calendario cae. */
+      adelantado: data.kind === "in" && !!data.adelantado,
       confirmar: !!data.confirmar,
 
       /* Sin importe fijo: el sueldo depende de las horas, así que no se
@@ -145,6 +153,9 @@
       r.pagas = (r.kind === "in" && r.freq === "mensual" && r.cada === 1 &&
                  +patch.pagas === 14) ? 14 : 12;
     }
+    if (patch.adelantado != null) r.adelantado = r.kind === "in" && !!patch.adelantado;
+    /* Si deja de ser un ingreso, cobrar por adelantado no significa nada. */
+    if (r.kind !== "in") r.adelantado = false;
     if (patch.confirmar != null) r.confirmar = !!patch.confirmar;
     if (patch.importeAbierto != null) r.importeAbierto = !!patch.importeAbierto;
     if (patch.tarifa !== undefined) {
@@ -355,6 +366,17 @@
     };
   }
 
+  /* El mes para el que cuenta lo que se apunta. Se calcula al apuntarlo y
+     viaja escrito en el movimiento, no se deduce después: así un sueldo ya
+     cobrado se queda donde estaba aunque luego se cambie el programado o
+     el día en que empieza el mes. Lo que ya pasó no se recoloca solo. */
+  function cicloDelMovimiento(r, fecha) {
+    if (r.kind !== "in" || !r.adelantado) return null;
+    var f = ymd(fecha);
+    var para = cicloQueEmpieza(f);
+    return para === ciclo(f) ? null : para;
+  }
+
   /* Apunta lo vencido. Lo que pida confirmación no se apunta: se deja en
      la cola de pendientes para preguntar el importe al abrir la app, que
      un sueldo casi nunca cae clavado. */
@@ -378,6 +400,8 @@
         }
 
         var mov = movimientoDe(r, v.fecha, v.extra);
+        var para = cicloDelMovimiento(r, v.fecha);
+        if (para) mov.ciclo = para;
         /* Sin importe fijo no hay nada que apuntar todavía: se pregunta
            siempre, aunque no se haya marcado «preguntarme el importe». */
         if (r.confirmar || esAbierto(r)) {

@@ -29,6 +29,40 @@
   function periodo() { return A.periodo.apply(null, arguments); }
   function switchRow() { return A.switchRow.apply(null, arguments); }
 
+  /* La pista del interruptor de «cuenta para el mes siguiente»: qué pasa
+     hoy y qué pasaría con él puesto, con los nombres de los meses que le
+     tocarían a este programado. */
+  /* La pista se reescribe sola al cambiar el día del mes. Sin esto decía
+     el mes del día anterior —escribes 25 y seguía hablando del 1—, que es
+     justo el sitio donde hay que poder fiarse de lo que pone. Se cambia
+     el texto y no se repinta el formulario: repintar dejaría el campo del
+     día sin foco a media cifra. */
+  function refrescarAdelantado() {
+    var sw = $("#fAdelantado");
+    if (!sw) return;
+    var pista = sw.querySelector(".switch-row__hint");
+    if (pista) pista.textContent = textoAdelantado(ui.form.d);
+  }
+
+  function textoAdelantado(d) {
+    var hoy = new Date();
+    var ultimo = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
+    var dia = Math.min(Math.max(parseInt(d.day, 10) || 1, 1), ultimo);
+    var fecha = S.ymd(new Date(hoy.getFullYear(), hoy.getMonth(), dia));
+
+    var suyo = S.nombreCiclo(S.ciclo(fecha));
+    var siguiente = S.nombreCiclo(S.cicloQueEmpieza(fecha));
+
+    if (suyo === siguiente) {
+      return "Lo que cobres el " + dia + " ya cuenta para " + suyo +
+             ", que es el mes que empieza ese día.";
+    }
+    return d.adelantado
+      ? "Lo que cobres el " + dia + " contará para " + siguiente +
+        ", que es el mes que pagas con él."
+      : "Ahora, lo que cobres el " + dia + " cuenta para " + suyo + ".";
+  }
+
   /* Las de dentro, dentro. Editando una categoría madre se ven las suyas
      y se crean ahí mismo: buscarlas en la lista general de Ajustes, que
      las enseña todas mezcladas, es justo lo que no se quiere hacer
@@ -570,6 +604,21 @@
             '</div>'
           : "") +
 
+        /* Para qué mes es este sueldo.
+
+           Quien cobra el 25 no cobra por el mes que se acaba: cobra para
+           el que entra. Si eso no se puede decir, el mes nuevo empieza
+           marcando cero ingresos y la tasa de ahorro, la media y los
+           límites salen todos torcidos hasta que llega el siguiente.
+
+           La pista dice el resultado con los meses de verdad, no la
+           regla: «contará para octubre» se entiende a la primera y
+           «cuenta para el ciclo que arranca tras la fecha» no. */
+        (d.kind === "in" && ritmo === "mensual"
+          ? switchRow("fAdelantado", "Cuenta para el mes siguiente",
+              textoAdelantado(d), d.adelantado)
+          : "") +
+
         /* El sueldo casi nunca cae clavado: horas de más, un mes con
            menos días trabajados... Con esto la app pregunta en vez de
            apuntar una cifra que luego hay que corregir a mano. */
@@ -710,6 +759,7 @@
 
   /* --- lo que usan otros archivos --- */
   A.refrescarIconos = refrescarIconos;
+  A.refrescarAdelantado = refrescarAdelantado;
   A.renderForm = renderForm;
 
 })();

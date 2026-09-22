@@ -47,6 +47,7 @@
   var signed = D.signed, tagById = D.tagById, tagUsage = D.tagUsage, toggleRecurring = D.toggleRecurring;
   var topMerchants = D.topMerchants, totalesResumen = D.totalesResumen, totals = D.totals;
   var ciclo = D.ciclo, cicloActual = D.cicloActual, txDeCiclo = D.txDeCiclo;
+  var cicloDeMov = D.cicloDeMov, cicloQueEmpieza = D.cicloQueEmpieza;
   var diaDeCiclo = D.diaDeCiclo, diasDeCiclo = D.diasDeCiclo, diasCorridos = D.diasCorridos;
   var rangoDeCiclo = D.rangoDeCiclo, etiquetaCiclo = D.etiquetaCiclo, nombreCiclo = D.nombreCiclo;
   var diaDeCorte = D.diaDeCorte, setDiaDeCorte = D.setDiaDeCorte, esMesNatural = D.esMesNatural;
@@ -193,6 +194,8 @@
     /* El ciclo: el «mes» de la app, que empieza el día que diga el
        usuario. Con día 1 es el mes natural de toda la vida. */
     ciclo: ciclo,                     /* en qué ciclo cae una fecha */
+    cicloDeMov: cicloDeMov,           /* y para qué ciclo cuenta un movimiento */
+    cicloQueEmpieza: cicloQueEmpieza, /* el ciclo que arranca a partir de una fecha */
     cicloActual: cicloActual,
     rangoDeCiclo: rangoDeCiclo,       /* { desde, hasta } */
     diasDeCiclo: diasDeCiclo,

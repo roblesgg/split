@@ -26,7 +26,7 @@
   /* Puentes a lo que vive en otro archivo. Se resuelven en la llamada,
      así que da igual el orden en que se carguen los scripts. */
   function addMonths() { return D.addMonths.apply(null, arguments); }
-  function ciclo() { return D.ciclo.apply(null, arguments); }
+  function cicloDeMov() { return D.cicloDeMov.apply(null, arguments); }
   function cicloActual() { return D.cicloActual.apply(null, arguments); }
   function normalizeColor() { return D.normalizeColor.apply(null, arguments); }
   function raizDe() { return D.raizDe.apply(null, arguments); }
@@ -170,7 +170,7 @@
     D.state.transactions.forEach(function (t) {
       if (t.kind !== "out") return;
       if (apartadoDe(t) !== id) return;
-      if (ciclo(t.date) !== key) return;
+      if (cicloDeMov(t) !== key) return;
       total += t.amount;
     });
     return Math.round(total * 100) / 100;

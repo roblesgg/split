@@ -49,13 +49,15 @@
           note: t.note, memo: t.memo || "", date: t.date, time: t.time || "",
           tags: Array.isArray(t.tags) ? t.tags.slice() : [],
           attachments: Array.isArray(t.attachments) ? t.attachments.slice() : [],
+          /* el mes para el que cuenta, cuando no es el de su fecha */
+          ciclo: t.ciclo || "",
           /* null = que lo decida la categoría; "" = fuera del apartado */
           apartadoId: t.apartadoId || (t.kind === "out" ? "" : null) }
       : { kind: kind || "out", amount: "", categoryId: kind === "in" ? "nomina" : "comida",
           accountId: (opts && opts.accountId) || accs[0].id,
           toAccountId: null,
           note: "", memo: "", date: S.ymd(new Date()), time: nowHHMM(),
-          tags: [], attachments: [], apartadoId: null,
+          tags: [], attachments: [], apartadoId: null, ciclo: "",
           /* reparto de un ingreso entre varias cuentas: apagado por
              defecto, y `trozos` guarda cuánto va a cada una */
           reparto: false, trozos: {},
@@ -225,6 +227,8 @@
               '</div>' +
             '</div>' +
 
+            cicloFieldHtml(d) +
+
             tagsFieldHtml(d) +
 
             '<div class="field">' +
@@ -237,6 +241,45 @@
             attachFieldHtml() +
           '</div>' +
         '</div>' +
+      '</div>';
+  }
+
+  /* Para qué mes cuenta este movimiento.
+
+     Casi siempre es el de su fecha y no hay nada que decidir, así que vive
+     dentro de «Más detalles» y viene puesto. Está para lo que la fecha no
+     sabe contar: el sueldo que se cobra el 25 y paga el mes que entra, o
+     el recibo de diciembre que se carga en enero.
+
+     Se ofrecen tres meses y no una lista entera porque más allá del de al
+     lado esto deja de ser «lo cobré un poco antes» y pasa a ser otra cosa;
+     y un traspaso no lleva campo: no entra en ningún total, así que
+     elegirle mes no cambiaría nada.
+
+     El de su fecha va marcado como tal, para que se vea cuál es el normal
+     y que los otros dos son una decisión. */
+  function cicloFieldHtml(d) {
+    if (d.kind === "transfer") return "";
+
+    var suyo = S.ciclo(d.date);
+    var elegido = d.ciclo || suyo;
+    var opciones = [S.addMonths(suyo, -1), suyo, S.addMonths(suyo, 1)];
+
+    return '<div class="field">' +
+        '<label class="field__label" for="addCiclo">Cuenta para</label>' +
+        '<select class="field__input" id="addCiclo">' +
+          opciones.map(function (key) {
+            return '<option value="' + esc(key) + '"' +
+                   (key === elegido ? " selected" : "") + '>' +
+                   esc(S.etiquetaCiclo(key, "shortYear")) +
+                   (key === suyo ? " · el de su fecha" : "") +
+                   '</option>';
+          }).join("") +
+        '</select>' +
+        (elegido !== suyo
+          ? '<p class="field__hint">Se apuntó el ' + esc(S.fechaLarga(d.date)) +
+            ', pero suma en ' + esc(S.nombreCiclo(elegido)) + '.</p>'
+          : "") +
       '</div>';
   }
 
@@ -292,7 +335,10 @@
       accountId: d.accountId, toAccountId: d.toAccountId,
       note: d.note, memo: d.memo, date: d.date, time: d.time,
       tags: d.tags,
-      attachments: (ui.draftAttachments || []).map(function (a) { return a.id; })
+      attachments: (ui.draftAttachments || []).map(function (a) { return a.id; }),
+      /* Cadena vacía es «el de su fecha», y al editar hace falta mandarla
+         para poder quitar un mes que se había puesto antes. */
+      ciclo: d.ciclo || ""
     };
     /* null se lo deja decidir a la categoría; cualquier otra cosa es una
        elección del usuario y manda. */
@@ -514,8 +560,19 @@
     });
 
     addBody.addEventListener("change", function (e) {
-      if (e.target.id === "addDate") ui.draft.date = e.target.value;
+      if (e.target.id === "addDate") {
+        ui.draft.date = e.target.value;
+        /* Cambiar la fecha repinta: las tres opciones de «Cuenta para»
+           son las de alrededor de la fecha, así que con otra fecha ya no
+           son las mismas. Lo elegido se conserva si sigue estando. */
+        renderAddSheet();
+        return;
+      }
       if (e.target.id === "addTime") ui.draft.time = e.target.value;
+      if (e.target.id === "addCiclo") {
+        ui.draft.ciclo = e.target.value === S.ciclo(ui.draft.date) ? "" : e.target.value;
+        renderAddSheet();
+      }
     });
 
     /* elegir imagen: se reduce y se guarda en IndexedDB antes de pintarla */

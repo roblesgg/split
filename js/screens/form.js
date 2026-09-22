@@ -101,6 +101,7 @@
             freq: it.freq, cada: S.cadaDe(it),
             weekdays: S.diasDe(it),
             pagas: +it.pagas === 14 ? 14 : 12,
+            adelantado: !!it.adelantado,
             confirmar: !!it.confirmar,
             importeAbierto: !!it.importeAbierto,
             /* El modo se guarda tal cual y no se deduce de la tarifa: al
@@ -114,7 +115,7 @@
             categoryId: it.categoryId, accountId: it.accountId,
             toAccountId: it.toAccountId || (accs[1] || accs[0]).id }
         : { kind: "out", note: "", amount: "", day: 1,
-            freq: "mensual", weekdays: [0], pagas: 12, confirmar: false,
+            freq: "mensual", weekdays: [0], pagas: 12, adelantado: false, confirmar: false,
             importeAbierto: false, modo: "fijo", tarifa: "",
             hora: "09:00", avisar: false, cuotas: "",
             categoryId: "hogar",
@@ -340,6 +341,9 @@
          repintar: repintar dejaría el campo sin foco a media cifra */
       if (ui.form.type === "saldo") refreshAjuste();
       if (ui.form.type === "limite") refreshLimiteResumen();
+      /* «lo que cobres el 25 contará para octubre» tiene que seguir al
+         día que se está escribiendo */
+      if (ui.form.type === "recurring") A.refrescarAdelantado();
     });
 
     formBody.addEventListener("change", function (e) { readField(e.target); });
@@ -416,6 +420,12 @@
         var sw = e.target.closest("#fAvisar");
         ui.form.d.avisar = sw.getAttribute("aria-checked") !== "true";
         sw.setAttribute("aria-checked", String(ui.form.d.avisar));
+        U.haptic("light");
+        return;
+      }
+      if ((node = e.target.closest("#fAdelantado"))) {
+        ui.form.d.adelantado = node.getAttribute("aria-checked") !== "true";
+        renderForm();
         U.haptic("light");
         return;
       }

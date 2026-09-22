@@ -152,6 +152,9 @@
         pagas: (d.kind === "in" && d.freq === "mensual" && +d.cada === 1 &&
                 +d.pagas === 14) ? 14 : 12,
         confirmar: !!d.confirmar,
+        /* Solo en un ingreso mensual: en un gasto o en un cobro semanal
+           «el mes siguiente» no quiere decir nada. */
+        adelantado: d.kind === "in" && d.freq === "mensual" && !!d.adelantado,
         accountId: d.accountId,
         toAccountId: d.kind === "transfer" ? d.toAccountId : null,
         categoryId: d.kind === "transfer" ? "otros" : d.categoryId

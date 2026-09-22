@@ -24,7 +24,7 @@
 
   /* Puentes a lo que vive en otro archivo. Se resuelven en la llamada,
      así que da igual el orden en que se carguen los scripts. */
-  function ciclo() { return D.ciclo.apply(null, arguments); }
+  function cicloDeMov() { return D.cicloDeMov.apply(null, arguments); }
   function cicloActual() { return D.cicloActual.apply(null, arguments); }
   function diasCorridos() { return D.diasCorridos.apply(null, arguments); }
   function diasDeCiclo() { return D.diasDeCiclo.apply(null, arguments); }
@@ -64,7 +64,7 @@
       if (t.kind !== "out") return;
       if (t.accountId !== accId) return;
       if (t.apartadoId) return;
-      if (ciclo(t.date) !== key) return;
+      if (cicloDeMov(t) !== key) return;
       total += t.amount;
     });
     return Math.round(total * 100) / 100;
