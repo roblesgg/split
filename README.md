@@ -118,18 +118,46 @@ explica la regla, dice el resultado con los meses de verdad —«lo que cobres e
 25 contará para octubre»—, que se entiende a la primera y se actualiza según
 escribes el día.
 
-### Y para un movimiento suelto
+### La pregunta, al apuntar el ingreso
 
-Dentro de **Más detalles**, cualquier ingreso o gasto lleva **«Cuenta para»**
-con tres meses: el anterior, el suyo y el siguiente. Sirve para lo que la fecha
-no sabe contar —el sueldo que ya está apuntado y hay que recolocar, el recibo de
-diciembre que se carga en enero— y para deshacerlo, porque el mes propio viene
-marcado como «el de su fecha».
+Marcar el programado sirve para el sueldo de todos los meses, pero la pregunta
+hay que poder contestarla también **el día que apuntas el dinero**. Así que al
+apuntar un ingreso —y al confirmar uno programado, que es la pantalla donde
+llega el sueldo del 25— sale **«Para qué mes es»** con dos botones: el mes de
+su fecha y el siguiente.
 
-Se ofrecen tres y no una lista entera porque más allá del mes de al lado esto
-deja de ser «lo cobré un poco antes» y pasa a ser otra cosa. Un traspaso no
-lleva el campo: no entra en ningún total, así que elegirle mes no cambiaría
-nada.
+Va **a la vista y no dentro de «Más detalles»**, porque escondida no la
+encuentra quien la necesita. Y va **ya contestada**, con el mes de la fecha
+marcado: quien no tenga nada que decir la lee de un vistazo y sigue. Parar la
+hoja a esperar una respuesta sería cobrar un peaje en cada ingreso, y la
+inmensa mayoría no lo necesitan.
+
+Debajo, una línea que cambia según el caso:
+
+| Cuándo | Qué dice |
+|---|---|
+| Un ingreso normal, a mitad de mes | «Sumará en septiembre, como su fecha» |
+| En los **últimos 7 días** del ciclo | «Lo cobras casi al final del mes: si es el sueldo con el que vas a vivir octubre, elígelo» |
+| Con el siguiente elegido | «Sumará en octubre, no en el mes en que lo cobras» |
+
+Solo sale en **ingresos**: en un gasto no se plantea, y un traspaso no entra en
+ningún total, así que su mes no cambiaría nada. En la hoja de confirmar, viene
+contestada con lo que dijera el programado, así que quien ya lo tenga marcado
+no vuelve a decidir nada.
+
+El **mes anterior** aparece como tercer botón solo si el movimiento ya lo tiene
+puesto. Es para no encerrar a quien lo eligió desde «Más detalles»: si no se
+ofreciera, no habría forma de verlo ni de quitarlo desde ahí.
+
+### Y para un gasto
+
+Un gasto lleva **«Cuenta para»** dentro de **Más detalles**, con tres meses: el
+anterior, el suyo y el siguiente. Es para el recibo de diciembre que se carga en
+enero. Se ofrecen tres y no una lista entera porque más allá del mes de al lado
+esto deja de ser «se cargó un poco antes» y pasa a ser otra cosa.
+
+En un ingreso ese campo **no** está, porque la pregunta ya está arriba: el mismo
+dato en dos sitios de la misma hoja es la forma segura de que un día discrepen.
 
 ### Por dentro
 

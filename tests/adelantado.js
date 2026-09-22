@@ -172,6 +172,20 @@ module.exports = function () {
        ingresosDe("2026-10"), 1650);
   t.es("sin pasar por septiembre", ingresosDe("2026-09"), 0);
 
+  t.grupo("y al confirmarlo se puede decidir ahí mismo");
+  congelar("2026-09-10T12:00:00");
+  limpio();
+  /* un sueldo que NO viene marcado: la pregunta se responde al confirmar */
+  D.addRecurring({ kind: "in", note: "Nómina", amount: 1600, day: 25,
+                   freq: "mensual", categoryId: "nomina", accountId: "banco",
+                   confirmar: true });
+  congelar("2026-09-26T12:00:00");
+  D.runRecurring();
+  t.es("llega sin mes puesto", D.state.pendientes[0].ciclo, undefined);
+  D.confirmarPendiente(D.state.pendientes[0].id, 1600, "2026-10");
+  t.es("y se le puede dar uno al apuntarlo", ingresosDe("2026-10"), 1600);
+  t.es("sin quedarse en el de su fecha", ingresosDe("2026-09"), 0);
+
   t.grupo("la media de ingresos lo cuenta donde toca");
   limpio();
   /* tres sueldos cobrados el 25, para los tres meses siguientes */

@@ -125,6 +125,12 @@
           '</div>'
         : "") +
 
+      /* Para qué mes es. La misma pregunta que al apuntar un ingreso a
+         mano, porque esto es apuntar un ingreso: aquí llega el sueldo del
+         día 25. Viene contestada con lo que dijera el programado, así que
+         quien ya lo tenga marcado no tiene que volver a decidir nada. */
+      A.preguntaMesHtml(mesDelCobro(p), "cobro") +
+
       '<div class="field" style="margin-top:var(--sp-5)">' +
         '<button type="button" class="btn btn--primary" id="cobroOk">' +
           icon("check", 17) + 'Apuntar' +
@@ -136,6 +142,19 @@
       '</div>';
 
     mountIcons(body);
+    A.colocarMesThumb(body, mesDelCobro(p), "cobro");
+  }
+
+  /* Lo que el bloque de la pregunta necesita saber del pendiente: de qué
+     tipo es, de qué día y para qué mes va por ahora. `ui.cobroCiclo` es
+     lo que se haya tocado en esta hoja; mientras no se toque nada manda
+     lo que trajera el pendiente. */
+  function mesDelCobro(p) {
+    return {
+      kind: p.kind,
+      date: p.date,
+      ciclo: ui.cobroCiclo !== undefined ? ui.cobroCiclo : (p.ciclo || "")
+    };
   }
 
   /* Cuántas horas salen de un importe, redondeadas al cuarto de hora, que
@@ -186,6 +205,7 @@
   function abrirCobros() {
     if (!hayPendientes()) return;
     ui.cobro = "";
+    ui.cobroCiclo = undefined;
     renderCobro();
     sheets.cobro.show();
   }
@@ -268,6 +288,14 @@
         return;
       }
 
+      var nodo = e.target.closest("[data-dciclo]");
+      if (nodo) {
+        var mes = nodo.getAttribute("data-dciclo");
+        ui.cobroCiclo = mes === S.ciclo(p.date) ? "" : mes;
+        renderCobro(); U.haptic("light");
+        return;
+      }
+
       if (e.target.closest("#cobroOk")) {
         var v = valorCobro();
         if (!(v > 0)) {
@@ -276,10 +304,11 @@
           return;
         }
         var importe = tarifa ? Math.round(v * tarifa * 100) / 100 : v;
-        S.confirmarPendiente(p.id, importe);
+        S.confirmarPendiente(p.id, importe, mesDelCobro(p).ciclo);
         U.haptic("success");
         U.toast("Apuntado " + money(importe), { icon: "check" });
         ui.cobro = "";
+        ui.cobroCiclo = undefined;
         seguirCobros();
         return;
       }
@@ -288,6 +317,7 @@
         S.descartarPendiente(p.id);
         U.haptic("light");
         ui.cobro = "";
+        ui.cobroCiclo = undefined;
         seguirCobros();
       }
     });

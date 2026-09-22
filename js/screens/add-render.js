@@ -154,6 +154,84 @@
       '<p class="field__hint">Mantén pulsada una categoría para editarla.</p>';
   }
 
+  /* ---------- ¿para qué mes es este ingreso? ----------
+
+     La pregunta que un sueldo pide a gritos: quien cobra el 25 no cobra
+     por el mes que se acaba, cobra para el que entra. Va VISIBLE y no
+     dentro de «Más detalles», porque escondida no la encuentra quien la
+     necesita, que es justo el día de cobrar.
+
+     Viene contestada —manda el mes de la fecha, que es lo normal—, así
+     que quien no tenga nada que decir no tiene que tocar nada: la lee de
+     un vistazo y sigue. Preguntar de verdad, con la hoja parada
+     esperando respuesta, sería cobrar un peaje en cada ingreso.
+
+     Solo en ingresos: en un gasto no se plantea, y un traspaso no entra
+     en ningún total, así que su mes no cambiaría nada.
+
+     El mes anterior sale como tercera opción SOLO si el movimiento ya lo
+     tiene puesto. Es para no dejar encerrado a quien lo eligió alguna vez
+     desde «Más detalles»: si no se ofreciera, no habría forma de verlo ni
+     de quitarlo desde aquí. */
+  function mesDelIngresoHtml(d, prefijo) {
+    if (d.kind !== "in") return "";
+    prefijo = prefijo || "add";
+
+    var suyo = S.ciclo(d.date);
+    var elegido = d.ciclo || suyo;
+    var anterior = S.addMonths(suyo, -1);
+    var siguiente = S.addMonths(suyo, 1);
+
+    var opciones = [];
+    if (elegido === anterior) opciones.push([anterior, "El anterior"]);
+    opciones.push([suyo, S.esMesNatural() ? capitalizar(S.nombreCiclo(suyo)) : "Este mes"]);
+    opciones.push([siguiente, S.esMesNatural() ? capitalizar(S.nombreCiclo(siguiente))
+                                               : "El que viene"]);
+
+    return '<div class="field" style="margin-top:var(--sp-4)">' +
+        '<span class="field__label">Para qué mes es</span>' +
+        '<div class="segmented" id="' + prefijo + 'MesSeg" role="tablist">' +
+          '<span class="segmented__thumb" id="' + prefijo + 'MesThumb" aria-hidden="true"></span>' +
+          opciones.map(function (o) {
+            return '<button type="button" class="segmented__btn" role="tab" ' +
+                   'data-dciclo="' + esc(o[0]) + '" ' +
+                   'aria-selected="' + (o[0] === elegido) + '">' + esc(o[1]) + '</button>';
+          }).join("") +
+        '</div>' +
+        '<p class="field__hint">' + esc(pistaMesIngreso(d, suyo, elegido)) + '</p>' +
+      '</div>';
+  }
+
+  /* Qué se dice debajo. Cuando el ingreso cae en los últimos días del mes
+     la pregunta es de verdad —ese es el sueldo que se cobra adelantado—,
+     así que ahí se explica en lugar de limitarse a confirmar. */
+  function pistaMesIngreso(d, suyo, elegido) {
+    if (elegido !== suyo) {
+      return "Sumará en " + S.nombreCiclo(elegido) + ", no en el mes en que lo cobras.";
+    }
+    var quedan = S.diasDeCiclo(suyo) - S.diaDeCiclo(d.date, suyo);
+    if (quedan <= 7) {
+      return "Lo cobras casi al final del mes: si es el sueldo con el que vas a " +
+             "vivir " + S.nombreCiclo(S.addMonths(suyo, 1)) + ", elígelo.";
+    }
+    return "Sumará en " + S.nombreCiclo(suyo) + ", como su fecha.";
+  }
+
+  /* Pone el pulgar del segmentado donde esté la opción elegida. Vive
+     aquí y no en cada hoja porque el bloque es el mismo en las dos. */
+  function colocarMesThumb(raiz, d, prefijo) {
+    prefijo = prefijo || "add";
+    var seg = $("#" + prefijo + "MesSeg", raiz);
+    if (!seg) return;
+    var elegido = d.ciclo || S.ciclo(d.date);
+    U.slideIndicator(seg, $("#" + prefijo + "MesThumb", raiz),
+      $('[data-dciclo="' + elegido + '"]', seg) || seg.querySelector(".segmented__btn"));
+  }
+
+  function capitalizar(t) {
+    return String(t || "").charAt(0).toUpperCase() + String(t || "").slice(1);
+  }
+
   function renderAddSheet() {
     var d = ui.draft;
     var body = $("#sheetAddBody");
@@ -234,6 +312,8 @@
 
       apartadoHtml(d) +
 
+      mesDelIngresoHtml(d) +
+
       /* Solo tiene sentido en un ingreso nuevo y con más de una cuenta:
          editar uno ya guardado es editar ese, no repartir de nuevo. */
       (d.kind === "in" && !ui.editingId && S.state.accounts.length > 1
@@ -281,6 +361,8 @@
     requestAnimationFrame(function () {
       var seg = $("#addSeg", body);
       if (seg) U.slideIndicator(seg, $("#addThumb", body), $('[data-dkind="' + d.kind + '"]', seg));
+
+      colocarMesThumb(body, d, "add");
 
       var segR = $("#addRepSeg", body);
       if (segR) U.slideIndicator(segR, $("#addRepThumb", body),
@@ -404,6 +486,8 @@
   A.refreshAmount = refreshAmount;
   A.refreshResto = refreshResto;
   A.refreshApartado = refreshApartado;
+  A.preguntaMesHtml = mesDelIngresoHtml;
+  A.colocarMesThumb = colocarMesThumb;
   A.renderAddSheet = renderAddSheet;
   A.repartirIgual = repartirIgual;
   A.restoPorRepartir = restoPorRepartir;

@@ -37,13 +37,22 @@
     return Array.isArray(D.state.pendientes) ? D.state.pendientes : [];
   }
 
-  /* Se acepta con el importe que diga el usuario, que para eso se pregunta. */
-  function confirmarPendiente(id, importe) {
+  /* Se acepta con el importe que diga el usuario, que para eso se pregunta.
+
+     Y con el mes para el que cuenta, que en un sueldo es la otra mitad de
+     la pregunta: el del 25 se cobra el 25 pero paga el mes que entra. Si
+     no viene, se queda el que traía el pendiente —el que puso el
+     programado— y todo sigue como estaba. */
+  function confirmarPendiente(id, importe, ciclo) {
     var i = D.state.pendientes.findIndex(function (p) { return p.id === id; });
     if (i < 0) return null;
     var mov = D.state.pendientes.splice(i, 1)[0];
     if (importe != null && isFinite(+importe) && +importe > 0) {
       mov.amount = Math.round(Math.abs(+importe) * 100) / 100;
+    }
+    if (ciclo !== undefined) {
+      var para = D.cicloValido(ciclo);
+      if (para && para !== D.ciclo(mov.date)) mov.ciclo = para; else delete mov.ciclo;
     }
     D.state.transactions.push(mov);
     sortTx();

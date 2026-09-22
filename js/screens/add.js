@@ -260,6 +260,10 @@
      y que los otros dos son una decisión. */
   function cicloFieldHtml(d) {
     if (d.kind === "transfer") return "";
+    /* En un ingreso la pregunta está arriba, a la vista. Repetirla aquí
+       sería el mismo dato en dos sitios de la misma hoja, y el día que
+       uno se quedara corto no habría forma de saber cuál manda. */
+    if (d.kind === "in") return "";
 
     var suyo = S.ciclo(d.date);
     var elegido = d.ciclo || suyo;
@@ -426,6 +430,14 @@
         if (ui.draft.kind === "in") ui.draft.categoryId = "nomina";
         else if (ui.draft.kind === "out") ui.draft.categoryId = "comida";
         else ui.draft.categoryId = "otros";
+        renderAddSheet(); U.haptic("light"); return;
+      }
+      /* Para qué mes cuenta el ingreso. Se guarda vacío cuando es el de
+         su fecha: así no queda un campo diciendo lo que ya dice la
+         fecha, y el movimiento vuelve a ser uno normal. */
+      if ((node = e.target.closest("[data-dciclo]"))) {
+        var mes = node.getAttribute("data-dciclo");
+        ui.draft.ciclo = mes === S.ciclo(ui.draft.date) ? "" : mes;
         renderAddSheet(); U.haptic("light"); return;
       }
       if (e.target.closest("#addRepetir")) {
