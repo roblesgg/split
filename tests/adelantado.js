@@ -49,7 +49,7 @@ function limpio(dia) {
     categories: D.DEFAULT_CATEGORIES.slice(),
     accounts: [{ id: "banco", name: "Banco", opening: 0 }],
     apartados: [], transactions: [], pendientes: [],
-    recurring: [], goals: [], tags: [],
+    recurring: [], goals: [], tags: [], limites: [],
     income: { mode: "auto", manual: 0, months: 3 }
   };
 }
@@ -185,6 +185,51 @@ module.exports = function () {
   D.confirmarPendiente(D.state.pendientes[0].id, 1600, "2026-10");
   t.es("y se le puede dar uno al apuntarlo", ingresosDe("2026-10"), 1600);
   t.es("sin quedarse en el de su fecha", ingresosDe("2026-09"), 0);
+
+  t.grupo("una vez cruzado, lo que venga detrás se propone igual");
+  congelar("2026-09-26T12:00:00");
+  limpio();
+  t.es("sin nada apuntado, el de su fecha",
+       D.cicloSugerido("2026-09-26"), "2026-09");
+
+  /* el sueldo del 25, cobrado para octubre */
+  D.addTx({ kind: "in", amount: 1600, categoryId: "nomina", accountId: "banco",
+            date: "2026-09-25", note: "Nómina", ciclo: "2026-10" });
+  t.es("después de cobrarlo, un gasto del 26 se propone en octubre",
+       D.cicloSugerido("2026-09-26"), "2026-10");
+  t.es("pero uno del 24, que es de antes, no",
+       D.cicloSugerido("2026-09-24"), "2026-09");
+  t.es("y en octubre ya no hay nada que arrastrar",
+       D.cicloSugerido("2026-10-03"), "2026-10");
+
+  /* y la cadena sigue con el gasto siguiente */
+  D.addTx({ kind: "out", amount: 30, categoryId: "comida", accountId: "banco",
+            date: "2026-09-26", note: "Compra", ciclo: "2026-10" });
+  t.es("el siguiente también", D.cicloSugerido("2026-09-27"), "2026-10");
+
+  t.grupo("y devolver uno a su mes corta la cadena");
+  D.addTx({ kind: "out", amount: 12, categoryId: "comida", accountId: "banco",
+            date: "2026-09-27", note: "Lo de septiembre" });
+  t.es("a partir de ahí se vuelve a proponer el suyo",
+       D.cicloSugerido("2026-09-28"), "2026-09");
+
+  t.grupo("hacia atrás no contagia");
+  limpio();
+  D.addTx({ kind: "out", amount: 60, categoryId: "hogar", accountId: "banco",
+            date: "2026-09-03", note: "Recibo de agosto", ciclo: "2026-08" });
+  t.es("un recibo del mes pasado es cosa suya",
+       D.cicloSugerido("2026-09-04"), "2026-09");
+
+  t.grupo("y los límites lo notan, que era la gracia");
+  limpio();
+  D.addLimite({ nombre: "Compras", importe: 300, ambito: "todo" });
+  var lim = D.state.limites[0];
+  D.addTx({ kind: "out", amount: 80, categoryId: "comida", accountId: "banco",
+            date: "2026-09-26", note: "Compra del finde", ciclo: "2026-10" });
+  t.es("el gasto del 26 no toca el límite de septiembre",
+       D.estadoDeLimite(lim.id, "2026-09").gastado, 0);
+  t.es("y sí el de octubre",
+       D.estadoDeLimite(lim.id, "2026-10").gastado, 80);
 
   t.grupo("la media de ingresos lo cuenta donde toca");
   limpio();

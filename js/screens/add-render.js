@@ -174,7 +174,7 @@
      desde «Más detalles»: si no se ofreciera, no habría forma de verlo ni
      de quitarlo desde aquí. */
   function mesDelIngresoHtml(d, prefijo) {
-    if (d.kind !== "in") return "";
+    if (!preguntaElMes(d)) return "";
     prefijo = prefijo || "add";
 
     var suyo = S.ciclo(d.date);
@@ -202,19 +202,54 @@
       '</div>';
   }
 
+  /* A quién se le pregunta.
+
+     A un ingreso, siempre: es la pregunta del sueldo y ahí nunca sobra.
+
+     A un gasto, solo cuando es una pregunta de verdad. Un café un día 8
+     no se plantea de qué mes es, y ponerle la pregunta delante trescientas
+     veces al año para las cuatro en que importa es la forma segura de que
+     deje de leerse. Sale cuando ya está cruzado —o el gasto cuenta para
+     otro mes, o lo último apuntado ya contaba— y en los últimos días del
+     ciclo, que es cuando cobras el sueldo del mes que entra y empiezas a
+     gastar de él.
+
+     A un traspaso, nunca: no entra en ningún total, así que su mes no
+     cambiaría nada. */
+  function preguntaElMes(d) {
+    if (d.kind === "in") return true;
+    if (d.kind !== "out") return false;
+
+    var suyo = S.ciclo(d.date);
+    if ((d.ciclo || suyo) !== suyo) return true;          /* ya lleva otro */
+    if (S.cicloSugerido(d.date) !== suyo) return true;    /* ya has cruzado */
+    return S.diasDeCiclo(suyo) - S.diaDeCiclo(d.date, suyo) <= 7;
+  }
+
   /* Qué se dice debajo. Cuando el ingreso cae en los últimos días del mes
      la pregunta es de verdad —ese es el sueldo que se cobra adelantado—,
      así que ahí se explica en lugar de limitarse a confirmar. */
   function pistaMesIngreso(d, suyo, elegido) {
+    var esIn = d.kind === "in";
+
     if (elegido !== suyo) {
-      return "Sumará en " + S.nombreCiclo(elegido) + ", no en el mes en que lo cobras.";
+      return esIn
+        ? "Sumará en " + S.nombreCiclo(elegido) + ", no en el mes en que lo cobras."
+        : "Descontará de los límites de " + S.nombreCiclo(elegido) + ".";
     }
+
     var quedan = S.diasDeCiclo(suyo) - S.diaDeCiclo(d.date, suyo);
     if (quedan <= 7) {
-      return "Lo cobras casi al final del mes: si es el sueldo con el que vas a " +
-             "vivir " + S.nombreCiclo(S.addMonths(suyo, 1)) + ", elígelo.";
+      return esIn
+        ? "Lo cobras casi al final del mes: si es el sueldo con el que vas a " +
+          "vivir " + S.nombreCiclo(S.addMonths(suyo, 1)) + ", elígelo."
+        : "Estás al final del mes: si ya lo estás gastando del sueldo de " +
+          S.nombreCiclo(S.addMonths(suyo, 1)) + ", elígelo.";
     }
-    return "Sumará en " + S.nombreCiclo(suyo) + ", como su fecha.";
+
+    return esIn
+      ? "Sumará en " + S.nombreCiclo(suyo) + ", como su fecha."
+      : "Descontará de los límites de " + S.nombreCiclo(suyo) + ", como su fecha.";
   }
 
   /* Pone el pulgar del segmentado donde esté la opción elegida. Vive
@@ -487,6 +522,7 @@
   A.refreshResto = refreshResto;
   A.refreshApartado = refreshApartado;
   A.preguntaMesHtml = mesDelIngresoHtml;
+  A.preguntaElMes = preguntaElMes;
   A.colocarMesThumb = colocarMesThumb;
   A.renderAddSheet = renderAddSheet;
   A.repartirIgual = repartirIgual;

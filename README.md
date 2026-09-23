@@ -149,15 +149,53 @@ El **mes anterior** aparece como tercer botón solo si el movimiento ya lo tiene
 puesto. Es para no encerrar a quien lo eligió desde «Más detalles»: si no se
 ofreciera, no habría forma de verlo ni de quitarlo desde ahí.
 
-### Y para un gasto
+### A un gasto también, pero solo cuando lo es
 
-Un gasto lleva **«Cuenta para»** dentro de **Más detalles**, con tres meses: el
-anterior, el suyo y el siguiente. Es para el recibo de diciembre que se carga en
-enero. Se ofrecen tres y no una lista entera porque más allá del mes de al lado
-esto deja de ser «se cargó un poco antes» y pasa a ser otra cosa.
+En cuanto has cobrado el sueldo del mes que entra, **lo que gastas los días 26,
+27 y 28 sale de ese sueldo**, no del mes que se acaba: tiene que descontar de
+los límites del mes siguiente, no de los del que se va.
 
-En un ingreso ese campo **no** está, porque la pregunta ya está arriba: el mismo
+Así que el gasto lleva la misma pregunta —y la misma línea, dicha en sus
+términos: «descontará de los límites de octubre»—. Pero **no siempre**. Un café
+un día 8 no se plantea de qué mes es, y ponerle la pregunta delante trescientas
+veces al año para las cuatro en que importa es la forma segura de que deje de
+leerse. Sale cuando:
+
+- el gasto **ya cuenta para otro mes** —para poder verlo y deshacerlo—,
+- **ya has cruzado**: lo último apuntado contaba para el mes que viene,
+- o quedan **7 días o menos** de ciclo, que es cuando se cobra el sueldo del mes
+  que entra y se empieza a gastar de él.
+
+Un gasto de mitad de mes no lleva la pregunta, pero sigue teniendo **«Cuenta
+para»** dentro de **Más detalles**, con tres meses: el anterior, el suyo y el
+siguiente. Es para el recibo de diciembre que se carga en enero.
+
+Cuando la pregunta está arriba, ese campo desaparece de «Más detalles»: el mismo
 dato en dos sitios de la misma hoja es la forma segura de que un día discrepen.
+
+### Una vez has cruzado, no hay que repetirlo
+
+Decir mes a mes «esto también es de octubre» sería peor que no poder decirlo.
+Así que **manda lo último que dijiste**: un movimiento nuevo se propone en el
+mes del movimiento más reciente de su mismo mes que no sea posterior a su fecha.
+Cobras el sueldo el 25 y lo pones en octubre; a partir de ahí todo lo que
+apuntes nace en octubre, sin volver a tocar nada.
+
+No se guarda ningún ajuste ni ninguna fecha de corte: **lo que ya está apuntado
+lo cuenta solo**, así que no hay forma de que un ajuste y los movimientos digan
+cosas distintas. Y como es una propuesta y no una imposición, la pregunta sigue
+delante y se cambia de un toque.
+
+El contagio va **solo hacia delante**:
+
+- Un movimiento que cuenta para el mes **anterior** —el recibo de diciembre que
+  te cargan en enero— es cosa suya y no arrastra a los que vengan detrás.
+- **Devolver uno a su mes corta la cadena.** Es la forma de decir «ya está,
+  vuelvo a lo normal», y también de deshacer una marca puesta por error sin que
+  siga contagiando.
+- Un movimiento **anterior** a la fecha en que cruzaste no se ve afectado: el
+  gasto del día 24 sigue siendo de septiembre aunque el sueldo del 25 esté en
+  octubre.
 
 ### Por dentro
 

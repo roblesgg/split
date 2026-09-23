@@ -57,7 +57,11 @@
           accountId: (opts && opts.accountId) || accs[0].id,
           toAccountId: null,
           note: "", memo: "", date: S.ymd(new Date()), time: nowHHMM(),
-          tags: [], attachments: [], apartadoId: null, ciclo: "",
+          tags: [], attachments: [], apartadoId: null,
+          /* Si lo último que apuntaste ya contaba para el mes que viene,
+             esto también: una vez has cruzado, has cruzado. Se propone,
+             no se impone — la pregunta sigue delante. */
+          ciclo: cicloPropuesto(S.ymd(new Date())),
           /* reparto de un ingreso entre varias cuentas: apagado por
              defecto, y `trozos` guarda cuánto va a cada una */
           reparto: false, trozos: {},
@@ -260,10 +264,11 @@
      y que los otros dos son una decisión. */
   function cicloFieldHtml(d) {
     if (d.kind === "transfer") return "";
-    /* En un ingreso la pregunta está arriba, a la vista. Repetirla aquí
-       sería el mismo dato en dos sitios de la misma hoja, y el día que
-       uno se quedara corto no habría forma de saber cuál manda. */
-    if (d.kind === "in") return "";
+    /* Si la pregunta ya está arriba, a la vista, aquí no se repite: el
+       mismo dato en dos sitios de la misma hoja es la forma segura de que
+       un día discrepen. Queda para los gastos de mitad de mes, donde no
+       se pregunta pero sí se puede recolocar. */
+    if (A.preguntaElMes(d)) return "";
 
     var suyo = S.ciclo(d.date);
     var elegido = d.ciclo || suyo;
@@ -285,6 +290,13 @@
             ', pero suma en ' + esc(S.nombreCiclo(elegido)) + '.</p>'
           : "") +
       '</div>';
+  }
+
+  /* El mes que se propone, en el formato del borrador: cadena vacía
+     cuando es el de su propia fecha, que es como se guarda. */
+  function cicloPropuesto(fecha) {
+    var para = S.cicloSugerido(fecha);
+    return para === S.ciclo(fecha) ? "" : para;
   }
 
   function nowHHMM() {
@@ -573,7 +585,14 @@
 
     addBody.addEventListener("change", function (e) {
       if (e.target.id === "addDate") {
+        var antes = ui.draft.date;
         ui.draft.date = e.target.value;
+        /* Con otra fecha, otra propuesta: pero solo si no se había
+           elegido nada a mano para la anterior. Lo que ha dicho el
+           usuario no se pisa. */
+        if (!ui.editingId && ui.draft.ciclo === cicloPropuesto(antes)) {
+          ui.draft.ciclo = cicloPropuesto(ui.draft.date);
+        }
         /* Cambiar la fecha repinta: las tres opciones de «Cuenta para»
            son las de alrededor de la fecha, así que con otra fecha ya no
            son las mismas. Lo elegido se conserva si sigue estando. */

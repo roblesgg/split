@@ -62,6 +62,45 @@
     return cicloValido(t.ciclo) || ciclo(t.date);
   }
 
+  /* Para qué mes se propone un movimiento NUEVO.
+
+     Lo normal es el de su fecha. Pero en cuanto has cobrado el sueldo del
+     mes que entra, lo que gastas a partir de ahí sale de ese sueldo y no
+     del mes que se acaba: los días 26, 27 y 28 ya estás viviendo el mes
+     siguiente. Decirlo compra a compra sería insufrible.
+
+     Así que manda lo último que dijiste: el movimiento más reciente de
+     ese mismo mes que no sea posterior a esta fecha. Si aquel contaba
+     para el mes que viene, este se propone igual.
+
+     No hace falta guardar ningún ajuste ni marcar ninguna fecha de
+     corte: lo que ya está apuntado lo cuenta solo. Y así no hay forma de
+     que la app y los movimientos digan cosas distintas.
+
+     El contagio va SOLO hacia delante. Si el último contaba para el mes
+     anterior —un recibo de diciembre que te cargan en enero— eso es cosa
+     suya y no arrastra a los que vengan detrás; y devolver uno a su mes
+     corta la cadena, que es la forma de decir «ya está, vuelvo a lo
+     normal». */
+  function cicloSugerido(dateStr) {
+    var suyo = ciclo(dateStr);
+    var ultimo = null;
+
+    (D.state && D.state.transactions || []).forEach(function (t) {
+      if (t.date > dateStr) return;          /* lo de después no manda */
+      if (ciclo(t.date) !== suyo) return;    /* ni lo de otro mes */
+      if (!ultimo ||
+          t.date > ultimo.date ||
+          (t.date === ultimo.date && (t.createdAt || 0) > (ultimo.createdAt || 0))) {
+        ultimo = t;
+      }
+    });
+
+    if (!ultimo) return suyo;
+    var para = cicloDeMov(ultimo);
+    return para === D.addMonths(suyo, 1) ? para : suyo;
+  }
+
   /* Una clave de ciclo es «2026-10». Se comprueba porque viene de lo
      guardado, y un valor a medias colaría el movimiento en un mes que no
      existe, de donde no habría forma de sacarlo. */
@@ -84,6 +123,7 @@
   D.ciclo = ciclo;
   D.cicloDeMov = cicloDeMov;
   D.cicloQueEmpieza = cicloQueEmpieza;
+  D.cicloSugerido = cicloSugerido;
   D.cicloValido = cicloValido;
   D.cicloActual = cicloActual;
   D.diaDeCiclo = diaDeCiclo;
