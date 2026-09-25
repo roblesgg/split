@@ -231,6 +231,75 @@ module.exports = function () {
   t.es("y sí el de octubre",
        D.estadoDeLimite(lim.id, "2026-10").gastado, 80);
 
+  t.grupo("aplazar un cobro que todavía no ha llegado");
+  congelar("2026-09-25T12:00:00");
+  limpio();
+  D.addRecurring({ kind: "in", note: "Nómina", amount: 1600, day: 25,
+                   freq: "mensual", categoryId: "nomina", accountId: "banco",
+                   confirmar: true });
+  D.runRecurring();
+  t.es("hoy toca preguntarlo", D.pendientesDeHoy().length, 1);
+  D.aplazarPendiente(D.state.pendientes[0].id, 2);
+  t.es("aplazado dos días, hoy ya no molesta", D.pendientesDeHoy().length, 0);
+  t.es("pero sigue en la lista, esperando", D.pendientes().length, 1);
+  t.es("y no se le toca la fecha", D.state.pendientes[0].date, "2026-09-25");
+
+  congelar("2026-09-26T12:00:00");
+  t.es("al día siguiente todavía no", D.pendientesDeHoy().length, 0);
+  congelar("2026-09-27T12:00:00");
+  t.es("y al llegar el día, vuelve", D.pendientesDeHoy().length, 1);
+
+  D.aplazarPendiente(D.state.pendientes[0].id, 1);
+  t.es("se puede volver a aplazar", D.pendientesDeHoy().length, 0);
+  congelar("2026-09-28T12:00:00");
+  t.es("y vuelve otra vez", D.pendientesDeHoy().length, 1);
+
+  t.grupo("adelantar un sueldo que se ha cobrado antes");
+  congelar("2026-09-23T12:00:00");
+  limpio();
+  var rr = D.addRecurring({ kind: "in", note: "Nómina", amount: 1600, day: 25,
+                            freq: "mensual", categoryId: "nomina",
+                            accountId: "banco", adelantado: true });
+  t.es("se puede, porque el 25 aún no ha llegado", D.sePuedeAdelantar(rr), true);
+  D.adelantarRecurring(rr.id);
+  t.es("se apunta con la fecha de hoy", D.state.transactions[0].date, "2026-09-23");
+  t.es("y cuenta para octubre, como tocaba", D.state.transactions[0].ciclo, "2026-10");
+
+  congelar("2026-09-26T12:00:00");
+  D.runRecurring();
+  t.es("y al llegar el 25 no se apunta otra vez", D.state.transactions.length, 1);
+  t.es("y ya no se ofrece adelantar el del mes que viene",
+       D.sePuedeAdelantar(D.state.recurring[0]), false);
+
+  t.grupo("y solo se ofrece con el cobro encima");
+  congelar("2026-09-01T12:00:00");
+  limpio();
+  var rl = D.addRecurring({ kind: "in", note: "Nómina", amount: 1600, day: 25,
+                            freq: "mensual", categoryId: "nomina", accountId: "banco" });
+  t.es("a tres semanas vista, no", D.sePuedeAdelantar(rl), false);
+  t.es("y pedirlo no apunta nada", D.adelantarRecurring(rl.id), null);
+  congelar("2026-09-20T12:00:00");
+  t.es("a cinco días, sí", D.sePuedeAdelantar(D.state.recurring[0]), true);
+
+  t.grupo("si pide el importe, se sigue preguntando");
+  congelar("2026-09-23T12:00:00");
+  limpio();
+  var rc = D.addRecurring({ kind: "in", note: "Nómina", amount: 1600, day: 25,
+                            freq: "mensual", categoryId: "nomina",
+                            accountId: "banco", confirmar: true });
+  D.adelantarRecurring(rc.id);
+  t.es("no se apunta a ciegas", D.state.transactions.length, 0);
+  t.es("se pone en la cola de confirmar", D.state.pendientes.length, 1);
+  t.es("con la fecha de hoy", D.state.pendientes[0].date, "2026-09-23");
+
+  t.grupo("y lo que ya tocaba no se adelanta");
+  congelar("2026-09-25T12:00:00");
+  limpio();
+  var ry = D.addRecurring({ kind: "in", note: "Nómina", amount: 1600, day: 25,
+                            freq: "mensual", categoryId: "nomina", accountId: "banco" });
+  t.es("hoy es su día: no hay nada que adelantar", D.sePuedeAdelantar(ry), false);
+  t.es("y pedirlo no apunta nada", D.adelantarRecurring(ry.id), null);
+
   t.grupo("la media de ingresos lo cuenta donde toca");
   limpio();
   /* tres sueldos cobrados el 25, para los tres meses siguientes */

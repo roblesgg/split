@@ -95,7 +95,10 @@
   /* ---------- los avisos, que van siempre arriba ---------- */
 
   function avisoCola() {
-    var cola = S.pendientes();
+    /* Los aplazados no cuentan aquí: aplazar es justamente pedir que
+       deje de preguntar hasta ese día. Seguirían saliendo en Movimientos,
+       que es donde se ve lo que está esperando. */
+    var cola = S.pendientesDeHoy();
     if (!cola.length) return "";
     return '<section class="update-card">' +
         '<span class="update-card__icon" data-icon="calendar" data-icon-size="19"></span>' +

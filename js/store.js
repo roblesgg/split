@@ -37,6 +37,8 @@
   var nextDue = D.nextDue;
   var nombreLargo = D.nombreLargo, num0 = D.num0, num2 = D.num2, parseYmd = D.parseYmd;
   var pct = D.pct, pendientes = D.pendientes, plannedIncome = D.plannedIncome;
+  var pendientesDeHoy = D.pendientesDeHoy, aplazarPendiente = D.aplazarPendiente;
+  var adelantarRecurring = D.adelantarRecurring, sePuedeAdelantar = D.sePuedeAdelantar;
   var projectedExpense = D.projectedExpense, raizDe = D.raizDe, recurringMonthly = D.recurringMonthly;
   var relDayLabel = D.relDayLabel;
   var fechaLarga = D.fechaLarga;
@@ -178,6 +180,10 @@
 
     /* cola de confirmación */
     pendientes: pendientes,
+    pendientesDeHoy: pendientesDeHoy,   /* los que toca preguntar hoy */
+    aplazarPendiente: aplazarPendiente, /* todavía no ha llegado */
+    adelantarRecurring: adelantarRecurring,
+    sePuedeAdelantar: sePuedeAdelantar,
     confirmarPendiente: confirmarPendiente,
     descartarPendiente: descartarPendiente,
 

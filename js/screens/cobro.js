@@ -26,7 +26,7 @@
      entender que una lista con varias casillas.
      ============================================================ */
 
-  function hayPendientes() { return S.pendientes().length > 0; }
+  function hayPendientes() { return S.pendientesDeHoy().length > 0; }
 
   /* Lo que se va tecleando —"12", "12," o "12,5"— en euros, o en horas
      si el programado va por tarifa. Vive aparte del estado de datos: es
@@ -35,6 +35,30 @@
   function digitos() {
     if (ui.cobro == null) ui.cobro = "";
     return ui.cobro;
+  }
+
+  /* La cifra viene escrita, no en blanco.
+
+     Antes se ofrecía en un botón —«poner 1.600 €»— para que la vieras y
+     decidieras en vez de encontrártela puesta sin saber de dónde salía.
+     Pero el botón estaba por debajo del teclado, y el caso normal, con
+     diferencia, es que hayas cobrado exactamente lo previsto: teclear
+     1600 todos los meses teniendo la cifra delante no lo justifica.
+
+     Así que se pone, y debajo se dice de dónde sale, que era lo que el
+     botón protegía. La primera tecla la borra entera y empieza de cero,
+     como cuando un campo viene seleccionado: si vas a escribir otra
+     cifra, escribirla tiene que costar lo mismo que antes. */
+  /* Los plazos que se ofrecen. Cuatro, que es lo que cabe en una fila y
+     cubre lo que pasa de verdad: mañana, pasado, el lunes que viene. */
+  var APLAZOS = [[1, "Mañana"], [2, "En 2 días"], [3, "En 3 días"], [7, "En una semana"]];
+
+  function ponerPropuesta(p) {
+    var prop = propuestaDe(p);
+    ui.cobro = prop.valor > 0
+      ? A.importeDesde(+p.tarifa > 0 ? horasDe(prop.valor, +p.tarifa) : prop.valor)
+      : "";
+    ui.cobroPuesto = !!ui.cobro;
   }
 
   function valorCobro() { return A.valorImporte(digitos()); }
@@ -51,7 +75,7 @@
   }
 
   function renderCobro() {
-    var cola = S.pendientes();
+    var cola = S.pendientesDeHoy();
     var p = cola[0];
     if (!p) { sheets.cobro.close(); return; }
 
@@ -106,23 +130,15 @@
           icon("backspace", 18) + '</button>' +
       '</div>' +
 
-      /* La propuesta es un botón, no un valor puesto de oficio: verlo y
-         decidir es distinto de encontrártelo escrito y no saber de dónde
-         sale. */
-      (prop.valor > 0 && v === 0
-        ? '<div class="field" style="margin-top:var(--sp-4)">' +
-            '<button type="button" class="btn btn--ghost" id="cobroProp" style="width:100%">' +
-              (tarifa
-                ? "Poner " + esc(S.num2.format(horasDe(prop.valor, tarifa))) + " h, como de costumbre"
-                : "Poner " + esc(money(prop.valor)) +
-                  (prop.deLaMedia ? ", tu media" : ", lo previsto")) +
-            '</button>' +
-            '<p class="field__hint">' +
-              (prop.deLaMedia
-                ? "Es la media de lo que de verdad ha entrado por esto."
-                : "Es lo que tenías previsto. Cámbialo si esta vez ha sido otra cifra.") +
-            '</p>' +
-          '</div>'
+      /* De dónde sale la cifra que ya está puesta. Es lo que antes
+         protegía el botón de la propuesta: que no te encuentres un número
+         escrito sin saber quién lo ha puesto. */
+      (ui.cobroPuesto && prop.valor > 0
+        ? '<p class="field__hint" id="cobroProp" style="text-align:center;margin-top:var(--sp-3)">' +
+            (prop.deLaMedia
+              ? "Es tu media de lo cobrado. Teclea si esta vez ha sido otra cifra."
+              : "Es lo que tenías previsto. Teclea si esta vez ha sido otra cifra.") +
+          '</p>'
         : "") +
 
       /* Para qué mes es. La misma pregunta que al apuntar un ingreso a
@@ -136,9 +152,30 @@
           icon("check", 17) + 'Apuntar' +
           (total > 0 ? " " + esc(money(total)) : "") + '</button>' +
       '</div>' +
+      /* Dos salidas distintas y hay que poder distinguirlas de un
+         vistazo: «todavía no» es un «pregúntame en unos días», y «este
+         mes no» es un «este ya no va a llegar, olvídalo». Confundirlas
+         cuesta o un sueldo fantasma o un sueldo perdido. */
+      (ui.cobroAplazar
+        ? '<div class="field">' +
+            '<p class="field__hint" style="text-align:center">' +
+              '¿Cuándo te lo vuelvo a preguntar?</p>' +
+            '<div class="chips chips--aplazo" style="margin-top:var(--sp-3)">' +
+              APLAZOS.map(function (a) {
+                return '<button type="button" class="chip" data-aplazo="' + a[0] + '">' +
+                       esc(a[1]) + '</button>';
+              }).join("") +
+            '</div>' +
+          '</div>'
+        : '<div class="field">' +
+            '<button type="button" class="btn btn--ghost" id="cobroLuego" style="width:100%">' +
+              icon("clock", 15) +
+              (esIn ? "Todavía no lo he cobrado" : "Todavía no lo he pagado") + '</button>' +
+          '</div>') +
+
       '<div class="field">' +
         '<button type="button" class="btn btn--ghost" id="cobroNo" style="width:100%">' +
-          (esIn ? "Esta vez no lo he cobrado" : "Esta vez no lo he pagado") + '</button>' +
+          (esIn ? "Este mes no lo voy a cobrar" : "Este mes no lo voy a pagar") + '</button>' +
       '</div>';
 
     mountIcons(body);
@@ -167,7 +204,7 @@
   /* Repinta solo la cifra y lo que cuelga de ella: repintar la hoja
      entera en cada tecla movería el teclado debajo del dedo. */
   function refreshCobro() {
-    var p = S.pendientes()[0];
+    var p = S.pendientesDeHoy()[0];
     if (!p) return;
     var tarifa = +p.tarifa > 0 ? +p.tarifa : 0;
     var v = valorCobro();
@@ -196,16 +233,28 @@
     }
   }
 
+  /* Lo que se ha contestado de este cobro se va con él: el siguiente de
+     la cola es otro movimiento, con su cifra y su mes. Arrastrar lo
+     anterior apuntaría el sueldo de uno con el importe del otro. */
+  function limpiarCobro() {
+    ui.cobro = "";
+    ui.cobroPuesto = false;
+    ui.cobroCiclo = undefined;
+    ui.cobroAplazar = false;
+  }
+
   function seguirCobros() {
-    if (hayPendientes()) { renderCobro(); return; }
+    var p = S.pendientesDeHoy()[0];
+    if (p) { limpiarCobro(); ponerPropuesta(p); renderCobro(); return; }
     sheets.cobro.close();
     renderAll();
   }
 
   function abrirCobros() {
-    if (!hayPendientes()) return;
-    ui.cobro = "";
-    ui.cobroCiclo = undefined;
+    var p = S.pendientesDeHoy()[0];
+    if (!p) return;
+    limpiarCobro();
+    ponerPropuesta(p);
     renderCobro();
     sheets.cobro.show();
   }
@@ -266,25 +315,41 @@
     var cobroBody = $("#sheetCobroBody");
 
     cobroBody.addEventListener("click", function (e) {
-      var cola = S.pendientes();
+      var cola = S.pendientesDeHoy();
       var p = cola[0];
       if (!p) { sheets.cobro.close(); return; }
       var tarifa = +p.tarifa > 0 ? +p.tarifa : 0;
       var node;
 
       if ((node = e.target.closest("[data-ckey]"))) {
-        ui.cobro = A.teclaImporte(digitos(), node.getAttribute("data-ckey"));
-        refreshCobro();
+        var tecla = node.getAttribute("data-ckey");
+        /* Con la cifra puesta de oficio, escribir empieza de cero: si no,
+           teclear un 5 sobre «1.600» daría 16.005, que no es lo que nadie
+           quiere. Borrar sí borra de la puesta, dígito a dígito, por si
+           solo hay que quitarle un cero. */
+        if (ui.cobroPuesto && tecla !== "del") ui.cobro = "";
+        ui.cobroPuesto = false;
+        ui.cobro = A.teclaImporte(digitos(), tecla);
+        renderCobro();
         U.haptic("light");
         return;
       }
 
-      if (e.target.closest("#cobroProp")) {
-        var prop = propuestaDe(p);
-        var valor = tarifa ? horasDe(prop.valor, tarifa) : prop.valor;
-        ui.cobro = A.importeDesde(valor);
-        renderCobro();
+      /* Todavía no ha llegado: se pregunta cuándo volver a preguntar. */
+      if (e.target.closest("#cobroLuego")) {
+        ui.cobroAplazar = true;
+        renderCobro(); U.haptic("light");
+        return;
+      }
+
+      if ((node = e.target.closest("[data-aplazo]"))) {
+        var dias = parseInt(node.getAttribute("data-aplazo"), 10) || 1;
+        S.aplazarPendiente(p.id, dias);
         U.haptic("light");
+        U.toast(dias === 1 ? "Te lo pregunto mañana"
+                           : "Te lo pregunto en " + dias + " días", { icon: "clock" });
+        limpiarCobro();
+        seguirCobros();
         return;
       }
 
@@ -307,8 +372,7 @@
         S.confirmarPendiente(p.id, importe, mesDelCobro(p).ciclo);
         U.haptic("success");
         U.toast("Apuntado " + money(importe), { icon: "check" });
-        ui.cobro = "";
-        ui.cobroCiclo = undefined;
+        limpiarCobro();
         seguirCobros();
         return;
       }
@@ -316,8 +380,7 @@
       if (e.target.closest("#cobroNo")) {
         S.descartarPendiente(p.id);
         U.haptic("light");
-        ui.cobro = "";
-        ui.cobroCiclo = undefined;
+        limpiarCobro();
         seguirCobros();
       }
     });

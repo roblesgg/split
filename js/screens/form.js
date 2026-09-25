@@ -544,6 +544,23 @@
         return;
       }
       if (e.target.closest("#fSave")) { saveForm(); return; }
+      /* Ya lo he cobrado: se apunta con la fecha de hoy y, si pide
+         confirmar el importe, se abre esa hoja detrás de esta. */
+      if (e.target.closest("#fAdelantar")) {
+        var rec = (S.state.recurring || []).find(function (x) { return x.id === ui.form.id; });
+        var mov = rec && S.adelantarRecurring(rec.id);
+        if (!mov) {
+          U.toast("Ese ya está apuntado", { icon: "warning" });
+          return;
+        }
+        var pregunta = S.pendientesDeHoy().some(function (x) { return x.id === mov.id; });
+        U.haptic("success");
+        sheets.form.close();
+        renderAll();
+        if (pregunta) abrirCobros();
+        else U.toast("Apuntado " + money(mov.amount), { icon: "check" });
+        return;
+      }
       if (e.target.closest("#fDelete")) { deleteForm(); return; }
     });
 

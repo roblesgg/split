@@ -44,6 +44,35 @@
     if (pista) pista.textContent = textoAdelantado(ui.form.d);
   }
 
+  /* «Ya lo he cobrado», para el mes que el banco paga antes.
+
+     El 25 cae en domingo y el dinero entra el viernes. Sin esto había que
+     esperar al 25 a que la app preguntara —teniendo el dinero desde el
+     23— o apuntarlo a mano y acabar con el sueldo dos veces cuando
+     llegara su día.
+
+     Vive en la ficha del programado y no en la lista porque es donde se
+     va a buscar —«el sueldo»— y porque en la fila no cabe un tercer
+     botón sin apretar los otros dos. Solo sale cuando hay algo por
+     delante que adelantar: con el cobro de este mes ya apuntado, el botón
+     mentiría. */
+  function adelantarHtml(t) {
+    if (t !== "recurring" || !ui.form.id) return "";
+    var r = (S.state.recurring || []).find(function (x) { return x.id === ui.form.id; });
+    if (!S.sePuedeAdelantar(r)) return "";
+
+    var due = S.nextDue(r);
+    var esIn = r.kind === "in";
+    return '<div class="field">' +
+        '<button type="button" class="btn btn--ghost" id="fAdelantar" style="width:100%">' +
+          icon("check", 15) + (esIn ? "Ya lo he cobrado" : "Ya lo he pagado") +
+        '</button>' +
+        '<p class="field__hint">Tocaba el ' +
+          esc(due.toLocaleDateString("es-ES", { day: "numeric", month: "long" })) +
+          '. Se apunta con la fecha de hoy y ese día ya no te lo pregunto.</p>' +
+      '</div>';
+  }
+
   function textoAdelantado(d) {
     var hoy = new Date();
     var ultimo = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0).getDate();
@@ -728,6 +757,8 @@
            : t === "resumen" ? "Aplicar"
            : ui.form.id ? "Guardar cambios" : "Crear") + '</button>' +
       '</div>' +
+      adelantarHtml(t) +
+
       (ui.form.id && t !== "saldo" && t !== "resumen"
         ? '<div class="field">' +
             '<button type="button" class="btn btn--danger" id="fDelete" style="width:100%">' +

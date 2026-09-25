@@ -60,6 +60,44 @@
     return mov;
   }
 
+  /* Todavía no ha llegado.
+
+     Un sueldo no cae clavado el día que pone el calendario: cae el 25, o
+     el 26 si el 25 es domingo, o cuando al banco le parece. Sin esto solo
+     quedaban dos salidas malas: apuntar un dinero que no está —y ver un
+     saldo que no es el tuyo— o descartarlo y que no vuelva a preguntar
+     hasta el mes que viene.
+
+     Se guarda hasta qué día no molesta. No se toca la fecha del
+     movimiento: sigue siendo el día que tocaba cobrar, y el día que de
+     verdad cobres lo dirás tú al confirmarlo. Aplazar es no responder
+     todavía, no responder otra cosa.
+
+     Y se puede aplazar tantas veces como haga falta: cada vez se pisa la
+     fecha anterior, así que volver a decir «mañana» siempre significa
+     mañana. */
+  function aplazarPendiente(id, dias) {
+    var p = pendientes().find(function (x) { return x.id === id; });
+    if (!p) return null;
+    var n = Math.min(60, Math.max(1, parseInt(dias, 10) || 1));
+    var d = new Date();
+    d.setHours(0, 0, 0, 0);
+    d.setDate(d.getDate() + n);
+    p.aplazadoHasta = ymd(d);
+    save();
+    return p;
+  }
+
+  /* Los que toca preguntar hoy. Los aplazados siguen en la lista —en
+     Movimientos se ven, que para eso están esperando— pero no vuelven a
+     salir por delante hasta el día que se dijo. */
+  function pendientesDeHoy() {
+    var hoy = ymd(new Date());
+    return pendientes().filter(function (p) {
+      return !p.aplazadoHasta || p.aplazadoHasta <= hoy;
+    });
+  }
+
   /* Descartar no reprograma nada: el mes que viene volverá a tocar. */
   function descartarPendiente(id) {
     D.state.pendientes = D.state.pendientes.filter(function (p) { return p.id !== id; });
@@ -302,6 +340,7 @@
 
   /* --- lo que se lleva el espacio común --- */
   D.RESUMEN_POR_DEFECTO = RESUMEN_POR_DEFECTO;
+  D.aplazarPendiente = aplazarPendiente;
   D.confirmarPendiente = confirmarPendiente;
   D.corregirSaldo = corregirSaldo;
   D.cuotasQueQuedan = cuotasQueQuedan;
@@ -312,6 +351,7 @@
   D.nextDue = nextDue;
   D.proximasFechas = proximasFechas;
   D.pendientes = pendientes;
+  D.pendientesDeHoy = pendientesDeHoy;
   D.recurringMonthly = recurringMonthly;
   D.resumenCfg = resumenCfg;
   D.setResumen = setResumen;

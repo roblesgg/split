@@ -32,6 +32,7 @@
   function daysInMonth() { return D.daysInMonth.apply(null, arguments); }
   function dowMon() { return D.dowMon.apply(null, arguments); }
   function monthKey() { return D.monthKey.apply(null, arguments); }
+  function nextDue() { return D.nextDue.apply(null, arguments); }
   function nextId() { return D.nextId.apply(null, arguments); }
   function normalizeTime() { return D.normalizeTime.apply(null, arguments); }
   function parseYmd() { return D.parseYmd.apply(null, arguments); }
@@ -424,7 +425,76 @@
   }
 
 
+  /* Ya he cobrado, aunque no tocara hasta el 25.
+
+     El caso de siempre: el 25 cae en domingo y el banco paga el viernes.
+     Sin esto había que esperar al 25 a que la app preguntara, teniendo el
+     dinero desde el 23, o apuntarlo a mano y acabar con el sueldo dos
+     veces cuando llegara su día.
+
+     Se apunta con la fecha de HOY, que es cuando ha entrado el dinero,
+     pero se marca como hecho el periodo que tocaba: así el día 25 ya no
+     vuelve a salir. Y si pide confirmar el importe, se pregunta igual que
+     cualquier otro: adelantarlo es cambiar el día, no saltarse nada.
+
+     Si el periodo ya está apuntado, esto adelanta el SIGUIENTE, que es lo
+     que significa volver a pedirlo. */
+  function adelantarRecurring(id) {
+    var r = (D.state.recurring || []).find(function (x) { return x.id === id; });
+    if (!r || !r.active) return null;
+    if (r.cuotas && (r.pagadas || 0) >= r.cuotas) return null;
+
+    /* La misma ventana que decide si se ofrece. Va comprobado aquí
+       también y no solo en la pantalla: una regla que solo vive en el
+       botón se salta el día que alguien llama a esto desde otro sitio. */
+    if (!sePuedeAdelantar(r)) return null;
+    var prevista = nextDue(r);
+    var hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+
+    var mov = movimientoDe(r, hoy, false);
+    var para = cicloDelMovimiento(r, hoy);
+    if (para) mov.ciclo = para;
+
+    if (r.confirmar || esAbierto(r)) D.state.pendientes.push(mov);
+    else D.state.transactions.push(mov);
+
+    if (r.cuotas) r.pagadas = (r.pagadas || 0) + 1;
+    anotarUltimo(r, prevista);
+    sortTx();
+    save();
+    return mov;
+  }
+
+  /* Si tiene sentido ofrecerlo.
+
+     Solo con el cobro a la vuelta de la esquina. «Ya lo he cobrado» es
+     para el mes en que el banco paga dos días antes, no para pedir el
+     sueldo de dentro de tres semanas: ofrecerlo siempre convertía el
+     botón en una forma cómoda de apuntarse un sueldo de más, y eso en
+     una app de dinero se paga caro.
+
+     Diez días, que cubre de sobra lo que pasa de verdad —un fin de
+     semana, un puente, una paga que se adelanta por Navidad— y deja
+     fuera el mes que viene. */
+  var ANTES_DIAS = 10;
+
+  function sePuedeAdelantar(r) {
+    if (!r || !r.active) return false;
+    if (r.cuotas && (r.pagadas || 0) >= r.cuotas) return false;
+
+    var hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    var tope = new Date(hoy);
+    tope.setDate(tope.getDate() + ANTES_DIAS);
+
+    var due = nextDue(r);
+    return due > hoy && due <= tope;
+  }
+
   /* --- lo que se lleva el espacio común --- */
+  D.adelantarRecurring = adelantarRecurring;
+  D.sePuedeAdelantar = sePuedeAdelantar;
   D.addRecurring = addRecurring;
   D.dateOfMonth = dateOfMonth;
   D.deleteRecurring = deleteRecurring;

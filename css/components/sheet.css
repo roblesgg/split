@@ -184,3 +184,29 @@
   line-height: 1;
   padding-bottom: 12px;
 }
+
+/* ---------- «todavía no lo he cobrado» ----------
+   Los plazos son acciones, no etiquetas, y una chip normal se apoya en
+   --surface-1, que sobre la hoja es el mismo blanco: se leían como texto
+   suelto puesto en medio. Con su contorno vuelven a parecer lo que son.
+
+   Van en dos columnas y no en una fila que se parte: con cuatro plazos y
+   la pantalla de un móvil, la fila dejaba «En una semana» sola y
+   descolgada debajo, que es peor que dos filas iguales. */
+/* Con las dos clases: `.chips` se define en field.css, que cascadea
+   después de esta hoja, así que a igualdad de peso ganaba su `flex` y
+   los plazos salían en una sola columna. */
+.chips.chips--aplazo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-2);
+}
+
+.chips.chips--aplazo .chip {
+  justify-content: center;
+  width: 100%;
+  border: 1.5px solid var(--hairline-strong);
+  color: var(--text-primary);
+}
+
+.chips.chips--aplazo .chip:active { background: var(--surface-2); }

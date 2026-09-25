@@ -737,12 +737,58 @@ movimiento: es lo único que estás haciendo ahí.
 - Si el programado va **por horas**, se piden horas y no euros. Hacer la
   multiplicación de cabeza cada vez es justo lo que la app tiene que ahorrarte:
   se teclean «18,5» y debajo pone «A 12,00 € la hora · 222,00 €».
-- Se **propone una cifra**: la media de lo que de verdad ha entrado por ese
-  programado. Es un botón, no un valor puesto de oficio — verlo y decidir es
-  distinto de encontrártelo escrito sin saber de dónde sale. Si no hay historial
-  todavía, se propone lo previsto.
-- «Esta vez no lo he cobrado» descarta ese y ya está: la próxima vez que toque
-  vuelve a preguntar.
+- La cifra **viene ya escrita**: la media de lo que de verdad ha entrado por ese
+  programado, o lo previsto si todavía no hay historial. Debajo se dice de dónde
+  sale, que es lo que importa: encontrarte un número puesto sin saber quién lo ha
+  puesto es peor que no tenerlo. Antes era un botón —«poner 1.600 €»—, pero caía
+  por debajo del teclado y el caso normal, con diferencia, es haber cobrado
+  exactamente lo previsto.
+- **La primera tecla la borra entera** y empieza de cero, como un campo que viene
+  seleccionado: si vas a escribir otra cifra tiene que costar lo mismo que antes.
+  Borrar, en cambio, quita dígito a dígito, por si solo hay que corregir un cero.
+
+### Todavía no lo he cobrado
+
+Un sueldo no cae clavado el día que pone el calendario: cae el 25, o el 26 si el
+25 es domingo, o cuando al banco le parece. Sin poder decirlo solo quedaban dos
+salidas malas — apuntar un dinero que no está, y ver un saldo que no es el tuyo,
+o descartarlo y que no vuelva a preguntar hasta el mes que viene.
+
+**«Todavía no lo he cobrado»** aplaza la pregunta: mañana, en 2 días, en 3 o en
+una semana. Y se puede aplazar **tantas veces como haga falta**, porque cada vez
+se pisa la fecha anterior.
+
+Aplazar **no toca la fecha del movimiento**: sigue siendo el día que tocaba
+cobrar, y el día que de verdad cobres lo dirás al confirmarlo. Aplazar es no
+responder todavía, no responder otra cosa.
+
+Mientras está aplazado no sale por delante —ni la hoja de confirmar ni el aviso
+del Resumen— pero **sigue viéndose en Movimientos**, que es donde se mira lo que
+está esperando.
+
+Son dos salidas distintas y hay que poder distinguirlas de un vistazo:
+
+| Botón | Qué significa |
+|---|---|
+| **Todavía no lo he cobrado** | Pregúntamelo en unos días. Vuelve |
+| **Este mes no lo voy a cobrar** | Este ya no llega, olvídalo. Vuelve el mes que viene |
+
+Confundirlas cuesta o un sueldo fantasma o un sueldo perdido.
+
+### Ya lo he cobrado, antes de tiempo
+
+El caso contrario: el 25 cae en domingo y el banco paga el viernes. En la ficha
+del programado hay **«Ya lo he cobrado»** («Ya lo he pagado» en un gasto), que lo
+apunta **con la fecha de hoy** y marca como hecho el periodo que tocaba, así que
+el día 25 ya no vuelve a preguntar. Si el programado pide confirmar el importe,
+se pregunta igual: adelantarlo es cambiar el día, no saltarse nada.
+
+Solo se ofrece con el cobro **a diez días o menos**. Ofrecerlo siempre convertía
+el botón en una forma cómoda de apuntarse un sueldo de más, y eso en una app de
+dinero se paga caro. Diez días cubren de sobra lo que pasa de verdad —un fin de
+semana, un puente, una paga que se adelanta por Navidad— y dejan fuera el mes que
+viene. La comprobación está en los datos y no solo en el botón: una regla que
+vive en la pantalla se la salta el primero que llame por otro camino.
 
 ### Los avisos en el móvil
 
