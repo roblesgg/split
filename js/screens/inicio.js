@@ -95,11 +95,10 @@
   /* ---------- los avisos, que van siempre arriba ---------- */
 
   function avisoCola() {
-    /* Los aplazados no cuentan aquí: aplazar es justamente pedir que
-       deje de preguntar hasta ese día. Seguirían saliendo en Movimientos,
-       que es donde se ve lo que está esperando. */
+    /* Los aplazados no cuentan como cola: aplazar es justamente pedir que
+       deje de preguntar hasta ese día. */
     var cola = S.pendientesDeHoy();
-    if (!cola.length) return "";
+    if (!cola.length) return avisoAplazados();
     return '<section class="update-card">' +
         '<span class="update-card__icon" data-icon="calendar" data-icon-size="19"></span>' +
         '<div class="update-card__body">' +
@@ -115,6 +114,36 @@
               icon("check", 16) + 'Confirmar</button>' +
           '</div>' +
         '</div>' +
+      '</section>';
+  }
+
+  /* Si TODO lo que hay está aplazado, una línea y nada más.
+
+     No es la tarjeta de antes con su botón grande: eso sería no haber
+     aplazado nada. Pero desaparecer del todo tampoco vale — el dinero
+     sigue sin apuntar y el saldo sigue sin cuadrar—, así que queda la
+     línea, que dice cuándo vuelve y deja hacerlo ya si has cobrado antes
+     de lo que pensabas. */
+  function avisoAplazados() {
+    var esperando = S.pendientes().slice().sort(function (a, b) {
+      return String(a.aplazadoHasta || "") < String(b.aplazadoHasta || "") ? -1 : 1;
+    });
+    if (!esperando.length) return "";
+    var p = esperando[0];        /* el primero que vuelve */
+
+    /* En su <section>, como los demás avisos: el Resumen escalona la
+       entrada partiendo por </section>, y un botón suelto se pegaba al
+       bloque de al lado y acababa al final de la pantalla. */
+    return '<section>' +
+        '<button type="button" class="aviso-suave" data-pendiente="' + esc(p.id) + '">' +
+          '<span class="aviso-suave__icon" data-icon="clock" data-icon-size="15"></span>' +
+          '<span class="aviso-suave__txt">' +
+          esc(p.note) +
+          (esperando.length > 1 ? " y " + (esperando.length - 1) + " más" : "") +
+          ', ' + esc(A.cuandoVuelveTexto(p.aplazadoHasta)) +
+        '</span>' +
+          '<span class="aviso-suave__link">Hacerlo ya</span>' +
+        '</button>' +
       '</section>';
   }
 

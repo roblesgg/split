@@ -763,8 +763,19 @@ cobrar, y el día que de verdad cobres lo dirás al confirmarlo. Aplazar es no
 responder todavía, no responder otra cosa.
 
 Mientras está aplazado no sale por delante —ni la hoja de confirmar ni el aviso
-del Resumen— pero **sigue viéndose en Movimientos**, que es donde se mira lo que
-está esperando.
+del Resumen— pero **sigue viéndose**, y se puede hacer en cualquier momento:
+
+- En **Movimientos**, su fila dice «Aplazado» y **tocarla lo abre**, aunque no le
+  toque hasta pasado mañana. Aplazar es «no me preguntes», no «no me dejes»: si lo
+  aplazado no se pudiera abrir a mano, la única salida sería esperar al día que
+  dijiste.
+- En el **Resumen**, donde estaba la tarjeta con su botón queda una **línea
+  discreta** —«Nómina, pasado mañana · Hacerlo ya»— con el que antes vuelva. La
+  tarjeta entera sería no haber aplazado nada; desaparecer del todo tampoco vale,
+  porque el dinero sigue sin apuntar.
+
+En la fila solo cabe la palabra: medido en un móvil de 360 px, a esa línea le
+quedan **107 px** y «vuelve mañana» ya son 112. El día se dice donde hay sitio.
 
 Son dos salidas distintas y hay que poder distinguirlas de un vistazo:
 

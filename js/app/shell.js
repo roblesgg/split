@@ -250,8 +250,10 @@
                 cuandoCuenta ? { accountId: cuandoCuenta } : null);
         return;
       }
+      /* Ese en concreto, no «el primero que toque»: si estaba aplazado,
+         tocarlo es justamente querer hacerlo ahora. */
       if ((node = e.target.closest("[data-pendiente]"))) {
-        abrirCobros();
+        abrirCobros(node.getAttribute("data-pendiente"));
         return;
       }
       if ((node = e.target.closest("[data-movs-kind]"))) {

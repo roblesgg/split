@@ -61,16 +61,37 @@
 
   /* Movimiento pendiente de confirmar (sueldo, etc.): se ve en la lista
      y al tocarlo se abre la hoja para decir el importe. */
+  /* Cuándo vuelve a preguntarse un cobro aplazado. En días, no en fecha:
+     «mañana» se entiende sin contar, «26 de septiembre» hay que restarlo
+     mentalmente. Solo a partir del tercer día se dice la fecha, que es
+     cuando «en 4 días» ya tampoco dice mucho. */
+  function cuandoVuelve(fecha) {
+    var hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    var dias = Math.round((S.parseYmd(fecha) - hoy) / 86400000);
+    if (dias <= 0) return "hoy";
+    if (dias === 1) return "mañana";
+    if (dias === 2) return "pasado mañana";
+    return "el " + S.fechaLarga(fecha);
+  }
+
   function pendRowHtml(p) {
     var cat = catOf(p.categoryId);
     var isIn = p.kind === "in";
     var importe = +p.amount > 0 ? ((isIn ? "+" : "−") + money(p.amount)) : "¿?";
+    /* Aplazado: una palabra y ya. Es la única pista de por qué la app
+       ha dejado de preguntarlo —«por confirmar» a secas lo haría parecer
+       olvidado en vez de esperando— pero el cuándo no cabe: medido en un
+       móvil de 360, a la meta de esta fila le quedan 107 px, y «vuelve
+       mañana» ya son 112. El día se dice donde hay sitio: en la línea
+       del Resumen. */
+    var estado = p.aplazadoHasta ? "Aplazado" : "Por confirmar";
     return '' +
       '<button type="button" class="row row--pendiente" data-pendiente="' + esc(p.id) + '">' +
         catFace(cat, 22, "avatar-letter") +
         '<span class="row__body">' +
           '<span class="row__title">' + esc(p.note || cat.name) + '</span>' +
-          '<span class="row__meta">Por confirmar · ' +
+          '<span class="row__meta">' + esc(estado) + ' · ' +
             esc(S.nombreLargo(p.categoryId) || cat.name) +
             ' · ' + esc(S.relDayLabel(p.date)) + '</span>' +
         '</span>' +
@@ -187,6 +208,7 @@
   A.accountSelect = accountSelect;
   A.emptyHtml = emptyHtml;
   A.txRowHtml = txRowHtml;
+  A.cuandoVuelveTexto = cuandoVuelve;
   A.pendRowHtml = pendRowHtml;
   A.wrapStagger = wrapStagger;
 

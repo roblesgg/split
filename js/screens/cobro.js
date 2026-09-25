@@ -28,6 +28,22 @@
 
   function hayPendientes() { return S.pendientesDeHoy().length > 0; }
 
+  /* Cuál se está confirmando.
+
+     Normalmente el primero de la cola de hoy. Pero se puede pedir uno
+     concreto —`ui.cobroId`—, y ese se abre aunque esté aplazado: aplazar
+     es «no me preguntes», no «no me dejes». Si lo aplazado no se pudiera
+     abrir a mano, aplazar sería una trampa cuya única salida es esperar
+     al día que dijiste. */
+  function cobroActual() {
+    if (ui.cobroId) {
+      var suyo = S.pendientes().find(function (x) { return x.id === ui.cobroId; });
+      if (suyo) return suyo;
+      ui.cobroId = null;          /* ya no está: se sigue con la cola */
+    }
+    return S.pendientesDeHoy()[0] || null;
+  }
+
   /* Lo que se va tecleando —"12", "12," o "12,5"— en euros, o en horas
      si el programado va por tarifa. Vive aparte del estado de datos: es
      lo que hay a medio escribir. La regla de teclado es la misma que al
@@ -76,7 +92,7 @@
 
   function renderCobro() {
     var cola = S.pendientesDeHoy();
-    var p = cola[0];
+    var p = cobroActual();
     if (!p) { sheets.cobro.close(); return; }
 
     var esIn = p.kind === "in";
@@ -204,7 +220,7 @@
   /* Repinta solo la cifra y lo que cuelga de ella: repintar la hoja
      entera en cada tecla movería el teclado debajo del dedo. */
   function refreshCobro() {
-    var p = S.pendientesDeHoy()[0];
+    var p = cobroActual();
     if (!p) return;
     var tarifa = +p.tarifa > 0 ? +p.tarifa : 0;
     var v = valorCobro();
@@ -237,6 +253,7 @@
      la cola es otro movimiento, con su cifra y su mes. Arrastrar lo
      anterior apuntaría el sueldo de uno con el importe del otro. */
   function limpiarCobro() {
+    ui.cobroId = null;
     ui.cobro = "";
     ui.cobroPuesto = false;
     ui.cobroCiclo = undefined;
@@ -244,16 +261,20 @@
   }
 
   function seguirCobros() {
-    var p = S.pendientesDeHoy()[0];
-    if (p) { limpiarCobro(); ponerPropuesta(p); renderCobro(); return; }
+    limpiarCobro();
+    var p = cobroActual();
+    if (p) { ponerPropuesta(p); renderCobro(); return; }
     sheets.cobro.close();
     renderAll();
   }
 
-  function abrirCobros() {
-    var p = S.pendientesDeHoy()[0];
-    if (!p) return;
+  /* `id` abre ese en concreto —viene de tocarlo en Movimientos—; sin él,
+     el primero que toque hoy. */
+  function abrirCobros(id) {
     limpiarCobro();
+    ui.cobroId = id || null;
+    var p = cobroActual();
+    if (!p) { ui.cobroId = null; return; }
     ponerPropuesta(p);
     renderCobro();
     sheets.cobro.show();
@@ -315,8 +336,7 @@
     var cobroBody = $("#sheetCobroBody");
 
     cobroBody.addEventListener("click", function (e) {
-      var cola = S.pendientesDeHoy();
-      var p = cola[0];
+      var p = cobroActual();
       if (!p) { sheets.cobro.close(); return; }
       var tarifa = +p.tarifa > 0 ? +p.tarifa : 0;
       var node;

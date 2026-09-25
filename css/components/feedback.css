@@ -450,3 +450,43 @@
 .onboard__actions { display: flex; gap: var(--sp-3); }
 .onboard__actions .btn { flex: 1; width: auto; }
 .onboard__actions .btn--ghost[data-hidden="true"] { visibility: hidden; }
+
+/* ---------- el aviso de lo aplazado ----------
+   Cuando todo lo que hay por confirmar está aplazado, la tarjeta grande
+   con su botón sería no haber aplazado nada. Pero desaparecer del todo
+   tampoco: el dinero sigue sin apuntar. Así que una línea, del alto de
+   una fila y sin relieve, que dice cuándo vuelve y deja adelantarlo. */
+.aviso-suave {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+  color: var(--text-secondary);
+  text-align: left;
+}
+
+.aviso-suave__icon { flex: none; color: var(--text-muted); }
+
+.aviso-suave__txt {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--t-hint);
+  font-weight: var(--w-medium);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* El «hacerlo ya» es lo accionable: va en el acento y no se encoge. */
+.aviso-suave__link {
+  flex: none;
+  font-size: var(--t-hint);
+  font-weight: var(--w-bold);
+  color: var(--accent);
+}
+
+.aviso-suave:active { background: var(--surface-3); }
