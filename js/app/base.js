@@ -50,7 +50,10 @@ window.App = (function () {
 
   function money(v) { return S.money(v); }
   function cicloVisible() { return S.addMonths(S.cicloActual(), -ui.cicloOffset); }
-  function cicloMovs() { return S.addMonths(S.cicloActual(), -ui.movsCicloOffset); }
+  /* Se arranca en el mes en el que estás y desde ahí se navega. Con el
+     del calendario, un gasto apuntado el 26 para octubre no salía en la
+     lista a la que llegas, que es la peor forma de enterarte. */
+  function cicloMovs() { return S.addMonths(S.cicloEnCurso(), -ui.movsCicloOffset); }
   function catOf(id) { return S.catById(id); }
 
   /* Icono SVG de la categoría sobre un fondo teñido con su color.

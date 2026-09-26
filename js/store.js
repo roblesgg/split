@@ -50,7 +50,7 @@
   var topMerchants = D.topMerchants, totalesResumen = D.totalesResumen, totals = D.totals;
   var ciclo = D.ciclo, cicloActual = D.cicloActual, txDeCiclo = D.txDeCiclo;
   var cicloDeMov = D.cicloDeMov, cicloQueEmpieza = D.cicloQueEmpieza;
-  var cicloSugerido = D.cicloSugerido;
+  var cicloSugerido = D.cicloSugerido, cicloEnCurso = D.cicloEnCurso;
   var diaDeCiclo = D.diaDeCiclo, diasDeCiclo = D.diasDeCiclo, diasCorridos = D.diasCorridos;
   var rangoDeCiclo = D.rangoDeCiclo, etiquetaCiclo = D.etiquetaCiclo, nombreCiclo = D.nombreCiclo;
   var diaDeCorte = D.diaDeCorte, setDiaDeCorte = D.setDiaDeCorte, esMesNatural = D.esMesNatural;
@@ -204,6 +204,7 @@
     cicloDeMov: cicloDeMov,           /* y para qué ciclo cuenta un movimiento */
     cicloQueEmpieza: cicloQueEmpieza, /* el ciclo que arranca a partir de una fecha */
     cicloSugerido: cicloSugerido,     /* y el que se propone para uno nuevo */
+    cicloEnCurso: cicloEnCurso,       /* el mes en el que estás, no el del calendario */
     cicloActual: cicloActual,
     rangoDeCiclo: rangoDeCiclo,       /* { desde, hasta } */
     diasDeCiclo: diasDeCiclo,

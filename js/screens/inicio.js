@@ -181,7 +181,9 @@
   function renderInicio() {
     var root = $("#view-inicio");
     C.destroyChartsIn(root);
-    var curKey = S.cicloActual();
+    /* El mes en el que estás, no el del calendario: si ya has cruzado,
+       lo que se mira tiene que ser el mismo mes en el que se apunta. */
+    var curKey = S.cicloEnCurso();
     var accId = cuentaActiva();
 
     var ctx = {

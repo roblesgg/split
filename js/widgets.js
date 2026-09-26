@@ -51,7 +51,7 @@
   function foto() {
     var accId = S.cuentaDelPanel();
     var cuenta = accId && S.state.accounts.find(function (a) { return a.id === accId; });
-    var lim = S.limiteMasApurado(S.cicloActual());
+    var lim = S.limiteMasApurado(S.cicloEnCurso());
 
     var f = {
       /* Para saber si vale la pena repintar: si no hay nada, el widget

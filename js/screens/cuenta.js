@@ -93,7 +93,7 @@
     if (!a) { sheets.cuenta.close(); return; }
 
     var body = $("#sheetCuentaBody");
-    var curKey = S.cicloActual();
+    var curKey = S.cicloEnCurso();
     var propios = movimientosDe(a.id);
 
     /* del mes en curso, y separando lo que entra de lo que sale */

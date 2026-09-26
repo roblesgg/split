@@ -197,6 +197,33 @@ El contagio va **solo hacia delante**:
   gasto del día 24 sigue siendo de septiembre aunque el sueldo del 25 esté en
   octubre.
 
+### El mes que se mira es el mes en el que estás
+
+De poco sirve apuntar el gasto del día 26 en octubre si el panel sigue enseñando
+septiembre: la barra del límite no se movería al gastar, y el movimiento recién
+apuntado no saldría en la lista a la que llegas. Estarías **mirando un mes y
+escribiendo en otro**.
+
+Así que el mes que se enseña sale de la misma función que decide dónde va lo que
+apuntas. No es «hoy es 26, luego septiembre», es «lo último que dije fue octubre,
+luego octubre». En cuanto cruzas:
+
+- el **Resumen** pasa a decir «Límites de octubre», y con él el rosco, el mapa de
+  calor y el objetivo de la cuenta;
+- **Movimientos** arranca en octubre, así que lo que acabas de apuntar está ahí;
+- la pantalla de una **cuenta** y el **widget** enseñan lo mismo que la app.
+
+Todo va etiquetado con el nombre del mes, así que el cambio se ve; y las flechas
+de Movimientos siguen llevando a septiembre, que no se ha borrado.
+
+`cicloActual()` sigue siendo **el del calendario** y no se toca: lo usan las
+cuentas de días y quien de verdad necesita saber en qué mes estamos. Lo que se
+mira es `cicloEnCurso()`.
+
+Un detalle honesto: del mes que **todavía no ha empezado** no hay días corridos,
+así que el límite dice «te quedan 31 días» y la marca de «hoy» está a cero. Es la
+verdad — has empezado a gastar octubre antes de que octubre empiece.
+
 ### Por dentro
 
 El movimiento guarda **`ciclo`**, y solo cuando de verdad cambia algo: si

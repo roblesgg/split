@@ -300,6 +300,34 @@ module.exports = function () {
   t.es("hoy es su día: no hay nada que adelantar", D.sePuedeAdelantar(ry), false);
   t.es("y pedirlo no apunta nada", D.adelantarRecurring(ry.id), null);
 
+  t.grupo("el mes que se mira es el mes en el que estás");
+  congelar("2026-09-26T12:00:00");
+  limpio();
+  t.es("sin nada cruzado, el del calendario", D.cicloEnCurso(), "2026-09");
+
+  D.addTx({ kind: "in", amount: 1600, categoryId: "nomina", accountId: "banco",
+            date: "2026-09-25", note: "Nómina", ciclo: "2026-10" });
+  t.es("cobrado el sueldo de octubre, ya estás en octubre",
+       D.cicloEnCurso(), "2026-10");
+
+  /* y el límite que se mira es el de ese mes: lo que se gasta ahora
+     descuenta de la barra que se está viendo, que era la gracia */
+  D.addLimite({ nombre: "Todo", importe: 300, ambito: "todo" });
+  var l2 = D.state.limites[0];
+  D.addTx({ kind: "out", amount: 45, categoryId: "comida", accountId: "banco",
+            date: "2026-09-26", note: "Compra", ciclo: D.cicloSugerido("2026-09-26") });
+  t.es("el gasto de hoy va al mes que se está mirando",
+       D.estadoDeLimite(l2.id, D.cicloEnCurso()).gastado, 45);
+  t.es("y el de septiembre se queda como estaba",
+       D.estadoDeLimite(l2.id, "2026-09").gastado, 0);
+
+  t.es("del mes que aún no ha empezado no hay días corridos",
+       D.diasCorridos("2026-10"), 0);
+
+  congelar("2026-10-02T12:00:00");
+  t.es("y al llegar octubre de verdad, sigue siendo octubre",
+       D.cicloEnCurso(), "2026-10");
+
   t.grupo("la media de ingresos lo cuenta donde toca");
   limpio();
   /* tres sueldos cobrados el 25, para los tres meses siguientes */

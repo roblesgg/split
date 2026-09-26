@@ -101,6 +101,23 @@
     return para === D.addMonths(suyo, 1) ? para : suyo;
   }
 
+  /* El mes en el que ESTÁS, que no siempre es el del calendario.
+
+     El 26 de septiembre, con el sueldo de octubre ya cobrado, lo que
+     gastas cuenta para octubre. Si el panel siguiera enseñando
+     septiembre, la barra del límite no se movería al gastar y el
+     movimiento recién apuntado no saldría en la lista: estarías mirando
+     un mes y escribiendo en otro.
+
+     Así que lo que se mira y lo que se apunta salen de la misma función.
+     No es «hoy es 26, luego septiembre», es «lo último que dije fue
+     octubre, luego octubre».
+
+     `cicloActual()` sigue siendo el del calendario y no se toca: lo usan
+     las cuentas de días y quien de verdad quiere saber en qué mes
+     estamos. */
+  function cicloEnCurso() { return cicloSugerido(ymd(new Date())); }
+
   /* Una clave de ciclo es «2026-10». Se comprueba porque viene de lo
      guardado, y un valor a medias colaría el movimiento en un mes que no
      existe, de donde no habría forma de sacarlo. */
@@ -123,6 +140,7 @@
   D.ciclo = ciclo;
   D.cicloDeMov = cicloDeMov;
   D.cicloQueEmpieza = cicloQueEmpieza;
+  D.cicloEnCurso = cicloEnCurso;
   D.cicloSugerido = cicloSugerido;
   D.cicloValido = cicloValido;
   D.cicloActual = cicloActual;
