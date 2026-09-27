@@ -104,7 +104,28 @@
                           'aria-label="' + (r.active ? "Pausar" : "Reanudar") + ' ' + esc(r.note) +
                           '" data-icon="' + (r.active ? "pause" : "play") +
                           '" data-icon-size="15"></button>' +
-                '</div>';
+                '</div>' +
+
+                /* «Ya lo he cobrado», debajo y alineado con el texto.
+
+                   No cabe como tercer icono en la fila: con el importe y
+                   el de pausar, el subtítulo ya se parte en dos líneas en
+                   un móvil, y meter cuarenta y ocho píxeles más lo
+                   dejaría en tres. Aquí se lee entero y el dedo lo tiene
+                   fácil.
+
+                   Solo sale en los que se puede, que son los que tienen
+                   el cobro a diez días o menos: el resto del mes la lista
+                   está igual que siempre. */
+                (S.sePuedeAdelantar(r)
+                  ? '<div class="rec-accion">' +
+                      '<button type="button" class="chip chip--accion" ' +
+                              'data-rec-ya="' + esc(r.id) + '">' +
+                        icon("check", 14) +
+                        (r.kind === "in" ? "Ya lo he cobrado" : "Ya lo he pagado") +
+                      '</button>' +
+                    '</div>'
+                  : "");
             }).join("")
           : emptyHtml("calendar", "Nada programado",
               "Lo que se repite cada mes se apunta solo.")) +

@@ -821,6 +821,14 @@ apunta **con la fecha de hoy** y marca como hecho el periodo que tocaba, así qu
 el día 25 ya no vuelve a preguntar. Si el programado pide confirmar el importe,
 se pregunta igual: adelantarlo es cambiar el día, no saltarse nada.
 
+Está en dos sitios, porque es de las cosas que se hacen de pasada:
+
+- En **Mi dinero → Programados**, debajo de su fila. Va debajo y no como un
+  tercer icono en la fila: con el importe y el de pausar, el subtítulo ya se
+  parte en dos líneas en un móvil, y cuarenta y ocho píxeles más lo dejarían en
+  tres.
+- Y dentro de su **ficha**, para quien llegue por ahí.
+
 Solo se ofrece con el cobro **a diez días o menos**. Ofrecerlo siempre convertía
 el botón en una forma cómoda de apuntarse un sueldo de más, y eso en una app de
 dinero se paga caro. Diez días cubren de sobra lo que pasa de verdad —un fin de

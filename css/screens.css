@@ -275,6 +275,36 @@
 
 .account + .account { box-shadow: inset 0 1px 0 var(--hairline); }
 
+/* ---------- «ya lo he cobrado», debajo de su programado ----------
+   Va fuera de la fila y no dentro: la fila es un flex de badge, texto,
+   importe y el botón de pausar, y con un cuarto hueco el subtítulo se
+   parte en tres líneas en un móvil.
+
+   Se sangra hasta donde empieza el texto —40 del badge más su hueco—
+   para que se lea como algo de ESE programado y no como una fila suelta.
+
+   Y la línea que separa filas se rehace aquí: `.account + .account`
+   dejaría de tocarse al meter este div en medio, y las dos filas de
+   alrededor se quedarían pegadas sin raya. */
+.rec-accion {
+  padding: 0 var(--sp-5) var(--sp-3);
+  padding-left: calc(var(--sp-5) + 40px + var(--sp-3));
+}
+
+.rec-accion + .account { box-shadow: inset 0 1px 0 var(--hairline); }
+
+/* 44 y no menos: es el mínimo para un dedo, y la prueba de toques lo
+   mide. Por debajo del 48 de una chip normal para que no abulte. */
+.chip--accion {
+  gap: 7px;
+  height: 44px;
+  padding: 0 14px;
+  border: 1.5px solid var(--hairline-strong);
+  color: var(--text-primary);
+}
+
+.chip--accion:active { background: var(--surface-2); }
+
 .account__badge {
   flex: none;
   display: grid;

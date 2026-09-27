@@ -432,7 +432,30 @@
 
 
   /* --- lo que usan otros archivos --- */
+  /* «Ya lo he cobrado», de una pieza.
+
+     Lo piden dos sitios —la ficha del programado y su fila en Planes— y
+     tiene tres pasos que no se pueden separar: apuntarlo, repintar, y si
+     el programado pregunta el importe, abrir esa hoja. Dos copias de esto
+     acabarían divergiendo en cuál de los tres se olvida. */
+  function cobrarYa(recId) {
+    var mov = S.adelantarRecurring(recId);
+    if (!mov) {
+      U.toast("Ese ya está apuntado", { icon: "warning" });
+      return false;
+    }
+    /* Si ha ido a la cola es que pide importe: se pregunta ahora, que es
+       cuando el usuario está pensando en ese cobro. */
+    var pregunta = S.pendientesDeHoy().some(function (x) { return x.id === mov.id; });
+    U.haptic("success");
+    renderAll();
+    if (pregunta) abrirCobros(mov.id);
+    else U.toast("Apuntado " + money(mov.amount), { icon: "check" });
+    return true;
+  }
+
   A.abrirCobros = abrirCobros;
+  A.cobrarYa = cobrarYa;
   A.hayPendientes = hayPendientes;
   A.sincronizarAvisos = sincronizarAvisos;
 

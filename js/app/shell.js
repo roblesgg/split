@@ -232,6 +232,13 @@
         A.renderInicio(); U.haptic("light"); return;
       }
       if (e.target.closest("#colaAbrir")) { abrirCobros(); return; }
+      /* «Ya lo he cobrado» desde la propia fila de Planes, sin entrar
+         en la ficha: es lo que se hace unos días al mes y no merece
+         dos pantallas. */
+      if ((node = e.target.closest("[data-rec-ya]"))) {
+        A.cobrarYa(node.getAttribute("data-rec-ya"));
+        return;
+      }
       if ((node = e.target.closest("[data-rec-toggle]"))) {
         var r = S.toggleRecurring(node.getAttribute("data-rec-toggle"));
         S.runRecurring();
