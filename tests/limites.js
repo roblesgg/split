@@ -332,4 +332,25 @@ module.exports = function () {
 
   D.updateLimite(g2.id, { importe: 12.5 });
   t.es("los céntimos tampoco se pierden", D.estadoDeLimite(g2.id).limite, 12.5);
+
+  /* ---------- las tres cifras del Resumen ---------- */
+
+  t.grupo("Resumen: Ingresos son todos los del mes y el Ahorro sale de ahí");
+
+  limpio();
+  function ingreso(importe, fecha, extra) {
+    var m = { id: "i" + D.state.transactions.length, kind: "in", amount: importe,
+              accountId: "cartera", date: fecha };
+    if (extra) Object.keys(extra).forEach(function (k) { m[k] = extra[k]; });
+    D.state.transactions.push(m);
+  }
+  ingreso(1500, "2026-09-02");                              /* sueldo 1 */
+  ingreso(1200, "2026-08-28", { ciclo: "2026-09" });        /* sueldo 2, cobrado para este mes */
+  ingreso(900, "2026-08-10");                               /* de otro mes: no cuenta */
+  gasto("food", 300, "2026-09-05");
+  var r = D.totalesResumen(null);
+  t.es("suma los dos sueldos, también el que cuenta desde otra fecha",
+       r.income, 2700);
+  t.es("los gastos son los del mes", r.expense, 300);
+  t.es("y el ahorro es ingresos menos gastos", r.net, 2400);
 };

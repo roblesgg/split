@@ -278,8 +278,20 @@
     var desde = desdeDelResumen(cfg);
     var hasta = ymd(new Date());
 
+    /* «Este mes» es el ciclo en el que estás, y un movimiento es de ese
+       ciclo por el mes para el que cuenta —no solo por su fecha—, igual
+       que en la serie, los límites y la lista de Movimientos. Así un
+       sueldo cobrado el 28 para el mes que entra, o uno con fecha más
+       adelante dentro del mes, entra en Ingresos y el Ahorro sale de esos
+       mismos ingresos menos los gastos. Con otros periodos manda la
+       fecha, como siempre. */
+    var porMes = cfg.periodo === "mes";
+    var cicloAhora = porMes ? D.cicloEnCurso() : null;
+
     function toca(t) {
-      if (desde && (t.date < desde || t.date > hasta)) return false;
+      if (porMes) {
+        if (D.cicloDeMov(t) !== cicloAhora) return false;
+      } else if (desde && (t.date < desde || t.date > hasta)) return false;
       if (!accId) return true;
       /* de un traspaso cuenta la punta que sea de esta cuenta, y como no
          son ni ingreso ni gasto da igual: totals() ya los ignora */
