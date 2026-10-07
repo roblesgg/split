@@ -1,65 +1,62 @@
+<a href="https://dripdev.dev"><img src="docs/readme/dripdev.png" alt="Un producto de DripDev" width="100%"></a>
+
 <p align="center">
-  <img src="docs/banner.png" alt="Split: reparte tu sueldo y mira qué pasa con tu dinero" width="100%">
+  <img src="docs/readme/portada.png" alt="split: reparte tu sueldo y mira qué pasa con tu dinero" width="100%">
 </p>
 
 <p align="center">
-  <a href="https://github.com/roblesgg/split/releases/latest"><img src="https://img.shields.io/github/v/release/roblesgg/split?label=versi%C3%B3n&color=8F72EB" alt="Versión"></a>
-  <img src="https://img.shields.io/badge/Android-APK-FB944E?logo=android&logoColor=white" alt="Android">
-  <img src="https://img.shields.io/badge/dependencias-0-121016" alt="Sin dependencias">
-  <img src="https://img.shields.io/badge/funciona-sin%20internet-121016" alt="Funciona sin internet">
+  <a href="https://github.com/roblesgg/split/releases/latest"><img src="https://img.shields.io/github/v/release/roblesgg/split?style=for-the-badge&label=descargar&color=00B8A0" alt="Descargar la última versión"></a>
+  <img src="https://img.shields.io/badge/Android-APK-12151A?style=for-the-badge&logo=android&logoColor=00E699" alt="Android">
+  <img src="https://img.shields.io/badge/dependencias-0-12151A?style=for-the-badge" alt="Sin dependencias">
 </p>
 
-**Split** es una app de finanzas personales que reparte tu sueldo por porcentajes, apunta lo que gastas e ingresas y te dice, sin rodeos, qué está pasando de verdad con tu dinero. Todo se queda en tu móvil: no hay cuentas, ni servidores, ni anuncios.
+**split** te dice en diez segundos cómo vas este mes. Repartes el sueldo en apartados, apuntas lo que gastas y la app te enseña la cifra que importa, en grande.
 
-<!-- Capturas: añade las imágenes en docs/capturas/ y descomenta esta sección.
-## Capturas
+**Nada sale de tu móvil.** Sin cuentas, sin servidores, sin anuncios.
+
 <p align="center">
-  <img src="docs/capturas/resumen.png" width="24%" alt="Resumen">
-  <img src="docs/capturas/apuntar.png" width="24%" alt="Apuntar un gasto">
-  <img src="docs/capturas/analisis.png" width="24%" alt="Análisis">
-  <img src="docs/capturas/widgets.png" width="24%" alt="Widgets">
+  <img src="docs/readme/capturas.png" alt="Movimientos, análisis, resumen en modo oscuro y cuentas" width="100%">
 </p>
--->
 
 ## Qué puedes hacer
 
-- **Repartir el sueldo** en apartados por porcentaje: gastos fijos, ahorro, caprichos…
-- **Apuntar un gasto en segundos**, con categorías y subcategorías que creas sobre la marcha.
-- **Tu mes empieza cuando cobras.** Si cobras el 25, la app entera cuenta del 25 al 24.
-- **Límites del mes** que avisan antes de pasarte, no después.
-- **Varias cuentas** (banco, efectivo, ahorro) con traspasos entre ellas y metas de ahorro.
-- **Pagos programados** para los recibos que se repiten.
-- **Análisis** con histórico, proyección del mes y mapa de calor de tus gastos.
-- **Widgets de Android**: saldo, límite más apurado y un botón para apuntar.
-- **Privada de verdad**: funciona sin internet y los datos nunca salen del dispositivo.
-- **Móvil y ordenador** con el mismo código: en pantalla grande se reorganiza en dos columnas.
+| | |
+|---|---|
+| 🛒 **Apuntar en tres toques** | Gasto, ingreso o traspaso, con su categoría y su emoji. |
+| 💼 **Tu mes empieza cuando cobras** | Si cobras el 25, la app entera cuenta del 25 al 24. |
+| 🐷 **Repartir el sueldo** | Apartados por porcentaje: fijos, ahorro, caprichos… |
+| 💡 **Límites que avisan antes** | Te dice cuánto te queda, no cuánto te has pasado. |
+| 🏠 **Varias cuentas** | Banco, hucha, efectivo, con traspasos y metas. |
+| ✈️ **Pagos programados** | El alquiler, Spotify y todo lo que se repite. |
+| 🎮 **Análisis** | Tu ahorro mes a mes, el gasto por categoría y la proyección del mes. |
+| 🎁 **Widgets de Android** | Saldo, límite más apurado y un botón para apuntar. |
 
 ## Descárgala
 
-- **Android:** descarga `split.apk` de la [última versión](https://github.com/roblesgg/split/releases/latest) y ábrelo en el móvil. La app te avisa cuando hay una versión nueva.
-- **Ordenador:** descarga el repositorio y abre `index.html` con doble clic.
+- **Android:** baja `split.apk` de la [última versión](https://github.com/roblesgg/split/releases/latest) y ábrelo. La app te avisa cuando hay otra nueva.
+- **Ordenador:** descarga el repositorio y abre `index.html`. Ya está.
 
 ## Hecho con
 
-HTML, CSS y JavaScript puros. Sin build, sin npm, sin dependencias. El APK empaqueta la misma web (ver [`packaging/README.md`](packaging/README.md)).
+HTML, CSS y JavaScript. **Sin build, sin npm, sin dependencias.** El APK empaqueta la misma web.
 
-## Desarrollo
+<details>
+<summary><b>Para desarrollar</b></summary>
 
-Abre `index.html` en el navegador y listo. Si tu navegador bloquea el almacenamiento desde `file://`, sírvela por HTTP:
+<br>
+
+Abre `index.html` en el navegador. Si bloquea el almacenamiento desde `file://`:
 
 ```bash
 npx serve .
 ```
 
-Cómo está pensada cada pantalla, cada cálculo y cada decisión de diseño: [`docs/DISENO.md`](docs/DISENO.md).
+- Cómo está pensada cada pantalla y cada cálculo: [`docs/DISENO.md`](docs/DISENO.md)
+- Cómo se genera el APK: [`packaging/README.md`](packaging/README.md)
+- Las capturas de arriba son de la app real con sus datos de ejemplo (`js/data/demo.js`).
 
-## Estado
-
-En uso diario y con versiones nuevas cada poco.
+</details>
 
 ---
 
-<p align="center">
-  <img src="docs/dripdev.png" width="40" alt=""><br>
-  Un producto de <b>DripDev</b> · hecho por Álvaro Robles
-</p>
+<p align="center"><sub>Un producto de <a href="https://dripdev.dev"><b>DripDev</b></a> · hecho por Álvaro Robles</sub></p>
