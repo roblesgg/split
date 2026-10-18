@@ -78,6 +78,20 @@
   .cat-sub .chip { animation: none; }
 }
 
+/* La elegida, aquí dentro, no se hunde: se marca con el acento.
+   Hundirse es fondo `--surface-2`, que es justo el del cajón, así que la
+   elegida se fundía con él y la hoja quedaba sin ninguna marca. Lleva el
+   mismo aro de acento que la casilla de su madre, para que las dos digan
+   lo mismo de un vistazo: estás dentro de Comida, en Almuerzos.
+
+   El color no viaja solo: aro, texto en acento y negrita. */
+.cat-sub .chip[aria-pressed="true"] {
+  background: var(--surface-1);
+  box-shadow: inset 0 0 0 2px var(--accent);
+  color: var(--accent);
+  font-weight: var(--w-semi);
+}
+
 .cat-pick {
   display: flex;
   flex-direction: column;

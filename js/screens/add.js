@@ -506,7 +506,6 @@
       if ((node = e.target.closest("[data-cat]"))) {
         var elegido = node.getAttribute("data-cat");
         var cat = catOf(elegido);
-        ui.draft.categoryId = elegido;
 
         /* Tocar una de primer nivel la elige Y abre lo que hay dentro,
            tenga hijas o no: si solo se abriera teniéndolas, no habría
@@ -514,22 +513,30 @@
 
            Las hijas no abren nada: ya estás dentro. */
         if (!cat.parentId) {
+          ui.draft.categoryId = elegido;
           ui.catAbierta = ui.catAbierta === elegido ? null : elegido;
           ui.draft.apartadoId = null;
           renderAddSheet(); U.haptic("light");
           return;
         }
 
-        $$("[data-cat]", addBody).forEach(function (b) {
-          b.setAttribute("aria-pressed", String(b === node));
-        });
-        var note = $("#addNote");
-        if (note) note.placeholder = catOf(ui.draft.categoryId).name;
-        /* La categoría decide de qué apartado sale, así que ese aviso se
-           vuelve a pintar. Lo demás se queda como está: repintar la hoja
-           entera te movería el teclado debajo del dedo. */
+        /* Volver a tocar la hija elegida la suelta y te deja en su madre,
+           con el cajón abierto donde estabas. Sin esto, afinar no tenía
+           vuelta atrás: la única salida era tocar la madre, que además
+           cerraba el cajón. Quedarse en la madre a secas es una respuesta
+           válida, así que tiene que poder decirse desde aquí. */
+        var suelta = ui.draft.categoryId === elegido;
+        ui.draft.categoryId = suelta ? cat.parentId : elegido;
+        ui.catAbierta = cat.parentId;
+
+        /* Se repinta la rejilla entera, como al tocar una madre. Marcar a
+           mano solo los `[data-cat]` apagaba la casilla de la madre —que
+           está marcada porque lo elegido es suyo— y dejaba sin poner su
+           `data-dentro`: tocabas una hija y lo que se veía era que algo se
+           DESmarcaba. El alto del cajón no cambia, así que nada se mueve
+           bajo el dedo. */
         ui.draft.apartadoId = null;
-        refreshApartado();
+        renderAddSheet();
         U.haptic("light"); return;
       }
       if ((node = e.target.closest("[data-tag]"))) {

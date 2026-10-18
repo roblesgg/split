@@ -87,6 +87,8 @@
     if (!madre) return "";
     /* el centro de la columna tocada, en tanto por ciento del ancho */
     var flecha = ((col + 0.5) / COLS) * 100;
+    /* la hija elegida, si lo que hay puesto es una de este cajón */
+    var puesta = hijas.filter(function (h) { return h.id === d.categoryId; })[0];
 
     return '<div class="cat-sub" style="--flecha:' + flecha.toFixed(2) + '%">' +
         '<p class="cat-sub__titulo">Dentro de ' + esc(madre.name) + '</p>' +
@@ -104,10 +106,16 @@
           '</button>' +
         '</div>' +
         '<p class="cat-sub__pie">' +
-          (hijas.length
-            ? 'O déjalo en ' + esc(madre.name) + ' a secas.'
-            : 'Aquí dentro no hay nada todavía. Lo que crees seguirá ' +
-              'sumando en ' + esc(madre.name) + '.') +
+          (!hijas.length
+            ? 'Aquí dentro no hay nada todavía. Lo que crees seguirá ' +
+              'sumando en ' + esc(madre.name) + '.'
+            /* Con una elegida, el pie dice cómo se suelta. Volver a
+               tocarla es el gesto, pero un gesto que no se ve no existe:
+               sin esta línea no había forma de saber que se podía. */
+            : puesta
+              ? 'Toca ' + esc(puesta.name) + ' otra vez para dejarlo en ' +
+                esc(madre.name) + ' a secas.'
+              : 'O déjalo en ' + esc(madre.name) + ' a secas.') +
         '</p>' +
       '</div>';
   }
