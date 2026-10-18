@@ -52,7 +52,11 @@
        y parecería que el icono se ha perdido. Se pide aquí y se repinta
        al llegar; quien no haya tocado ningún icono no la descarga
        nunca. */
-    if (S.state.accounts.some(function (a) { return a.icon && !U.tieneIcono(a.icon); })) {
+    /* Vale igual para categorías, apartados y límites: los cuatro eligen
+       su icono del mismo sitio. */
+    var conIcono = [].concat(S.state.accounts, S.state.categories || [],
+                             S.state.apartados || [], S.state.limites || []);
+    if (conIcono.some(function (a) { return a && a.icon && !U.tieneIcono(a.icon); })) {
       U.cargarIconos().then(function (ok) { if (ok) renderAll(); });
     }
 

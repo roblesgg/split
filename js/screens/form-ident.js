@@ -19,6 +19,13 @@
            'data-icon="' + esc(S.catIcon(d)) + '" data-icon-size="' + (size || 22) + '"></span>';
   }
 
+  function botonIcono(ic, puesto) {
+    return '<button type="button" class="icon-pick" data-picon="' + esc(ic) + '" ' +
+             'aria-pressed="' + !!puesto + '" aria-label="' + esc(ic.replace(/-/g, " ")) + '">' +
+        '<span data-icon="' + esc(ic) + '" data-icon-size="20"></span>' +
+      '</button>';
+  }
+
   function identHtml(d, opciones) {
     var o = opciones || {};
     var abierto = ui.form.abierto || null;
@@ -63,13 +70,21 @@
       (abierto === "icon"
         ? '<div class="ident__cajon">' +
             '<div class="icon-grid">' +
+              /* El que ya lleva puesto va primero aunque sea de la
+                 librería: si no, al abrir la ficha de una categoría con un
+                 icono de los de fuera la rejilla salía entera sin marcar. */
+              (iconos.indexOf(S.catIcon(d)) < 0 ? botonIcono(S.catIcon(d), true) : "") +
               iconos.map(function (ic) {
-                return '<button type="button" class="icon-pick" data-picon="' + esc(ic) + '" ' +
-                         'aria-pressed="' + (ic === S.catIcon(d)) + '" aria-label="' + esc(ic) + '">' +
-                    '<span data-icon="' + esc(ic) + '" data-icon-size="20"></span>' +
-                  '</button>';
+                return botonIcono(ic, ic === S.catIcon(d));
               }).join("") +
             '</div>' +
+            /* Detrás, la misma librería que las cuentas: casi dos mil
+               iconos con buscador en español. Se pide la primera vez que
+               alguien la abre, no al arrancar. */
+            (ui.form.iconoTodos
+              ? A.bibliotecaHtml(d)
+              : '<button type="button" class="panel-add panel-add--dentro" id="fIconoMas">' +
+                  icon("search", 15) + 'Buscar en más iconos</button>') +
           '</div>'
         : "") +
 

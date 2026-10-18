@@ -790,6 +790,7 @@
 
   /* --- lo que usan otros archivos --- */
   A.refrescarIconos = refrescarIconos;
+  A.bibliotecaHtml = bibliotecaHtml;
   A.refrescarAdelantado = refrescarAdelantado;
   A.renderForm = renderForm;
 
