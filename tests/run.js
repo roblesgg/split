@@ -22,7 +22,8 @@ console.log("\nsplit — pruebas");
  ["Borrar una cuenta", "./cuentas"],
  ["Las de dentro", "./subcategorias"],
  ["El panel de cada cuenta", "./paneles"],
- ["La migración", "./migracion"]].forEach(function (par) {
+ ["La migración", "./migracion"],
+ ["Que no se pierda nada", "./respaldo"]].forEach(function (par) {
   console.log("\n" + par[0]);
   console.log("─".repeat(par[0].length));
   require(par[1])();

@@ -306,6 +306,40 @@
 
   function totalesResumen(accId) { return totals(txDelResumen(accId)); }
 
+  /* Con qué se compara «este mes»: el mes anterior HASTA EL MISMO DÍA.
+
+     Antes se comparaba lo que llevas con el mes anterior entero. El día 18
+     eso decía «gastas un 24 % menos» —en verde, como una buena noticia— y
+     «ingresas un 81 % menos» —en rojo— cuando lo único que pasaba es que al
+     mes le faltaban trece días y el sueldo aún no había entrado. Eran
+     noticias falsas en las dos direcciones.
+
+     Devuelve null cuando no hay con qué comparar con justicia: otro periodo
+     que no sea el mes, o un mes que todavía no ha empezado. Y se calcula
+     sobre el mes que se MIRA (`cicloEnCurso`), no sobre el del calendario:
+     con el sueldo de octubre ya cobrado en septiembre, comparar contra
+     «el mes anterior al de septiembre» era comparar contra agosto. */
+  function totalesResumenAnterior(accId) {
+    if (resumenCfg().periodo !== "mes") return null;
+
+    var key = D.cicloEnCurso();
+    var corridos = D.diasCorridos(key);
+    if (corridos < 1) return null;
+
+    var previo = addMonths(key, -1);
+    var r = D.rangoDeCiclo(previo);
+    var tope = D.parseYmd(r.desde);
+    tope.setDate(tope.getDate() + corridos - 1);
+    var hasta = ymd(tope);
+    if (hasta > r.hasta) hasta = r.hasta;
+
+    return totals(D.state.transactions.filter(function (t) {
+      if (D.cicloDeMov(t) !== previo || t.date > hasta) return false;
+      if (!accId) return true;
+      return t.accountId === accId || t.toAccountId === accId;
+    }));
+  }
+
   /* Cómo se lee el periodo puesto, para escribirlo debajo de las cifras. */
   function etiquetaResumen() {
     var cfg = resumenCfg();
@@ -368,5 +402,6 @@
   D.resumenCfg = resumenCfg;
   D.setResumen = setResumen;
   D.totalesResumen = totalesResumen;
+  D.totalesResumenAnterior = totalesResumenAnterior;
   D.upcomingRecurring = upcomingRecurring;
 })();

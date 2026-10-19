@@ -192,7 +192,8 @@
 
     /* las tres cifras del Resumen */
     resumenCfg: resumenCfg, setResumen: setResumen,
-    totalesResumen: totalesResumen, etiquetaResumen: etiquetaResumen,
+    totalesResumen: totalesResumen, totalesResumenAnterior: D.totalesResumenAnterior,
+    etiquetaResumen: etiquetaResumen,
     RESUMEN_POR_DEFECTO: RESUMEN_POR_DEFECTO,
 
     plannedIncome: plannedIncome, setIncome: setIncome,
@@ -242,7 +243,10 @@
     applyEmojiSet: applyEmojiSet, EMOJI_SETS: EMOJI_SETS,
 
     /* datos */
-    exportJson: exportJson, importJson: importJson
+    exportJson: exportJson, importJson: importJson,
+    inspeccionarJson: D.inspeccionarJson, resumenDeDatos: D.resumenDeDatos,
+    hayCopiaAntes: D.hayCopiaAntes, restaurarCopiaAntes: D.restaurarCopiaAntes,
+    hayRescate: D.hayRescate, rescateJson: D.rescateJson
   };
 
 })();

@@ -433,6 +433,23 @@ cuentas, así que dentro de una cuenta el bloque lo dice —«De todas tus
 cuentas»— en vez de esconderse: media verdad en una cifra es peor que no
 enseñarla.
 
+### La tendencia compara el mismo tramo, no el mes entero
+
+El porcentaje de debajo de **Ingresos, Gastos y Ahorro** compara lo que llevas
+con el mes anterior **hasta el mismo día**. Compararlo con el mes entero decía,
+el día 18, «gastas un 24 % menos» en verde y «ingresas un 81 % menos» en rojo,
+cuando solo faltaban trece días de mes y el sueldo no había entrado: noticias
+falsas en las dos direcciones.
+
+Si no hay con qué comparar con justicia —otro periodo que no sea el mes, o un
+mes que todavía no ha empezado— sale un guion, no un número. Se calcula sobre
+el mes que se **mira** (`cicloEnCurso`), no sobre el del calendario. Es
+`totalesResumenAnterior`, y no guarda nada.
+
+En **Análisis**, el último tramo del histórico va a trazos y su tooltip dice
+«sin acabar»: un mes a medias dibujado igual que uno cerrado parece un
+desplome.
+
 **Un bloque sin nada que enseñar no ocupa hueco.** Un panel con seis huecos
 vacíos da la impresión de que la app está rota.
 
@@ -702,6 +719,28 @@ foto en base64 se la comería y a partir de ahí dejaría de guardarse todo lo
 demás. Van en **IndexedDB**, y el movimiento solo se queda con el id. Antes de
 guardarla, la imagen se reduce con un canvas a 1400 px de lado mayor y JPEG al
 72 %, que deja un ticket de cámara en unos 150 KB.
+
+### Lo que sustituye todo, nunca a ciegas
+
+Importar un archivo, cargar los datos de ejemplo y vaciar sustituyen el estado
+entero, y los datos viven solo en el móvil. Por eso las tres hacen lo mismo:
+
+- **Antes de tocar nada apartan lo que hay**, en su propia clave
+  (`split.state.v1.antes`), fuera del estado: no entra en Exportar, no pasa por
+  la migración y no cambia la forma de los datos. Si no cabe la copia, no hacen
+  nada.
+- **Importar enseña primero qué trae el archivo y qué tienes** —«trae 12
+  movimientos, ahora tienes 346»— y pide confirmar. Un archivo que no es de
+  split, está roto o es de una versión más nueva que la app se rechaza con un
+  mensaje legible, sin tocar nada.
+- **Se puede volver.** Un «Deshacer» en el aviso y, después, la fila **Volver a
+  lo de antes** en Ajustes. Volver intercambia: lo de ahora pasa a ser la copia,
+  así que se puede ir y volver sin perder ninguna de las dos.
+- Vaciar dos veces seguidas no pisa la copia buena con un estado vacío.
+
+Y si al arrancar lo guardado **no se puede leer**, no se empieza en blanco
+encima: se aparta en `split.state.v1.rescate` y Ajustes ofrece descargarlo.
+Antes el primer guardado lo machacaba para siempre.
 
 Ojo con esto: **el archivo de Exportar no lleva los adjuntos**, solo sus ids. Al
 importarlo en otro dispositivo el movimiento aparece entero pero sin las

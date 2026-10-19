@@ -141,7 +141,11 @@
       '<div class="stat">' +
         '<p class="stat__label">' + esc(label) + '</p>' +
         '<p class="stat__value">' + esc(S.moneyShort(value)) + '</p>' +
-        '<p class="stat__delta" data-dir="' + dir + '">' +
+        /* Lo que se compara no cabe en la tarjeta, así que se dice aquí:
+           para quien lo lea con el dedo o con el lector de pantalla. */
+        '<p class="stat__delta" data-dir="' + dir + '"' +
+           (arrow ? ' title="frente al mismo día del mes anterior" ' +
+                    'aria-label="' + esc(txt) + ' frente al mismo día del mes anterior"' : "") + '>' +
           (arrow ? icon(arrow, 12) : "") + '<span>' + esc(txt) + '</span>' +
         '</p>' +
         '<div class="stat__spark" data-spark="' + esc(JSON.stringify(sparkVals)) + '"></div>' +
@@ -162,7 +166,7 @@
         '<div class="meter__head">' +
           '<span class="meter__dot" style="background:' + fill + '"></span>' +
           '<span class="meter__label">' + esc(b.name) + '</span>' +
-          '<span class="meter__pct" style="color:' + fill + '">' + pct + ' %</span>' +
+          '<span class="meter__pct" style="color:' + (over ? "var(--bad-text)" : near ? "var(--warn-text)" : "var(--text-secondary)") + '">' + pct + ' %</span>' +
         '</div>' +
         '<p class="meter__cifra">' + esc(S.moneyShort(b.gastado)) + ' de ' +
           esc(S.moneyShort(b.limite)) +
@@ -238,20 +242,18 @@
     render: function (ctx) {
       var serie = S.serieDeCiclos(12, ctx.accId);
       var res = S.totalesResumen(ctx.accId);
-      var cfg = S.resumenCfg();
-      /* La comparación con el periodo anterior solo tiene sentido si se
-         mira el mes: en «este año» o «desde el principio» un porcentaje
-         ahí no significaría nada. */
-      var comparable = cfg.periodo === "mes";
-      var ant = serie[serie.length - 2] || { income: 0, expense: 0, net: 0 };
-      var d = function (a, b) { return comparable ? deltaPct(a, b) : null; };
+      /* Se compara con el mes anterior hasta el mismo día, no entero: ver
+         `totalesResumenAnterior`. Con otro periodo, o con un mes que aún no
+         ha empezado, no hay con qué comparar y sale un guion. */
+      var antes = S.totalesResumenAnterior(ctx.accId);
+      var d = function (campo) { return antes ? deltaPct(res[campo], antes[campo]) : null; };
 
       return '<div class="kpi-row" id="kpiRow">' +
-          statTile("Ingresos", res.income, d(res.income, ant.income), "up-good",
+          statTile("Ingresos", res.income, d("income"), "up-good",
                    serie.map(function (m) { return m.income; })) +
-          statTile("Gastos", res.expense, d(res.expense, ant.expense), "up-bad",
+          statTile("Gastos", res.expense, d("expense"), "up-bad",
                    serie.map(function (m) { return m.expense; })) +
-          statTile("Ahorro", res.net, d(res.net, ant.net), "up-good",
+          statTile("Ahorro", res.net, d("net"), "up-good",
                    serie.map(function (m) { return m.net; })) +
         '</div>' +
         '<button type="button" class="kpi-filtro" id="kpiFiltro">' +
@@ -546,7 +548,7 @@
                 '</span>' +
               '</span>' +
               '<span class="account__amount"' +
-                (r.kind === "in" ? ' style="color:var(--money-in)"' : '') + '>' +
+                (r.kind === "in" ? ' style="color:var(--good-text)"' : '') + '>' +
                 sign + esc(S.moneyShort(r.amount)) + '</span>' +
             '</button>';
         }).join(""), true);

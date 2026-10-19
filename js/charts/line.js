@@ -39,6 +39,13 @@
         pointRadius: function (ctx) {
           return ctx.dataIndex === data.length - 1 ? 5 : 0;
         },
+        /* El último mes aún no ha acabado: su tramo va a trazos, para que
+           no se lea como un mes cerrado que se ha desplomado. */
+        segment: opts.ultimoAbierto ? {
+          borderDash: function (ctx) {
+            return ctx.p1DataIndex === data.length - 1 ? [7, 6] : undefined;
+          }
+        } : undefined,
         pointHoverRadius: 7,
         pointHitRadius: 18,
         pointBackgroundColor: col,
@@ -53,7 +60,8 @@
       title: function (items) {
         var i = items[0] && items[0].dataIndex;
         var d = data[i];
-        return (d && (d.labelFull || d.label)) || "";
+        var t = (d && (d.labelFull || d.label)) || "";
+        return opts.ultimoAbierto && i === data.length - 1 ? t + " · sin acabar" : t;
       },
       label: function (ctx) {
         return " " + ctx.dataset.label + ": " + fmt(ctx.parsed.y);

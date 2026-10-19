@@ -77,7 +77,7 @@
       if (pie) pie.textContent = S.textoAmbitoCortoLimite(lim);
       if (num) {
         num.textContent = S.pct(e.pct);
-        num.style.color = e.nivel === "pasado" ? "var(--status-critical)" : "";
+        num.style.color = e.nivel === "pasado" ? "var(--bad-text)" : "";
       }
     });
   }
@@ -135,16 +135,65 @@
       if (!file) return;
       var reader = new FileReader();
       reader.onload = function () {
+        var text = String(reader.result);
+        /* Se suelta el archivo elegido: si no, volver a elegir el mismo no
+           dispara nada, y parecería que el botón no funciona. */
+        e.target.value = "";
+
+        /* Primero se mira qué trae, sin tocar nada, para poder decírselo. */
+        var trae;
+        try { trae = S.inspeccionarJson(text); }
+        catch (err) { U.toast(err.message || "No he podido leer ese archivo", { icon: "warning", duration: 5000 }); return; }
+
+        var tengo = S.resumenDeDatos();
+        if (!confirm(
+          "Este archivo trae " + cuantos(trae.movimientos, "movimiento") + " y " +
+            cuantos(trae.cuentas, "cuenta") + ".\n" +
+          "Ahora tienes " + cuantos(tengo.movimientos, "movimiento") + " y " +
+            cuantos(tengo.cuentas, "cuenta") + ".\n\n" +
+          "Si sigues, lo que tienes se SUSTITUYE por lo del archivo. " +
+          "Te guardo una copia de lo de ahora, para que puedas volver atrás.\n\n" +
+          "¿Importar?")) return;
+
         try {
-          S.importJson(String(reader.result));
+          S.importJson(text);
           renderAll();
-          U.toast("Datos importados", { icon: "check" });
+          U.toast("Datos importados", {
+            icon: "check", duration: 12000, actionLabel: "Deshacer",
+            onAction: function () { volverALoDeAntes(); }
+          });
         } catch (err) {
-          U.toast("No he podido leer ese archivo", { icon: "warning" });
+          U.toast(err.message || "No he podido importar ese archivo", { icon: "warning", duration: 5000 });
         }
       };
       reader.readAsText(file);
     });
+  }
+
+  /* «1 movimiento», «2 movimientos»: la cifra dicha como se diría. */
+  function cuantos(n, palabra) {
+    return n + " " + palabra + (n === 1 ? "" : "s");
+  }
+
+  /* Vuelve a lo que había antes de importar, vaciar o cargar el ejemplo. */
+  function volverALoDeAntes() {
+    try {
+      S.restaurarCopiaAntes();
+      renderAll();
+      U.toast("Vuelto a lo de antes", { icon: "check" });
+    } catch (err) {
+      U.toast(err.message || "No he podido volver atrás", { icon: "warning", duration: 5000 });
+    }
+  }
+
+  /* Descarga un texto como archivo .json. */
+  function descargar(nombre, texto) {
+    var blob = new Blob([texto], { type: "application/json" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = nombre;
+    a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
   }
 
   function handleSetting(action) {
@@ -173,27 +222,44 @@
     }
 
     if (action === "export") {
-      var blob = new Blob([S.exportJson()], { type: "application/json" });
-      var a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "split-" + S.ymd(new Date()) + ".json";
-      a.click();
-      setTimeout(function () { URL.revokeObjectURL(a.href); }, 2000);
+      descargar("split-" + S.ymd(new Date()) + ".json", S.exportJson());
       U.toast("Archivo descargado", { icon: "check" });
       return;
     }
 
     if (action === "import") { $("#importFile").click(); return; }
 
+    if (action === "antes") {
+      var h = S.resumenDeDatos();
+      if (!confirm("¿Volver a lo de antes?\n\nAhora tienes " + cuantos(h.movimientos, "movimiento") +
+                   ". Lo de ahora se queda guardado: podrás volver a ello igual.")) return;
+      volverALoDeAntes();
+      return;
+    }
+
+    if (action === "rescate") {
+      var raw = S.rescateJson();
+      if (!raw) return;
+      descargar("split-rescate-" + S.ymd(new Date()) + ".json", raw);
+      U.toast("Archivo descargado", { icon: "check" });
+      return;
+    }
+
+    /* Las dos que sustituyen todo guardan antes una copia. Si no cabe, no
+       hacen nada: sustituir sin copia es justo lo que se evita. */
     if (action === "reset") {
-      if (!confirm("¿Recargar los datos de ejemplo? Se perderá lo que hayas registrado.")) return;
-      S.reset(); renderAll(); U.toast("Datos de ejemplo recargados", { icon: "check" });
+      if (!confirm("¿Recargar los datos de ejemplo?\n\nLo que hayas registrado se aparta y puedes recuperarlo desde «Volver a lo de antes».")) return;
+      if (!S.reset()) { U.toast("No hay sitio para guardar una copia. No he tocado nada.", { icon: "warning", duration: 5000 }); return; }
+      renderAll();
+      U.toast("Datos de ejemplo recargados", { icon: "check", duration: 12000, actionLabel: "Deshacer", onAction: volverALoDeAntes });
       return;
     }
 
     if (action === "clear") {
-      if (!confirm("¿Borrar todos tus movimientos y metas? No se puede deshacer.")) return;
-      S.clearAll(); renderAll(); U.toast("Todo vaciado", { icon: "check" });
+      if (!confirm("¿Vaciar todo?\n\nSe borran tus movimientos y metas. Lo de ahora se aparta y puedes recuperarlo desde «Volver a lo de antes».")) return;
+      if (!S.clearAll()) { U.toast("No hay sitio para guardar una copia. No he tocado nada.", { icon: "warning", duration: 5000 }); return; }
+      renderAll();
+      U.toast("Todo vaciado", { icon: "check", duration: 12000, actionLabel: "Deshacer", onAction: volverALoDeAntes });
       return;
     }
 

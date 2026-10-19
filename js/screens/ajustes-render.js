@@ -294,6 +294,16 @@
         '</div>' +
         settingRow("download", "Exportar", "", "export") +
         settingRow("upload", "Importar", "", "import") +
+        /* Solo sale cuando hay algo a lo que volver: una fila que no hace
+           nada es ruido, y esta es de las que se agradece cuando aparece. */
+        (S.hayCopiaAntes()
+          ? settingRow("repeat", "Volver a lo de antes",
+                       "Lo que tenías antes de importar, vaciar o cargar el ejemplo", "antes")
+          : "") +
+        (S.hayRescate()
+          ? settingRow("download", "Descargar la copia de rescate",
+                       "Split no pudo leer lo que había guardado y lo apartó. Guárdala y enséñasela a quien te ayuda", "rescate")
+          : "") +
         settingRow("repeat", "Datos de ejemplo", "", "reset") +
         settingRow("trash", "Vaciar todo", "", "clear") +
       '</section>' +

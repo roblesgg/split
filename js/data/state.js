@@ -389,9 +389,85 @@
     try { return !!localStorage.getItem(KEY); } catch (e) { return false; }
   }
 
+  /* ---------- las dos copias que nunca se pisan a ciegas ----------
+     Split guarda todo en un solo sitio, y hay tres cosas que lo
+     sustituyen entero: importar un archivo, cargar los datos de ejemplo y
+     vaciar. Un toque de más y se iban las finanzas de alguien sin vuelta.
+
+     Así que antes de cualquiera de las tres se aparta lo que había, y
+     Ajustes ofrece volver a ello. Y si lo guardado no se puede ni leer, no
+     se arranca en blanco encima de ello: se aparta también, para que haya
+     algo que rescatar.
+
+     Las dos viven FUERA del estado, en su propia clave: no entran en
+     exportar, no pasan por la migración y no cambian la forma de los
+     datos. */
+
+  var ANTES_KEY = KEY + ".antes";
+  var RESCATE_KEY = KEY + ".rescate";
+
+  function leer(k) {
+    try { return localStorage.getItem(k); } catch (e) { return null; }
+  }
+
+  function escribir(k, v) {
+    try { localStorage.setItem(k, v); return true; } catch (e) { return false; }
+  }
+
+  /* Un estado «tiene algo» si hay un solo movimiento. Sin esto, vaciar dos
+     veces seguidas dejaría como copia el estado ya vacío y se perdería la
+     única de verdad. */
+  function conMovimientos(s) {
+    return !!(s && Array.isArray(s.transactions) && s.transactions.length);
+  }
+
+  /* Aparta lo de ahora. Devuelve false si no ha cabido: quien llama NO debe
+     seguir adelante, porque sustituir sin copia es justo lo que se evita. */
+  function guardarCopiaAntes() {
+    if (!conMovimientos(D.state)) return true;      /* nada que perder */
+    return escribir(ANTES_KEY, JSON.stringify(D.state));
+  }
+
+  function hayCopiaAntes() {
+    var raw = leer(ANTES_KEY);
+    if (!raw) return false;
+    try { return conMovimientos(JSON.parse(raw)); } catch (e) { return false; }
+  }
+
+  /* Cuánto hay en un estado, para decírselo a quien va a decidir. */
+  function resumenDeDatos(s) {
+    s = s || D.state;
+    return {
+      movimientos: (s.transactions || []).length,
+      cuentas: (s.accounts || []).length
+    };
+  }
+
+  /* Vuelve a lo de antes. Lo de ahora pasa a ser la copia, así se puede ir
+     y volver las veces que haga falta sin perder nunca ninguna de las dos. */
+  function restaurarCopiaAntes() {
+    var raw = leer(ANTES_KEY);
+    if (!raw) throw new Error("No hay nada guardado de antes.");
+    var parsed = JSON.parse(raw);
+    if (!conMovimientos(parsed)) throw new Error("La copia de antes está vacía.");
+
+    var ahora = D.state;
+    var nuevo = migrate(parsed);
+    if (!guardarCopiaAntes()) throw new Error("No hay sitio para guardar lo de ahora; no cambio nada.");
+
+    D.state = nuevo;
+    invalidateCats();
+    if (!save()) {
+      D.state = ahora;
+      invalidateCats();
+      throw new Error("No se ha podido guardar; sigues con lo de ahora.");
+    }
+    return D.state;
+  }
+
   function load() {
+    var raw = leer(KEY);
     try {
-      var raw = localStorage.getItem(KEY);
       if (raw) {
         var parsed = JSON.parse(raw);
         if (parsed && Array.isArray(parsed.transactions)) {
@@ -400,18 +476,30 @@
           return D.state;
         }
       }
-    } catch (e) { /* almacenamiento no disponible o corrupto: se usa el estado en blanco */ }
+    } catch (e) { /* corrupto o de una forma que no se entiende: se aparta abajo */ }
+
+    /* Había algo y no se ha podido leer. Antes se arrancaba en blanco y el
+       primer guardado lo machacaba para siempre; ahora se aparta primero.
+       Solo la primera vez: la segunda sería ya el estado en blanco. */
+    if (raw && !leer(RESCATE_KEY)) escribir(RESCATE_KEY, raw);
+
     D.state = freshState();
     save();
     return D.state;
   }
 
+  function hayRescate() { return !!leer(RESCATE_KEY); }
+  function rescateJson() { return leer(RESCATE_KEY); }
+
   function save() {
-    try { localStorage.setItem(KEY, JSON.stringify(D.state)); }
-    catch (e) { /* modo privado: la sesión sigue funcionando en memoria */ }
+    try { localStorage.setItem(KEY, JSON.stringify(D.state)); return true; }
+    catch (e) { /* modo privado: la sesión sigue funcionando en memoria */ return false; }
   }
 
+  /* Las dos que sustituyen todo devuelven null si no han podido apartar
+     antes una copia: en ese caso no tocan nada. */
   function reset() {
+    if (!guardarCopiaAntes()) return null;
     D.state = defaultState();
     invalidateCats();
     save();
@@ -419,6 +507,7 @@
   }
 
   function clearAll() {
+    if (!guardarCopiaAntes()) return null;
     D.state = freshState();
     invalidateCats();
     save();
@@ -428,7 +517,13 @@
 
   /* --- lo que se lleva el espacio común --- */
   D.clearAll = clearAll;
+  D.guardarCopiaAntes = guardarCopiaAntes;
+  D.hayCopiaAntes = hayCopiaAntes;
+  D.hayRescate = hayRescate;
   D.hasSavedState = hasSavedState;
+  D.resumenDeDatos = resumenDeDatos;
+  D.rescateJson = rescateJson;
+  D.restaurarCopiaAntes = restaurarCopiaAntes;
   D.load = load;
   D.migrate = migrate;
   D.reset = reset;

@@ -213,6 +213,7 @@
       /* sin rejilla ni números al margen: la forma se lee sola y la
          cifra exacta sale al tocar */
       limpio: true,
+      ultimoAbierto: true,
       thick: 3,
       height: isDesktop() ? 190 : 155,
       ariaLabel: ui.anView === "gastos"
