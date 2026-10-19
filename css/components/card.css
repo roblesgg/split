@@ -61,7 +61,7 @@
   flex: none;
   font-size: var(--t-hint);
   font-weight: var(--w-semi);
-  color: var(--accent);
+  color: var(--accent-text);
   letter-spacing: -0.012em;
   white-space: nowrap;
 }
@@ -486,7 +486,7 @@
   border-radius: var(--r-md);
   border: 1.5px dashed var(--accent);
   background: none;
-  color: var(--accent);
+  color: var(--accent-text);
   font-size: var(--t-body);
   font-weight: var(--w-semi);
   cursor: pointer;
@@ -655,7 +655,7 @@
   white-space: nowrap;
 }
 
-.panel-asa__quitar { color: var(--status-critical); }
+.panel-asa__quitar { color: var(--bad-text); }
 
 /* Mientras se coloca, el cuerpo se aparta: se mira dónde va cada bloque,
    no lo que dice. */

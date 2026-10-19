@@ -186,7 +186,7 @@
 }
 
 .mac-act__label {
-  font-size: 11px;
+  font-size: var(--t-min);
   font-weight: var(--w-semi);
   letter-spacing: -0.01em;
   color: inherit;
@@ -414,8 +414,8 @@
   font-variant-numeric: tabular-nums;
 }
 
-.alloc-total[data-state="ok"]    { color: var(--money-in); }
-.alloc-total[data-state="over"]  { color: var(--status-critical); }
+.alloc-total[data-state="ok"]    { color: var(--good-text); }
+.alloc-total[data-state="over"]  { color: var(--bad-text); }
 .alloc-total[data-state="under"] { color: var(--text-secondary); }
 
 .alloc-row { padding: var(--sp-4) 0; }

@@ -38,8 +38,8 @@
   --card-shadow: var(--lift-sm);
 
   --text-primary: #12151a;
-  --text-secondary: #5c6670;
-  --text-muted: #8b949e;
+  --text-secondary: #4d5761;
+  --text-muted: #626b75;
   --text-on-accent: #ffffff;
   --text-on-dark: #f5f7f8;
 
@@ -58,6 +58,14 @@
 
   --money-in: #00c853;
   --money-out: var(--text-primary);
+
+  /* Las versiones de los colores de estado PARA ESCRIBIR CON ELLOS. Los de
+     arriba valen para rellenos, aros e iconos; como texto sobre blanco no
+     llegan ni a 2,5:1 (el mínimo es 4,5:1). */
+  --accent-text: #00776a;
+  --good-text: #0a7a33;
+  --bad-text: #cc1a10;
+  --warn-text: #965800;
 
   --status-good: #00c853;
   --status-warning: #ff9f0a;
@@ -200,8 +208,8 @@
     --lift-lg: 0 16px 40px rgba(0, 0, 0, 0.55);
 
     --text-primary: #f5f7f8;
-    --text-secondary: #9aa5af;
-    --text-muted: #6b7580;
+    --text-secondary: #aeb8c2;
+    --text-muted: #8d97a2;
     --text-on-accent: #ffffff;
     --text-on-dark: #f5f7f8;
 
@@ -219,6 +227,11 @@
     --glow-accent: 0 12px 28px rgba(0, 184, 160, 0.35);
 
     --money-in: #30d158;
+
+    --accent-text: var(--accent);
+    --good-text: #30d158;
+    --bad-text: #ff6b61;
+    --warn-text: #ffd60a;
 
     --status-good: #30d158;
     --status-warning: #ffd60a;
@@ -264,8 +277,8 @@
   --lift-lg: 0 16px 40px rgba(0, 0, 0, 0.55);
 
   --text-primary: #f5f7f8;
-  --text-secondary: #9aa5af;
-  --text-muted: #6b7580;
+  --text-secondary: #aeb8c2;
+  --text-muted: #8d97a2;
   --text-on-accent: #ffffff;
   --text-on-dark: #f5f7f8;
 
@@ -283,6 +296,11 @@
   --glow-accent: 0 12px 28px rgba(0, 184, 160, 0.35);
 
   --money-in: #30d158;
+
+  --accent-text: var(--accent);
+  --good-text: #30d158;
+  --bad-text: #ff6b61;
+  --warn-text: #ffd60a;
 
   --status-good: #30d158;
   --status-warning: #ffd60a;

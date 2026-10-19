@@ -395,7 +395,7 @@
   white-space: nowrap;
 }
 
-.ajuste[data-dif="in"]  .ajuste__eur { color: var(--money-in); }
+.ajuste[data-dif="in"]  .ajuste__eur { color: var(--good-text); }
 .ajuste[data-dif="out"] .ajuste__eur { color: var(--money-out); }
 .ajuste[data-dif="cero"] { justify-content: center; }
 

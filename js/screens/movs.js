@@ -153,7 +153,7 @@
           '<div class="kpi-row section-gap" style="--i:1">' +
             '<div class="stat stat--compact stat--quiet">' +
               '<p class="stat__label">Entró</p>' +
-              '<p class="stat__value" style="color:var(--money-in)">+ ' +
+              '<p class="stat__value" style="color:var(--good-text)">+ ' +
                 esc(S.moneyShort(t.income)) + '</p>' +
             '</div>' +
             '<div class="stat stat--compact stat--quiet">' +

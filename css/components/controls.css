@@ -146,7 +146,7 @@
 
 .btn--danger {
   background: var(--surface-1);
-  color: var(--status-critical);
+  color: var(--bad-text);
   box-shadow: none;
 }
 

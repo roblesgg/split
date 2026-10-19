@@ -143,7 +143,7 @@
   letter-spacing: -0.045em;
 }
 
-.amount-display[data-kind="in"] { color: var(--money-in); }
+.amount-display[data-kind="in"] { color: var(--good-text); }
 .amount-display__sign { font-size: 0.58em; color: var(--text-muted); }
 .amount-display__cur { font-size: 0.44em; color: var(--text-muted); align-self: center; }
 .amount-display.is-zero { color: var(--text-muted); }

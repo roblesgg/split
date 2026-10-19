@@ -35,7 +35,7 @@
               'style="--cat-color:' + S.catColorVar(cat) + '" ' +
               'aria-hidden="true" data-icon="' + esc(S.catIcon(cat)) + '" data-icon-size="24"></span>' +
         '<p style="margin-top:var(--sp-3);font-size:30px;font-weight:700;letter-spacing:-.035em;' +
-           (isIn ? "color:var(--money-in)" : "") + '">' +
+           (isIn ? "color:var(--good-text)" : "") + '">' +
           (isIn ? "+" : "−") + esc(money(t.amount)) + '</p>' +
         '<p style="margin-top:2px;font-size:14px;color:var(--text-secondary)">' + esc(t.note) + '</p>' +
       '</div>' +

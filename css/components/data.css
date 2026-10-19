@@ -222,8 +222,8 @@
   font-variant-numeric: tabular-nums;
 }
 
-.stat__delta[data-dir="good"] { color: var(--money-in); }
-.stat__delta[data-dir="bad"]  { color: var(--status-critical); }
+.stat__delta[data-dir="good"] { color: var(--good-text); }
+.stat__delta[data-dir="bad"]  { color: var(--bad-text); }
 .stat__delta[data-dir="flat"] { color: var(--text-muted); }
 
 .stat__spark { margin-top: var(--sp-3); }
@@ -502,12 +502,12 @@
 
 .limcard[data-nivel="pasado"] .limcard__pct {
   background: var(--status-critical-wash);
-  color: var(--status-critical);
+  color: var(--bad-text);
 }
 
 .limcard[data-nivel="cerca"] .limcard__pct {
   background: var(--status-warning-wash);
-  color: var(--status-warning);
+  color: var(--warn-text);
 }
 
 .limcard__body {

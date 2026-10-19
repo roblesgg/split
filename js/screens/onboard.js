@@ -70,6 +70,7 @@
     renderOnboardStep();
     $("#onboard").setAttribute("data-open", "true");
     $("#onboard").setAttribute("aria-hidden", "false");
+    $("#onboard").removeAttribute("inert");
     U.haptic("light");
   }
 
@@ -374,6 +375,7 @@
   function closeOnboarding() {
     $("#onboard").setAttribute("data-open", "false");
     $("#onboard").setAttribute("aria-hidden", "true");
+    $("#onboard").setAttribute("inert", "");
   }
 
   function guardarTrabajo(callado) {

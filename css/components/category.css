@@ -88,7 +88,7 @@
 .cat-sub .chip[aria-pressed="true"] {
   background: var(--surface-1);
   box-shadow: inset 0 0 0 2px var(--accent);
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: var(--w-semi);
 }
 
@@ -363,7 +363,7 @@
   box-shadow: inset 0 0 0 2px var(--accent);
 }
 
-.cat-pick[data-dentro="1"] .cat-pick__name { color: var(--accent); }
+.cat-pick[data-dentro="1"] .cat-pick__name { color: var(--accent-text); }
 
 /* ---------- las de dentro, dentro ----------
    La lista de subcategorías vive en la ficha de su madre: es donde se

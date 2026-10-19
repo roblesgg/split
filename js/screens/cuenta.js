@@ -152,7 +152,7 @@
       '<div class="kpi-row">' +
         '<div class="stat stat--compact stat--quiet">' +
           '<p class="stat__label">Ha entrado</p>' +
-          '<p class="stat__value" style="color:var(--money-in)">+ ' +
+          '<p class="stat__value" style="color:var(--good-text)">+ ' +
             esc(S.moneyShort(entra)) + '</p>' +
         '</div>' +
         '<div class="stat stat--compact stat--quiet">' +

@@ -158,7 +158,7 @@
   margin-top: var(--sp-2);
   font-size: var(--t-hint);
   font-weight: var(--w-medium);
-  color: var(--accent);
+  color: var(--accent-text);
   text-decoration: underline;
 }
 
@@ -419,7 +419,7 @@
   font-size: var(--t-hint);
   color: var(--text-secondary);
 }
-.ob-opcion[aria-pressed="true"] .ob-opcion__sub { color: var(--accent); }
+.ob-opcion[aria-pressed="true"] .ob-opcion__sub { color: var(--accent-text); }
 
 .ob-form {
   margin-top: var(--sp-4);
@@ -486,7 +486,7 @@
   flex: none;
   font-size: var(--t-hint);
   font-weight: var(--w-bold);
-  color: var(--accent);
+  color: var(--accent-text);
 }
 
 .aviso-suave:active { background: var(--surface-3); }

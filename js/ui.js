@@ -361,6 +361,7 @@
     this.open = true;
     this.root.setAttribute("data-open", "true");
     this.root.setAttribute("aria-hidden", "false");
+    this.root.removeAttribute("inert");
     this.scrim.setAttribute("data-open", "true");
     haptic("light");
     var list = this._focusables();
@@ -374,6 +375,7 @@
     this.open = false;
     this.root.setAttribute("data-open", "false");
     this.root.setAttribute("aria-hidden", "true");
+    this.root.setAttribute("inert", "");
     this.scrim.setAttribute("data-open", "false");
     if (this._lastFocus && this._lastFocus.focus) this._lastFocus.focus();
     if (typeof this.onClose === "function") this.onClose();
