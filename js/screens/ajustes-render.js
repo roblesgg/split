@@ -95,6 +95,18 @@
       '</div>';
   }
 
+  /* Lo que dice la fila de «Guardar copia»: cuándo fue la última, o que no
+     ha habido ninguna. Y que no lleva las fotos de los tickets, que es
+     justo lo que alguien creería que sí lleva. */
+  function textoUltimaCopia() {
+    var d = S.diasSinCopia();
+    var cuando = d === null ? "Todavía no has guardado ninguna"
+               : d === 0 ? "Última copia: hoy"
+               : d === 1 ? "Última copia: ayer"
+               : "Última copia: hace " + d + " días";
+    return cuando + ". No lleva las fotos de los tickets";
+  }
+
   function renderAjustes() {
     var root = $("#view-ajustes");
     var inc = S.state.income;
@@ -292,7 +304,7 @@
         '<div class="card__head card__pad--tight" style="margin-bottom:0">' +
           '<h2 class="card__title">Tus datos</h2>' +
         '</div>' +
-        settingRow("download", "Exportar", "", "export") +
+        settingRow("download", "Guardar copia", textoUltimaCopia(), "export") +
         settingRow("upload", "Importar", "", "import") +
         /* Solo sale cuando hay algo a lo que volver: una fila que no hace
            nada es ruido, y esta es de las que se agradece cuando aparece. */

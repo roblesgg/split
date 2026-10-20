@@ -186,6 +186,45 @@
     }
   }
 
+  /* Saca una copia de los datos fuera de la app.
+
+     En el móvil abre el menú de compartir de Android (Drive, correo,
+     WhatsApp, Archivos…) con el plugin nativo. Un enlace de descarga del
+     navegador, que es lo que había, dentro del WebView no guarda nada:
+     se comprobó en un móvil real. Y aun así salía «Archivo descargado».
+
+     En un navegador sí funciona la descarga de siempre. Y si estamos en el
+     móvil pero esta versión del envoltorio no trae el plugin, se dice la
+     verdad en vez de fingir que se ha guardado. */
+  function guardarCopia() {
+    var nombre = "split-" + S.ymd(new Date()) + ".json";
+    var texto = S.exportJson();
+    var C = window.Capacitor && window.Capacitor.Plugins && window.Capacitor.Plugins.Copia;
+
+    if (C && typeof C.compartir === "function") {
+      C.compartir({ nombre: nombre, texto: texto }).then(function () {
+        S.marcarCopia();
+        renderAll();
+        U.toast("Elige dónde guardarla: Drive, correo, WhatsApp…", { icon: "check", duration: 5000 });
+      }).catch(function () {
+        U.toast("No he podido preparar la copia. Prueba otra vez.", { icon: "warning", duration: 5000 });
+      });
+      return;
+    }
+
+    var enMovil = window.Capacitor && typeof window.Capacitor.getPlatform === "function" &&
+                  window.Capacitor.getPlatform() !== "web";
+    if (enMovil) {
+      U.toast("Esta versión no puede guardar la copia. Actualiza split.", { icon: "warning", duration: 6000 });
+      return;
+    }
+
+    descargar(nombre, texto);
+    S.marcarCopia();
+    renderAll();
+    U.toast("Archivo descargado", { icon: "check" });
+  }
+
   /* Descarga un texto como archivo .json. */
   function descargar(nombre, texto) {
     var blob = new Blob([texto], { type: "application/json" });
@@ -221,11 +260,7 @@
       return;
     }
 
-    if (action === "export") {
-      descargar("split-" + S.ymd(new Date()) + ".json", S.exportJson());
-      U.toast("Archivo descargado", { icon: "check" });
-      return;
-    }
+    if (action === "export") { guardarCopia(); return; }
 
     if (action === "import") { $("#importFile").click(); return; }
 
@@ -299,6 +334,7 @@
   A.bindAjustes = bindAjustes;
   A.emojiCorto = emojiCorto;
   A.emojiHint = emojiHint;
+  A.guardarCopia = guardarCopia;
   A.handleSetting = handleSetting;
   A.refreshLimites = refreshLimites;
   A.settingRow = settingRow;

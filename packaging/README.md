@@ -84,7 +84,8 @@ instalarlo tú y usarlo, pero:
 - No vale para subirlo a Google Play.
 - Si algún día generas un APK de *release* con otra clave, Android lo tratará
   como una app distinta: habría que desinstalar esta primero, y **se perderían
-  los datos guardados**. Exporta antes desde Ajustes → Exportar.
+  los datos guardados**. Saca antes una copia desde Ajustes → Guardar copia
+  (y comprueba que ha llegado donde querías: Drive, correo…).
 
 ## Iconos
 

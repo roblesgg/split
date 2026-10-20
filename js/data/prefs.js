@@ -113,7 +113,56 @@
   }
 
 
+  /* ---------- cuándo se sacó la última copia ----------
+     Una copia de seguridad que hay que acordarse de hacer no lo es, así
+     que la app lleva la cuenta y avisa. La fecha vive FUERA del estado, en
+     su propia clave: no entra en Exportar, no pasa por la migración y no
+     cambia la forma de los datos. Es «la última vez que se sacó», no «la
+     última vez que llegó a buen puerto»: el menú de compartir de Android
+     no dice si se terminó de guardar. */
+
+  var COPIA_KEY = "split.copia";
+  var AVISO_KEY = "split.copia.aviso";
+  var DIAS_SIN_COPIA = 14;    /* a partir de aquí se avisa */
+  var MOVS_MINIMOS = 5;       /* con menos, no hay nada que cuidar todavía */
+
+  function fechaGuardada(k) {
+    try {
+      var v = localStorage.getItem(k);
+      return /^\d{4}-\d{2}-\d{2}$/.test(v || "") ? v : null;
+    } catch (e) { return null; }
+  }
+
+  function guardarFecha(k) {
+    try { localStorage.setItem(k, D.ymd(new Date())); } catch (e) { /* sin almacenamiento */ }
+  }
+
+  function marcarCopia() { guardarFecha(COPIA_KEY); }
+  function marcarAvisoDeCopia() { guardarFecha(AVISO_KEY); }
+
+  /* Días desde la última copia; null si no ha sacado ninguna nunca. */
+  function diasSinCopia() {
+    var u = fechaGuardada(COPIA_KEY);
+    if (!u) return null;
+    var a = D.parseYmd(u), h = D.parseYmd(D.ymd(new Date()));
+    return Math.max(0, Math.round((h - a) / 86400000));
+  }
+
+  /* ¿Hay que avisar ahora? Solo si hay algo que perder, hace tiempo que no
+     se saca copia, y todavía no se ha avisado hoy: avisar a cada apertura
+     es la forma de que dejen de leerlo. */
+  function avisoDeCopia() {
+    if (!D.state || (D.state.transactions || []).length < MOVS_MINIMOS) return false;
+    var d = diasSinCopia();
+    if (d !== null && d < DIAS_SIN_COPIA) return false;
+    return fechaGuardada(AVISO_KEY) !== D.ymd(new Date());
+  }
+
   /* --- lo que se lleva el espacio común --- */
+  D.avisoDeCopia = avisoDeCopia;
+  D.diasSinCopia = diasSinCopia;
+  D.marcarAvisoDeCopia = marcarAvisoDeCopia;
+  D.marcarCopia = marcarCopia;
   D.EMOJI_SETS = EMOJI_SETS;
   D.applyEmojiSet = applyEmojiSet;
   D.applyTheme = applyTheme;

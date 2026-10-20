@@ -115,7 +115,19 @@
     asegurarHuecoInferior();
 
     if (firstRun) setTimeout(startOnboarding, 500);
-    else { checkForUpdate(); setTimeout(abrirCobros, 700); }
+    else { checkForUpdate(); setTimeout(abrirCobros, 700); setTimeout(avisarDeCopia, 3000); }
+  }
+
+  /* Si hace tiempo que no se saca una copia, se dice. Una vez al día como
+     mucho, y solo cuando hay algo que perder: ver `avisoDeCopia`. Los datos
+     viven solo en el móvil, y perder el móvil sin copia es perderlo todo. */
+  function avisarDeCopia() {
+    if (!S.avisoDeCopia()) return;
+    S.marcarAvisoDeCopia();
+    var d = S.diasSinCopia();
+    U.toast(d === null ? "Todavía no has guardado ninguna copia de tus datos"
+                       : "Hace " + d + " días que no guardas una copia de tus datos",
+            { icon: "warning", duration: 9000, actionLabel: "Guardar", onAction: A.guardarCopia });
   }
 
   /* Dentro de la app, el hueco de la barra de navegación lo manda la capa

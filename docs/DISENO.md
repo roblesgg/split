@@ -742,6 +742,32 @@ Y si al arrancar lo guardado **no se puede leer**, no se empieza en blanco
 encima: se aparta en `split.state.v1.rescate` y Ajustes ofrece descargarlo.
 Antes el primer guardado lo machacaba para siempre.
 
+### Guardar copia: sacar los datos del móvil de verdad
+
+Los datos viven solo en el móvil, así que perder el móvil sin copia es perderlo
+todo. Hasta la 1.44, **Exportar** creaba el archivo con un enlace de descarga
+del navegador, y dentro del WebView de Capacitor eso **no guarda nada**: se
+comprobó en un móvil real, con adb, buscando el archivo por nombre en todo el
+almacenamiento después de pulsar el botón. Y la app decía «Archivo descargado»
+igualmente.
+
+Ahora la fila se llama **Guardar copia** y, en el móvil, abre el **menú de
+compartir de Android** (Drive, correo, WhatsApp, Archivos…). Lo hace un plugin
+nativo, `CopiaPlugin`: escribe el JSON en la caché privada de la app y se lo
+pasa al menú con el `FileProvider` que ya había, así que no pide permisos. Tira
+el archivo anterior cada vez, para no acumular finanzas en la caché.
+
+- En un **navegador** sigue siendo una descarga normal.
+- En el móvil con un envoltorio **sin el plugin** se dice la verdad —«esta
+  versión no puede guardar la copia»— en vez de fingir.
+- La fila dice cuándo fue la última copia y recuerda que **no lleva las fotos de
+  los tickets**.
+- **Avisa** al abrir la app si hace 14 días o más que no se saca copia (o nunca),
+  con más de cinco movimientos, y **una vez al día** como mucho. La fecha vive en
+  su propia clave (`split.copia`), fuera del estado: no entra en el archivo ni en
+  la migración. Es «la última vez que se sacó», no «la última que llegó a buen
+  puerto»: Android no dice si se terminó de guardar.
+
 Ojo con esto: **el archivo de Exportar no lleva los adjuntos**, solo sus ids. Al
 importarlo en otro dispositivo el movimiento aparece entero pero sin las
 imágenes.

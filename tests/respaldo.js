@@ -213,6 +213,47 @@ module.exports = function () {
   t.es("sin tocar nada", cuenta(), 4);
 
   /* ============================================================
+     Cuándo avisar de que falta una copia (hoy es 2026-09-18)
+     ============================================================ */
+
+  t.grupo("El aviso de copia: solo cuando hay algo que perder");
+  almacenLimpio();
+  D.state = conMovimientos(3);
+  t.es("con pocos movimientos no hay nada que cuidar: no avisa", D.avisoDeCopia(), false);
+
+  D.state = conMovimientos(6);
+  t.es("sin haber sacado nunca una copia, no hay días que contar", D.diasSinCopia(), null);
+  t.es("y con datos de verdad, avisa", D.avisoDeCopia(), true);
+  D.marcarAvisoDeCopia();
+  t.es("pero solo una vez al día", D.avisoDeCopia(), false);
+
+  t.grupo("El aviso de copia: cuándo hace «mucho»");
+  almacenLimpio();
+  D.state = conMovimientos(6);
+  D.marcarCopia();
+  t.es("recién sacada son 0 días", D.diasSinCopia(), 0);
+  t.es("y no avisa", D.avisoDeCopia(), false);
+  guardado["split.copia"] = "2026-09-05";
+  t.es("hace 13 días: todavía no", [D.diasSinCopia(), D.avisoDeCopia()], [13, false]);
+  guardado["split.copia"] = "2026-09-04";
+  t.es("hace 14: ya sí", [D.diasSinCopia(), D.avisoDeCopia()], [14, true]);
+  guardado["split.copia"] = "basura";
+  t.es("una fecha rota cuenta como «nunca», no como un error", D.diasSinCopia(), null);
+
+  t.grupo("La fecha de la copia no entra en tus datos");
+  almacenLimpio();
+  D.state = conMovimientos(6);
+  D.save();
+  var antesDeMarcar = guardado[KEY];
+  D.marcarCopia();
+  t.es("marcarla no toca lo guardado", guardado[KEY], antesDeMarcar);
+  t.es("lo que se exporta es solo el estado, sin la fecha de la copia",
+       D.exportJson(), JSON.stringify(D.state, null, 2));
+  t.es("y el estado no tiene ninguna clave de copia",
+       Object.keys(D.state).filter(function (k) { return /copia/i.test(k); }), []);
+  t.es("vive en su propia clave", guardado["split.copia"], "2026-09-18");
+
+  /* ============================================================
      Un guardado que no se puede leer
      ============================================================ */
 

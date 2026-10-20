@@ -246,7 +246,9 @@
     exportJson: exportJson, importJson: importJson,
     inspeccionarJson: D.inspeccionarJson, resumenDeDatos: D.resumenDeDatos,
     hayCopiaAntes: D.hayCopiaAntes, restaurarCopiaAntes: D.restaurarCopiaAntes,
-    hayRescate: D.hayRescate, rescateJson: D.rescateJson
+    hayRescate: D.hayRescate, rescateJson: D.rescateJson,
+    marcarCopia: D.marcarCopia, diasSinCopia: D.diasSinCopia,
+    avisoDeCopia: D.avisoDeCopia, marcarAvisoDeCopia: D.marcarAvisoDeCopia
   };
 
 })();

@@ -55,6 +55,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(ActualizadorPlugin.class);
         registerPlugin(RecordatorioPlugin.class);
         registerPlugin(WidgetsPlugin.class);
+        registerPlugin(CopiaPlugin.class);
 
         super.onCreate(savedInstanceState);
 
